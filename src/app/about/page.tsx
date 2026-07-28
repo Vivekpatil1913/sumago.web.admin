@@ -5,10 +5,6 @@ import {
   ShieldCheck,
   Trophy,
   Sparkles,
-  Quote,
-  Compass,
-  Target,
-  Star,
   ArrowRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -21,8 +17,10 @@ import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
 import { MosaicGallery } from "@/components/organisms/gallery/mosaic-gallery";
 import { CoreValuesRadial, type CoreValue } from "@/components/organisms/about/core-values";
 import { StoryTimeline } from "@/components/organisms/about/story-timeline";
+import { VisionMission } from "@/components/organisms/about/vision-mission";
+import { TrustWall } from "@/components/organisms/about/trust-wall";
 import { company } from "@/lib/site";
-import { awards, mediaMentions, clientNames, testimonials } from "@/lib/content";
+import { awards, mediaMentions, clientNames } from "@/lib/content";
 import { previewImages, cultureGalleryImages } from "@/lib/preview-assets";
 
 export const metadata: Metadata = {
@@ -240,41 +238,7 @@ export default function AboutPage() {
           }
           description="Two ideas keep every decision honest — where we're headed, and how we earn our way there."
         />
-        <div className="mt-12 grid gap-6 lg:grid-cols-2">
-          {[
-            {
-              icon: Compass,
-              title: "Our Vision",
-              body: "To become a globally trusted digital transformation partner that empowers businesses through innovation, intelligent technology, and long-term strategic partnerships.",
-            },
-            {
-              icon: Target,
-              title: "Our Mission",
-              body: "To deliver world-class digital solutions that solve real business problems by combining deep business understanding, modern technologies, exceptional user experiences, and continuous innovation.",
-            },
-          ].map((card, i) => (
-            <div
-              key={card.title}
-              data-aos="fade-up"
-              data-aos-delay={i * 100}
-              className="card-hover relative overflow-hidden rounded-2xl border border-line bg-paper p-8"
-            >
-              <card.icon
-                className="pointer-events-none absolute -right-6 -top-6 text-brand/[0.06]"
-                size={150}
-                aria-hidden
-              />
-              <div className="relative">
-                <div className="mb-6 h-1 w-12 rounded-full bg-brand" />
-                <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand/10 text-brand">
-                  <card.icon size={24} aria-hidden />
-                </span>
-                <h3 className="mt-5 text-2xl font-bold">{card.title}</h3>
-                <p className="mt-3 leading-relaxed text-ink/75">{card.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <VisionMission />
       </Section>
 
       {/* 3 · Core values */}
@@ -463,61 +427,9 @@ export default function AboutPage() {
         </div>
       </Section>
 
-      {/* 6 · What they say */}
-      <Section muted>
-        <SectionHeading
-          eyebrow="In their words"
-          title={
-            <>
-              Don&apos;t take our word for it.{" "}
-              <span className="text-metal-red-shine">Take theirs.</span>
-            </>
-          }
-          description="The enterprises, founders, and institutions we build for — in their own words."
-        />
-        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.slice(0, 6).map((t, i) => (
-            <figure
-              key={t.role}
-              data-aos="fade-up"
-              data-aos-delay={(i % 3) * 70}
-              className={`card-hover relative flex h-full flex-col rounded-2xl border border-line bg-paper p-7 shadow-sm ${
-                i === 0 ? "lg:col-span-2" : ""
-              }`}
-            >
-              <span
-                aria-hidden
-                className="absolute left-0 top-7 h-10 w-1 rounded-r-full"
-                style={{ backgroundColor: t.accent }}
-              />
-              <div className="flex items-center justify-between">
-                <Quote className="text-ink/15" size={30} aria-hidden />
-                <div className="flex gap-0.5" aria-label={`${t.rating} out of 5`}>
-                  {Array.from({ length: 5 }).map((_, s) => (
-                    <Star
-                      key={s}
-                      size={14}
-                      className={s < t.rating ? "text-brand" : "text-ink/20"}
-                      fill={s < t.rating ? "currentColor" : "none"}
-                      aria-hidden
-                    />
-                  ))}
-                </div>
-              </div>
-              <blockquote
-                className={`mt-3 flex-1 leading-relaxed text-ink/80 ${
-                  i === 0 ? "text-lg" : "text-sm"
-                }`}
-              >
-                {t.quote}
-              </blockquote>
-              <figcaption className="mt-6 border-t border-line pt-4 text-sm font-medium text-ink/55">
-                {t.role}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </Section>
+      {/* 6 · What they say — scroll-driven wall of proof that resolves
+          into the closing brand moment. Full-bleed: no Section wrapper. */}
+      <TrustWall />
 
       {/* 7 · The team behind it all */}
       <Section>

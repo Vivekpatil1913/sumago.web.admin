@@ -1,41 +1,157 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, FlaskConical } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Compass,
+  Eye,
+  FlaskConical,
+  HeartHandshake,
+  Search,
+  ShieldCheck,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
-import { ToolStrip } from "@/components/molecules/tool-strip";
 import { HeroEffect } from "@/components/organisms/hero-effect";
 import { HeroStars } from "@/components/three/hero-stars";
+import { ServiceNav, type Chapter } from "@/components/organisms/solutions/service-nav";
+import {
+  ShiftDiagram,
+  QuadrantDiagram,
+  ManifestDiagram,
+  OutcomeSteps,
+  OrbitDiagram,
+  RelatedMap,
+} from "@/components/organisms/solutions/service-diagrams";
 import { CAPABILITY_ICONS, FALLBACK_CAPABILITY_ICON } from "@/lib/capability-icons";
 import { PHASES, type ServiceWithSlug } from "@/lib/services";
+import { servicePageCopy as copy } from "@/lib/service-page-copy";
+import { renderCopy } from "@/lib/rich-text";
 import { differentiators } from "@/lib/content";
 import type { impactStories } from "@/lib/site";
 
 /**
- * The redesigned service detail page — editorial, card-free, and written for the
- * enterprise decision-maker (CEO/CTO/CIO/Founder).
+ * The service detail template — one layout, rendered for all 15 services.
  *
- * Design thought is carried over from the team page and the Solutions index:
- * the type carries each block, not card chrome. Tilted brand-gradient plates,
- * oversized ghost glyphs and numerals, red gradient rules, ambient brand glows,
- * and a light → mist → dark band rhythm. The old layout's sticky sidebar and
- * repeated bordered-tile grids are gone — they read as a documentation template,
- * which is exactly what a page selling judgment shouldn't be.
+ * DESIGN
+ * Editorial and card-free: the type carries each block, not card chrome. Tilted
+ * brand-gradient plates, oversized ghost numerals, red gradient rules, ambient
+ * glows, and a light → mist → dark band rhythm, matching the team page and the
+ * Solutions index. Written for the enterprise decision-maker (CEO/CTO/CIO).
  *
- * Narrative order mirrors how the decision actually gets made (docs/08 —
- * problem first, capability second):
+ * The narrative mirrors how the decision actually gets made (docs/08 — problem
+ * first, capability second):
  *   hook (their problem) → do I qualify → the answer → what lands → what changes
  *   → what it's built in → proof → why Sumago → where next
  *
- * Server component: every effect is CSS, so the only JS shipped is the hero's
- * lazy 3D starfield — which keeps the Lighthouse ≥95 gate (CLAUDE.md) intact.
+ * DYNAMIC BY CONSTRUCTION — nothing here is written per service:
+ *   service content  ← `Service` (lib/services.ts)      → Sanity `service` docs
+ *   page chrome      ← `servicePageCopy`                → Sanity `servicePage`
+ *   lifecycle rail   ← `PHASES`                         → Sanity `phase` docs
+ *   trust triplet    ← `differentiators` (lib/content)  → Sanity `differentiator`
+ * There is not one literal service name, heading, or standfirst in this file.
+ * Adding a service is a data edit; moving to the CMS is a fetch swap.
+ *
+ * Every section renders only when its data exists, so a sparse service degrades
+ * to a shorter page rather than an empty heading — and the chapter rail is built
+ * from the sections that actually rendered.
+ *
+ * Server component: every effect is CSS. The only JS shipped is the hero's lazy
+ * 3D starfield and the chapter rail's scroll-spy, which keeps the Lighthouse ≥95
+ * gate (CLAUDE.md) intact.
  */
 
 type Story = (typeof impactStories)[number];
 
+/**
+ * Icons for the trust triplet. The `differentiators` data carries a lucide name
+ * (never a component — a Sanity field could only ever hold the string), and it
+ * resolves to a component here, the same way capability icons do.
+ */
+const TRUST_ICONS: Record<string, LucideIcon> = {
+  Search,
+  Compass,
+  Users,
+  Eye,
+  ShieldCheck,
+  HeartHandshake,
+};
+
+/** Stable ids — shared by the sections and the chapter rail. */
+const IDS = {
+  problem: "approach",
+  whoFor: "who-for",
+  deliverables: "deliverables",
+  outcomes: "outcomes",
+  stack: "stack",
+  proof: "proof",
+  why: "why-sumago",
+  related: "related",
+} as const;
+
 /* -------------------------------------------------------------------------- */
 /*  Hero                                                                       */
 /* -------------------------------------------------------------------------- */
+
+/**
+ * The lifecycle rail — where this service sits in Consulting → Designing →
+ * Building → Marketing → Support. It answers "what else does this come with?"
+ * before the visitor has to ask, and it's the one piece of cross-sell that
+ * belongs above the fold.
+ */
+function PhaseRail({ current }: { current: string }) {
+  const activeIndex = PHASES.findIndex((p) => p.key === current);
+
+  return (
+    <ol className="mt-10 flex flex-wrap items-center gap-x-2 gap-y-3 sm:gap-x-3">
+      {PHASES.map((p, i) => {
+        const isActive = i === activeIndex;
+        const isPast = i < activeIndex;
+        return (
+          <li key={p.key} className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/solutions"
+              aria-current={isActive ? "step" : undefined}
+              className="group inline-flex items-center gap-2"
+            >
+              <span
+                aria-hidden
+                className="h-1.5 w-1.5 rounded-full transition-colors duration-300"
+                style={{
+                  background: isActive
+                    ? "var(--color-brand)"
+                    : isPast
+                      ? "rgba(255,255,255,0.4)"
+                      : "rgba(255,255,255,0.18)",
+                }}
+              />
+              <span
+                className="font-display text-[0.7rem] font-bold uppercase tracking-[0.16em] transition-colors duration-300"
+                style={{
+                  color: isActive
+                    ? "var(--color-brand-bright)"
+                    : isPast
+                      ? "rgba(255,255,255,0.45)"
+                      : "rgba(255,255,255,0.28)",
+                }}
+              >
+                {p.label}
+              </span>
+            </Link>
+            {i < PHASES.length - 1 ? (
+              <span
+                aria-hidden
+                className="hidden h-px w-5 bg-white/15 sm:inline-block"
+              />
+            ) : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 /**
  * Dark cinematic hero. Echoes the main-page heroes (circuit backdrop + a 3D star
@@ -65,7 +181,7 @@ function ServiceHero({ service }: { service: ServiceWithSlug }) {
           className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-white/60 transition-colors hover:text-white"
         >
           <ArrowLeft size={15} aria-hidden />
-          All services
+          {copy.hero.backLabel}
         </Link>
 
         {/* Identity line — icon on a tilted brand plate, echoing the team portraits. */}
@@ -81,9 +197,7 @@ function ServiceHero({ service }: { service: ServiceWithSlug }) {
             <p className="font-display text-xs font-bold uppercase tracking-[0.22em] text-white/40">
               Stage {String(stage).padStart(2, "0")} · {phase?.label}
             </p>
-            <p className="mt-1 text-sm font-medium text-white/55">
-              {service.blurb}
-            </p>
+            <p className="mt-1 text-sm font-medium text-white/55">{service.blurb}</p>
           </div>
         </div>
 
@@ -98,15 +212,18 @@ function ServiceHero({ service }: { service: ServiceWithSlug }) {
         </p>
 
         <div className="mt-10 flex flex-wrap items-center gap-4">
-          <Button href="/contact">Start a conversation</Button>
+          <Button href="/contact">{copy.hero.primaryCta}</Button>
           <a
-            href="#approach"
+            href={`#${IDS.problem}`}
             className="inline-flex items-center gap-1.5 text-sm font-bold text-white/70 transition-colors hover:text-white"
           >
-            See how it works
+            {copy.hero.secondaryCta}
             <ArrowRight size={15} aria-hidden />
           </a>
         </div>
+
+        {/* Where this sits in the lifecycle. */}
+        <PhaseRail current={service.phase} />
       </div>
     </section>
   );
@@ -119,42 +236,27 @@ function ServiceHero({ service }: { service: ServiceWithSlug }) {
 /**
  * The hook. The visitor's problem set as a pull-quote — their own voice carries
  * the block, exactly as the leadership quotes do on the team page — then the red
- * rule turns it into Sumago's answer.
+ * rule turns it into Sumago's answer, which sits on a tinted plate so the two
+ * halves read as question and reply rather than two paragraphs.
  */
 function ProblemApproach({ service }: { service: ServiceWithSlug }) {
+  const Icon = CAPABILITY_ICONS[service.icon] ?? FALLBACK_CAPABILITY_ICON;
+
   return (
-    <Section id="approach" className="scroll-mt-24">
-      <div className="mx-auto max-w-4xl">
-        <div data-aos="fade-up" className="relative">
-          <p className="mb-4 text-sm font-bold uppercase tracking-[0.22em] text-brand-ink">
-            The problem
-          </p>
-
-          {/* Oversized quote glyph, tucked behind the text. */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -left-3 -top-10 select-none font-display text-[9rem] leading-none text-brand/10"
-          >
-            &ldquo;
-          </span>
-
-          <p className="relative text-xl leading-[1.5] tracking-tight text-ink md:text-2xl lg:text-[1.75rem]">
-            {service.problem}
-          </p>
-        </div>
-
-        {/* Red gradient rule → the answer. */}
-        <div className="mt-10 h-px w-24 bg-gradient-to-r from-brand to-transparent" />
-
-        <div data-aos="fade-up" className="mt-10">
-          <h2 className="text-2xl font-bold tracking-tight text-ink md:text-3xl">
-            How Sumago approaches it
-          </h2>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-ink/70">
-            {service.approach}
-          </p>
-        </div>
-      </div>
+    <Section id={IDS.problem} className="scroll-mt-32">
+      <p
+        data-aos="fade-up"
+        className="mb-10 text-center text-sm font-bold uppercase tracking-[0.22em] text-brand-ink"
+      >
+        {copy.problem.eyebrow}
+      </p>
+      <ShiftDiagram
+        problem={service.problem}
+        approach={service.approach}
+        approachHeading={copy.problem.approachHeading}
+        problemLabel={copy.problem.todayLabel}
+        Icon={Icon}
+      />
     </Section>
   );
 }
@@ -167,40 +269,49 @@ function ProblemApproach({ service }: { service: ServiceWithSlug }) {
  * Qualification, up front. An enterprise buyer decides whether to keep reading
  * in seconds — these are the situations they arrive in, in their own terms.
  * Set as a numbered ledger: substance over marketing tiles.
+ *
+ * Where the copy hasn't been written yet, a flagged gap renders outside
+ * production (docs/17) rather than an invented set of situations.
  */
-function WhoFor({ service }: { service: ServiceWithSlug }) {
-  if (!service.whoFor?.length) return null;
+function WhoFor({ service, isProd }: { service: ServiceWithSlug; isProd: boolean }) {
+  const items = service.whoFor ?? [];
+
+  if (!items.length) {
+    if (isProd) return null;
+    return (
+      <Section muted id={IDS.whoFor} className="scroll-mt-32">
+        <div
+          data-placeholder="who-for"
+          className="mx-auto max-w-3xl rounded-xl border border-dashed border-amber-400/60 bg-amber-50 p-5 text-sm leading-relaxed text-amber-900"
+        >
+          <span className="font-bold">[SEED COPY NEEDED]</span> — &ldquo;Who this
+          is for&rdquo; is unwritten for {service.name}. Needed: four situations a
+          buyer arrives in, in their own words (title + one sentence), added as{" "}
+          <code>whoFor</code> in lib/services.ts. Positioning only — no metrics.
+          Hidden in production.
+        </div>
+      </Section>
+    );
+  }
 
   return (
-    <Section muted>
+    <Section muted id={IDS.whoFor} className="scroll-mt-32">
       <SectionHeading
-        eyebrow="Who this is for"
-        title={
-          <>
-            If any of this sounds like{" "}
-            <span className="text-metal-red">your quarter</span>.
-          </>
+        eyebrow={copy.whoFor.eyebrow}
+        title={renderCopy(copy.whoFor.title)}
+        description={
+          copy.whoFor.description
+            ? renderCopy(copy.whoFor.description, {
+                service: service.name,
+                count: String(items.length),
+              })
+            : undefined
         }
-        description="Web Platform Engineering is usually the answer to one of these four conversations — not to a feature list."
       />
-      <ul className="mx-auto mt-12 max-w-5xl border-t border-line">
-        {service.whoFor.map((w, i) => (
-          <li
-            key={w.title}
-            data-aos="fade-up"
-            data-aos-delay={(i % 3) * 60}
-            className="group grid items-baseline gap-x-6 gap-y-1 border-b border-line py-6 transition-colors hover:bg-paper sm:grid-cols-[auto_minmax(0,18rem)_1fr] sm:py-7"
-          >
-            <span className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <h3 className="text-lg font-bold leading-snug text-ink">{w.title}</h3>
-            <p className="text-sm leading-relaxed text-ink/65 sm:text-base">
-              {w.description}
-            </p>
-          </li>
-        ))}
-      </ul>
+      <QuadrantDiagram
+        items={items}
+        Icon={CAPABILITY_ICONS[service.icon] ?? FALLBACK_CAPABILITY_ICON}
+      />
     </Section>
   );
 }
@@ -211,41 +322,28 @@ function WhoFor({ service }: { service: ServiceWithSlug }) {
 
 /**
  * What actually lands. These are Sumago's delivery artifacts — not client
- * results — so they carry no metrics. Set open on the page as a numbered ledger
- * rather than the old grid of bordered tick-boxes.
+ * results — so they carry no metrics. Each is set as a numbered row whose rule
+ * fills red on hover: a manifest being ticked off, not a grid of tick-boxes.
  */
 function Deliverables({ service }: { service: ServiceWithSlug }) {
   if (!service.deliverables?.length) return null;
 
   return (
-    <Section>
+    <Section id={IDS.deliverables} className="scroll-mt-32">
       <SectionHeading
-        eyebrow="What you get"
-        title={
-          <>
-            The artifacts an engagement{" "}
-            <span className="text-metal-red">leaves behind</span>.
-          </>
+        eyebrow={copy.deliverables.eyebrow}
+        title={renderCopy(copy.deliverables.title)}
+        description={
+          copy.deliverables.description
+            ? renderCopy(copy.deliverables.description)
+            : undefined
         }
-        description="Tangible things your team owns at the end — not a slide deck describing them."
       />
-      <ul className="mx-auto mt-12 max-w-4xl">
-        {service.deliverables.map((d, i) => (
-          <li
-            key={d}
-            data-aos="fade-up"
-            data-aos-delay={(i % 3) * 60}
-            className="group flex items-baseline gap-6 border-b border-line py-7 first:border-t"
-          >
-            <span className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <span className="text-lg font-medium leading-snug text-ink md:text-xl">
-              {d}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <ManifestDiagram
+        items={service.deliverables}
+        title={copy.deliverables.manifestTitle}
+        footnote={copy.deliverables.footnote}
+      />
     </Section>
   );
 }
@@ -263,7 +361,7 @@ function Outcomes({ service }: { service: ServiceWithSlug }) {
   if (!service.outcomes?.length) return null;
 
   return (
-    <Section dark className="relative overflow-hidden">
+    <Section dark id={IDS.outcomes} className="relative overflow-hidden scroll-mt-32">
       {/* Ambient brand glow so the dark band feels lit, not flat. */}
       <div
         aria-hidden
@@ -271,37 +369,18 @@ function Outcomes({ service }: { service: ServiceWithSlug }) {
       />
       <SectionHeading
         tone="dark"
-        eyebrow="What changes"
-        title={
-          <>
-            The difference this makes to{" "}
-            <span className="text-metal-red-shine">the business</span>.
-          </>
+        eyebrow={copy.outcomes.eyebrow}
+        title={renderCopy(copy.outcomes.title, {}, "dark")}
+        description={
+          copy.outcomes.description ? renderCopy(copy.outcomes.description) : undefined
         }
-        description="Not what gets built — what it's worth once it's running."
       />
-      <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
-        {service.outcomes.map((o, i) => (
-          <div
-            key={o}
-            data-aos="fade-up"
-            data-aos-delay={(i % 3) * 80}
-            className="group relative"
-          >
-            {/* Oversized ghost numeral — depth without a container. */}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute -left-1 -top-10 select-none font-display text-[5.5rem] font-bold leading-none text-white/[0.06] transition-colors duration-500 group-hover:text-brand/20"
-            >
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <p className="relative text-xl font-bold leading-snug tracking-tight text-white md:text-2xl">
-              {o}
-            </p>
-            <div className="mt-5 h-px w-14 bg-gradient-to-r from-brand to-transparent" />
-          </div>
-        ))}
-      </div>
+      <OutcomeSteps
+        items={service.outcomes}
+        startLabel={copy.outcomes.journeyStart}
+        endLabel={copy.outcomes.journeyEnd}
+        Icon={CAPABILITY_ICONS[service.icon] ?? FALLBACK_CAPABILITY_ICON}
+      />
     </Section>
   );
 }
@@ -316,29 +395,20 @@ function Stack({ service }: { service: ServiceWithSlug }) {
   if (!service.technologies?.length && !service.tools?.length) return null;
 
   return (
-    <Section muted>
+    <Section muted id={IDS.stack} className="scroll-mt-32">
       <SectionHeading
-        eyebrow="The stack"
-        title={
-          <>
-            Built on what your team can{" "}
-            <span className="text-metal-red">actually hire for</span>.
-          </>
+        eyebrow={copy.stack.eyebrow}
+        title={renderCopy(copy.stack.title)}
+        description={
+          copy.stack.description ? renderCopy(copy.stack.description) : undefined
         }
-        description="Mainstream, well-supported technology — chosen so the platform stays maintainable long after launch, by people who aren't us."
       />
-      <div data-aos="fade-up" className="mx-auto mt-12 max-w-4xl">
-        {service.technologies?.length ? (
-          <p className="text-sm font-medium uppercase tracking-[0.1em] text-ink/40">
-            {service.technologies.join("  ·  ")}
-          </p>
-        ) : null}
-        <ToolStrip
-          tools={service.tools}
-          label={`Tools used for ${service.name}`}
-          className="mt-8"
-        />
-      </div>
+      <OrbitDiagram
+        tools={service.tools}
+        technologies={service.technologies}
+        label={`Tools used for ${service.name}`}
+        Icon={CAPABILITY_ICONS[service.icon] ?? FALLBACK_CAPABILITY_ICON}
+      />
     </Section>
   );
 }
@@ -364,14 +434,10 @@ function Proof({
   if (!stories.length && isProd) return null;
 
   return (
-    <Section>
+    <Section id={IDS.proof} className="scroll-mt-32">
       <SectionHeading
-        eyebrow="Proof of work"
-        title={
-          <>
-            The <span className="text-metal-red">real work</span> behind it.
-          </>
-        }
+        eyebrow={copy.proof.eyebrow}
+        title={renderCopy(copy.proof.title)}
       />
       <div className="mx-auto mt-12 max-w-4xl">
         {stories.length ? (
@@ -382,7 +448,7 @@ function Proof({
                 href={`/impact/${s.slug}`}
                 data-aos="fade-up"
                 data-aos-delay={(i % 3) * 60}
-                className="group flex items-start gap-6 border-b border-line py-7 transition-colors hover:bg-paper"
+                className="group flex items-start gap-6 border-b border-line py-7 transition-colors hover:bg-mist"
               >
                 <FlaskConical
                   size={20}
@@ -430,26 +496,30 @@ function WhySumago() {
   const trust = differentiators.slice(0, 3);
 
   return (
-    <Section muted>
+    <Section muted id={IDS.why} className="scroll-mt-32">
       <SectionHeading
-        eyebrow="Why Sumago"
-        title={
-          <>
-            Chosen for <span className="text-metal-red">judgment</span>, not just
-            delivery.
-          </>
-        }
+        eyebrow={copy.whySumago.eyebrow}
+        title={renderCopy(copy.whySumago.title)}
       />
       <div className="mx-auto mt-12 grid max-w-5xl gap-10 md:grid-cols-3 md:gap-8">
-        {trust.map((d, i) => (
-          <div key={d.title} data-aos="fade-up" data-aos-delay={(i % 3) * 80}>
-            <div className="h-px w-12 bg-gradient-to-r from-brand to-transparent" />
-            <h3 className="mt-5 text-lg font-bold leading-snug text-ink">
-              {d.title}
-            </h3>
-            <p className="mt-3 leading-relaxed text-ink/65">{d.description}</p>
-          </div>
-        ))}
+        {trust.map((d, i) => {
+          const Icon = TRUST_ICONS[d.icon] ?? FALLBACK_CAPABILITY_ICON;
+          return (
+            <div
+              key={d.title}
+              data-aos="fade-up"
+              data-aos-delay={(i % 3) * 80}
+              className="group"
+            >
+              <span className="grid h-12 w-12 place-items-center rounded-2xl border border-brand/15 bg-brand/[0.06] text-brand transition-colors duration-300 group-hover:border-transparent group-hover:bg-[linear-gradient(135deg,#d73438,#7a1519)] group-hover:text-white">
+                <Icon size={22} aria-hidden />
+              </span>
+              <h3 className="mt-5 text-lg font-bold leading-snug text-ink">{d.title}</h3>
+              <div className="mt-3 h-px w-10 bg-gradient-to-r from-brand to-transparent transition-[width] duration-500 group-hover:w-20" />
+              <p className="mt-3 leading-relaxed text-ink/65">{d.description}</p>
+            </div>
+          );
+        })}
       </div>
     </Section>
   );
@@ -459,60 +529,36 @@ function WhySumago() {
 /*  Related                                                                    */
 /* -------------------------------------------------------------------------- */
 
-/** Where next — sibling services, set open on the page rather than as cards. */
-function Related({ related }: { related: ServiceWithSlug[] }) {
+/** Where next — sibling services as spokes off the one being read. */
+function Related({
+  service,
+  related,
+}: {
+  service: ServiceWithSlug;
+  related: ServiceWithSlug[];
+}) {
   if (!related.length) return null;
 
   return (
-    <Section>
+    <Section id={IDS.related} className="scroll-mt-32">
       <SectionHeading
-        eyebrow="Keep exploring"
-        title={
-          <>
-            Problems that usually{" "}
-            <span className="text-metal-red">travel with this one</span>.
-          </>
-        }
+        eyebrow={copy.related.eyebrow}
+        title={renderCopy(copy.related.title)}
       />
-      <div className="mx-auto mt-12 max-w-4xl border-t border-line">
-        {related.map((s, i) => {
-          const Icon = CAPABILITY_ICONS[s.icon] ?? FALLBACK_CAPABILITY_ICON;
-          return (
-            <Link
-              key={s.slug}
-              href={`/solutions/${s.slug}`}
-              data-aos="fade-up"
-              data-aos-delay={(i % 3) * 60}
-              className="group flex items-center gap-5 border-b border-line py-7 transition-colors hover:bg-paper"
-            >
-              <span className="relative inline-grid h-11 w-11 shrink-0 place-items-center">
-                <span
-                  aria-hidden
-                  className="absolute inset-0 -rotate-3 rounded-xl bg-[linear-gradient(135deg,#d73438,#7a1519)] transition-transform duration-500 group-hover:rotate-3"
-                />
-                <Icon size={20} className="relative text-white" aria-hidden />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-lg font-bold leading-snug text-ink">
-                  {s.name}
-                </span>
-                <span className="mt-1 block text-sm leading-relaxed text-ink/65">
-                  {s.blurb}
-                </span>
-              </span>
-              <ArrowRight
-                size={18}
-                aria-hidden
-                className="shrink-0 text-brand transition-transform duration-300 group-hover:translate-x-1"
-              />
-            </Link>
-          );
-        })}
-      </div>
+      <RelatedMap
+        currentName={service.name}
+        Icon={CAPABILITY_ICONS[service.icon] ?? FALLBACK_CAPABILITY_ICON}
+        items={related.map((s) => ({
+          slug: s.slug,
+          name: s.name,
+          blurb: s.blurb,
+          icon: CAPABILITY_ICONS[s.icon] ?? FALLBACK_CAPABILITY_ICON,
+        }))}
+      />
 
       <div data-aos="fade-up" className="mt-10 text-center">
         <Button href="/solutions" variant="link">
-          All services →
+          {copy.relatedCta}
         </Button>
       </div>
     </Section>
@@ -534,17 +580,45 @@ export function ServiceDetail({
   stories: Story[];
   isProd: boolean;
 }) {
+  /* The rail lists only the chapters this service actually renders, in page
+     order — so it can never point at a section that isn't there. */
+  const chapters: Chapter[] = [
+    { id: IDS.problem, label: copy.problem.navLabel, show: true },
+    { id: IDS.whoFor, label: copy.whoFor.navLabel, show: Boolean(service.whoFor?.length) },
+    {
+      id: IDS.deliverables,
+      label: copy.deliverables.navLabel,
+      show: Boolean(service.deliverables?.length),
+    },
+    {
+      id: IDS.outcomes,
+      label: copy.outcomes.navLabel,
+      show: Boolean(service.outcomes?.length),
+    },
+    {
+      id: IDS.stack,
+      label: copy.stack.navLabel,
+      show: Boolean(service.technologies?.length || service.tools?.length),
+    },
+    { id: IDS.proof, label: copy.proof.navLabel, show: stories.length > 0 },
+    { id: IDS.why, label: copy.whySumago.navLabel, show: true },
+    { id: IDS.related, label: copy.related.navLabel, show: related.length > 0 },
+  ]
+    .filter((c) => c.show)
+    .map(({ id, label }) => ({ id, label }));
+
   return (
     <>
       <ServiceHero service={service} />
+      <ServiceNav chapters={chapters} />
       <ProblemApproach service={service} />
-      <WhoFor service={service} />
+      <WhoFor service={service} isProd={isProd} />
       <Deliverables service={service} />
       <Outcomes service={service} />
       <Stack service={service} />
       <Proof service={service} stories={stories} isProd={isProd} />
       <WhySumago />
-      <Related related={related} />
+      <Related service={service} related={related} />
       {/* No CTA band here — the site footer already closes every page with the
           same "Let's build what your business needs next" call to action. */}
     </>

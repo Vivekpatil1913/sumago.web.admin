@@ -714,3 +714,25 @@
   0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.3; }
   50% { transform: translate3d(12px, -14px, 0); opacity: 0.95; }
 }
+
+/* ============================================================
+   Service detail diagrams (organisms/solutions/service-diagrams)
+   Each section of the service page carries its own diagram; these
+   are the shared, GPU-cheap keyframes behind them. All are opt-in
+   via `motion-safe:` at the call site (docs/06).
+   ============================================================ */
+
+/* Signal travelling along a connector — problem → approach, and the
+   spokes out to sibling services. */
+@keyframes svc-flow { to { stroke-dashoffset: -64; } }
+
+/* Node breathing on the outcomes trajectory. */
+@keyframes svc-node-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.35); opacity: 0.25; }
+}
+
+/* Orbit ring carrying the stack marks (the tiles counter-rotate at the
+   same duration so every logo stays upright). */
+@keyframes svc-orbit { to { transform: rotate(360deg); } }
+@keyframes svc-orbit-rev { to { transform: rotate(-360deg); } }

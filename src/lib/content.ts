@@ -7,6 +7,7 @@
  * existing consumers (detail pages, cards) keep working unchanged.
  */
 import { services } from "@/lib/services";
+import { industryCatalog } from "@/lib/industries";
 
 export type CapabilityDetail = {
   summary: string;
@@ -29,59 +30,13 @@ export type IndustryDetail = {
   outcomes: string[];
 };
 
-/** Keyed by slugify(industry name). */
-export const industryDetails: Record<string, IndustryDetail> = {
-  "logistics-and-transportation": {
-    challenges: ["Poor cross-border visibility", "Manual coordination", "Rising operating costs"],
-    solutions: ["Real-time tracking platforms", "Workflow automation", "Integrated dashboards"],
-    outcomes: ["Faster operations", "Lower costs", "Scalable growth"],
-  },
-  manufacturing: {
-    challenges: ["Legacy systems", "Disconnected shop-floor data", "Inefficient processes"],
-    solutions: ["System modernization", "IoT & analytics", "Process automation"],
-    outcomes: ["Higher efficiency", "Better visibility", "Reduced downtime"],
-  },
-  healthcare: {
-    challenges: ["Fragmented systems", "Compliance pressure", "Patient experience gaps"],
-    solutions: ["Secure integrations", "Patient-facing apps", "Data analytics"],
-    outcomes: ["Better care coordination", "Compliance confidence", "Improved experience"],
-  },
-  "banking-and-financial-services": {
-    challenges: ["Legacy modernization", "Security & compliance", "Customer expectations"],
-    solutions: ["Secure platforms", "Process automation", "Digital experiences"],
-    outcomes: ["Operational efficiency", "Stronger security posture", "Higher satisfaction"],
-  },
-  education: {
-    challenges: ["Manual administration", "Engagement gaps", "Scaling delivery"],
-    solutions: ["Learning platforms", "Automation", "Analytics"],
-    outcomes: ["Scalable delivery", "Higher engagement", "Better outcomes"],
-  },
-  "retail-and-e-commerce": {
-    challenges: ["Omnichannel complexity", "Conversion gaps", "Scaling demand"],
-    solutions: ["E-commerce platforms", "Personalization", "Integrations"],
-    outcomes: ["Higher conversion", "Unified channels", "Scalable growth"],
-  },
-  "government-and-public-sector": {
-    challenges: ["Legacy systems", "Citizen experience", "Transparency & scale"],
-    solutions: ["Digital services", "Secure integrations", "Data platforms"],
-    outcomes: ["Better citizen services", "Operational efficiency", "Trusted delivery"],
-  },
-  "hospitality-and-tourism": {
-    challenges: ["Disconnected booking systems", "Guest experience", "Seasonal scale"],
-    solutions: ["Booking & CRM platforms", "Mobile experiences", "Automation"],
-    outcomes: ["Better guest experience", "Higher efficiency", "Scalable operations"],
-  },
-  "real-estate": {
-    challenges: ["Manual lead handling", "Fragmented data", "Slow response"],
-    solutions: ["CRM & automation", "Voice/AI engagement", "Portals & dashboards"],
-    outcomes: ["More qualified leads", "Faster response", "Better visibility"],
-  },
-  "professional-services": {
-    challenges: ["Manual workflows", "Disconnected tools", "Scaling delivery"],
-    solutions: ["Workflow platforms", "Integrations", "Automation"],
-    outcomes: ["Higher productivity", "Streamlined delivery", "Scalable growth"],
-  },
-};
+/** Keyed by slugify(industry name). Derived from the catalog (lib/industries.ts). */
+export const industryDetails: Record<string, IndustryDetail> = Object.fromEntries(
+  industryCatalog.map((i) => [
+    i.slug,
+    { challenges: i.challenges, solutions: i.solutions, outcomes: i.outcomes },
+  ]),
+);
 
 /** The transparent 9-step engagement model (real). `icon` = lucide-react name. */
 export const processSteps: { title: string; description: string; icon: string; phase: string }[] = [
@@ -101,13 +56,18 @@ export const processPhases: { name: string; tagline: string }[] = [
 ];
 
 /** Why organizations choose Sumago (real). */
-export const differentiators: { title: string; description: string }[] = [
-  { title: "Business understanding first", description: "We understand the business before writing a line of code." },
-  { title: "Strategic consulting", description: "A consultative partner, not just a development shop." },
-  { title: "Multidisciplinary team", description: "Analysts, architects, designers, engineers, cloud & AI specialists, QA." },
-  { title: "Transparency", description: "Clear communication in every engagement." },
-  { title: "Engineering quality", description: "High standards, scalable and secure architecture." },
-  { title: "Long-term partnership", description: "Support and improvement long after delivery." },
+export const differentiators: {
+  title: string;
+  description: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+}[] = [
+  { icon: "Search", title: "Business understanding first", description: "We understand the business before writing a line of code." },
+  { icon: "Compass", title: "Strategic consulting", description: "A consultative partner, not just a development shop." },
+  { icon: "Users", title: "Multidisciplinary team", description: "Analysts, architects, designers, engineers, cloud & AI specialists, QA." },
+  { icon: "Eye", title: "Transparency", description: "Clear communication in every engagement." },
+  { icon: "ShieldCheck", title: "Engineering quality", description: "High standards, scalable and secure architecture." },
+  { icon: "HeartHandshake", title: "Long-term partnership", description: "Support and improvement long after delivery." },
 ];
 
 /**

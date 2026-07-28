@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx next *)",
+      "Bash(python -c ' *)",
+      "Bash(curl -s -o /tmp/careers2.html -w \"%{http_code}\" http://localhost:3001/careers)",
+      "Bash(curl -s -o /tmp/orb.html -w \"%{http_code}\\\\n\" http://localhost:3001/solutions/data-analytics-and-insights)",
+      "Bash(curl -s -o /tmp/rev.html -w \"%{http_code}\\\\n\" http://localhost:3001/solutions/data-analytics-and-insights)",
+      "Bash(curl -s -o /tmp/j.html -w \"%{http_code}\\\\n\" http://localhost:3001/solutions/data-analytics-and-insights)",
+      "Bash(grep -o \"Error[^<]\\\\{0,300\\\\}\" /tmp/j.html)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -o /tmp/j2.html -w \"%{http_code}\\\\n\" http://localhost:3001/solutions/data-analytics-and-insights)",
+      "Bash(grep -n \"^/\\\\* ---\\\\|^export function\\\\|^function\" src/components/organisms/solutions/service-diagrams.tsx)",
+      "Bash(curl -s -o /tmp/k.html -w \"%{http_code}\\\\n\" http://localhost:3001/solutions/data-analytics-and-insights)",
+      "Bash(rm src/components/organisms/solutions/service-journey.tsx)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3001/solutions/data-analytics-and-insights)",
+      "Bash(grep -m2 '\\\\\\\\r')",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/about)",
+      "Bash(npx playwright *)",
+      "Bash(NODE_PATH=\"C:/Users/Vivek Patil/AppData/Local/npm-cache/_npx/e41f203b7505f1fb/node_modules\" node shot.js \"C:/Users/VIVEKP~1/AppData/Local/Temp/claude/d--Sumago-Website-and-Admin--17-7-26/f7805d77-042a-45e7-96a3-50a627cdd074/scratchpad\")",
+      "Bash(NODE_PATH=\"C:/Users/Vivek Patil/AppData/Local/npm-cache/_npx/e41f203b7505f1fb/node_modules\" node probe.js)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/framer-motion/package.json'\\).version\\)\")",
+      "Bash(sed -i 's/for \\(const f of \\\\[.*\\\\]\\) {/for \\(const f of [0.48, 0.52, 0.55, 0.58, 0.62]\\) {/' probe.js)",
+      "Bash(sed -i 's/const fractions = .*/const fractions = [];/' probe.js)",
+      "Bash(sed -i 's/for \\(const f of \\\\[0.15, 0.5, 1\\\\]\\)/for \\(const f of [0.15, 0.35]\\)/' mobile.js)",
+      "Bash(NODE_PATH=\"C:/Users/Vivek Patil/AppData/Local/npm-cache/_npx/e41f203b7505f1fb/node_modules\" node mobile.js \"C:/Users/VIVEKP~1/AppData/Local/Temp/claude/d--Sumago-Website-and-Admin--17-7-26/f7805d77-042a-45e7-96a3-50a627cdd074/scratchpad\")",
+      "Bash(sed -i 's|http://localhost:3001/about|http://localhost:3001/contact|' console.js)",
+      "Bash(sed -i 's|const box = await page.evaluate.*|const box = {top:0,height:1000};|' console.js)",
+      "Bash(sed -i '/aria-labelledby=\"trust-wall-heading\"/d; /return { top: el.getBound/d; /^  }\\);$/{x;/./d;x}' console.js)",
+      "Bash(NODE_PATH=\"C:/Users/Vivek Patil/AppData/Local/npm-cache/_npx/e41f203b7505f1fb/node_modules\" node console.js)",
+      "Bash(sed -i 's/const fractions = .*/const fractions = [0, 0.4, 0.66, 0.75, 0.83, 1];/' shot.js)",
+      "Bash(sed -i 's/const fractions = .*/const fractions = [0, 0.2, 0.4, 0.55];/' shot.js)",
+      "Bash(sed -i 's/const fractions = .*/const fractions = [0.1, 0.3, 0.5];/' shot.js)",
+      "Bash(sed -n '/const SCATTER: Spot/,/^];/p' src/components/organisms/about/trust-wall.tsx)",
+      "Bash(sed -i 's/for \\(const f of \\\\[.*\\\\]\\)/for \\(const f of [0.25]\\)/' mobile.js)",
+      "Bash(git diff *)",
+      "Bash(sed -i 's/const fractions = .*/const fractions = [0.2, 1];/' shot.js)"
+    ]
+  }
+}

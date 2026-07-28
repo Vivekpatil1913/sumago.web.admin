@@ -3,6 +3,7 @@
  * navigation, and page metadata. Facts here are verified; do not invent.
  */
 import { services } from "@/lib/services";
+import { industryNames } from "@/lib/industries";
 import { previewImages } from "@/lib/preview-assets";
 
 export const company = {
@@ -166,19 +167,10 @@ export const primaryCta = { label: "Let's Connect", href: "/contact" } as const;
  *  routing and grids. */
 export const capabilities = services.map((s) => s.name);
 
-/** The 10 industries (real). */
-export const industries = [
-  "Logistics & Transportation",
-  "Manufacturing",
-  "Healthcare",
-  "Banking & Financial Services",
-  "Education",
-  "Retail & E-commerce",
-  "Government & Public Sector",
-  "Hospitality & Tourism",
-  "Real Estate",
-  "Professional Services",
-] as const;
+/** The 10 industry names (real), derived from the unified catalog
+ *  (lib/industries.ts). Order and copy are managed there; this stays a flat
+ *  list of names for routing, menus, and the contact form. */
+export const industries = industryNames;
 
 /**
  * Real flagship work. `summary` + `body` are SEED/SAMPLE copy (docs/17) — no
