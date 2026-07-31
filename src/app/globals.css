@@ -736,3 +736,187 @@
    same duration so every logo stays upright). */
 @keyframes svc-orbit { to { transform: rotate(360deg); } }
 @keyframes svc-orbit-rev { to { transform: rotate(-360deg); } }
+
+
+/* ===========================================================================
+   ADMIN PANEL DESIGN SYSTEM  (/admin)
+   ===========================================================================
+   The panel is a different surface from the marketing site — a tool people use
+   for hours — so it gets its own palette. But it is unmistakably Sumago: the
+   accent is the same brand red used above, and the typeface is inherited from
+   <html>, so nothing here re-declares a font.
+
+   Components reference SEMANTIC names (surface, content, line, muted) rather
+   than raw colours, and each semantic name resolves to a CSS variable that
+   flips between light and dark. Theming therefore lives in exactly one place:
+   the two blocks below.
+
+   Every variable is prefixed --a- so it can never collide with the site's own
+   tokens, which share this stylesheet.
+   =========================================================================== */
+
+@theme {
+  /* Accent — the Sumago red, reused rather than re-picked. */
+  --color-accent: #d73438;
+  --color-accent-hover: #b82a2e;
+  --color-accent-strong: #a81b22;
+  --color-accent-soft: var(--a-accent-soft);
+  --color-accent-ring: var(--a-accent-ring);
+
+  /* Surfaces */
+  --color-canvas: var(--a-canvas);
+  --color-canvas-subtle: var(--a-canvas-subtle);
+  --color-surface: var(--a-surface);
+  --color-surface-hover: var(--a-surface-hover);
+  --color-elevated: var(--a-elevated);
+  --color-inverse: var(--a-inverse);
+
+  /* Text */
+  --color-content: var(--a-content);
+  --color-content-soft: var(--a-content-soft);
+  --color-muted: var(--a-muted);
+  --color-on-accent: #ffffff;
+
+  /* Lines */
+  --color-line-soft: var(--a-line);
+  --color-line-strong: var(--a-line-strong);
+
+  /* Status */
+  --color-ok: var(--a-ok);
+  --color-ok-soft: var(--a-ok-soft);
+  --color-warn: var(--a-warn);
+  --color-warn-soft: var(--a-warn-soft);
+  --color-bad: var(--a-bad);
+  --color-bad-soft: var(--a-bad-soft);
+  --color-info: var(--a-info);
+  --color-info-soft: var(--a-info-soft);
+
+  /* Shape — slightly softer than the site, which suits dense UI */
+  --radius-field: 0.5rem;
+  --radius-card: 0.75rem;
+  --radius-pill: 9999px;
+
+  /* Motion */
+  --ease-admin: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Shell dimensions */
+  --spacing-rail: 15.5rem;
+  --spacing-rail-tight: 4.5rem;
+  --spacing-topbar: 3.75rem;
+}
+
+/* ---------------------------- Light (default) --------------------------- */
+:root {
+  --a-canvas: #f6f6f7;
+  --a-canvas-subtle: #eeeef0;
+  --a-surface: #ffffff;
+  --a-surface-hover: #f7f7f8;
+  --a-elevated: #ffffff;
+  --a-inverse: #17171a;
+
+  --a-content: #17171a;
+  --a-content-soft: #3f3f46;
+  --a-muted: #71717a;
+
+  --a-line: #e6e6e8;
+  --a-line-strong: #d3d3d7;
+
+  --a-accent-soft: #fdeceD;
+  --a-accent-ring: rgba(215, 52, 56, 0.35);
+
+  --a-ok: #15803d;
+  --a-ok-soft: #dcfce7;
+  --a-warn: #b45309;
+  --a-warn-soft: #fef3c7;
+  --a-bad: #c1282c;
+  --a-bad-soft: #fdecec;
+  --a-info: #1e5fb8;
+  --a-info-soft: #e3edfb;
+
+  --a-shadow-card: 0 1px 2px rgba(23, 23, 26, 0.04), 0 1px 3px rgba(23, 23, 26, 0.06);
+  --a-shadow-pop: 0 10px 34px rgba(23, 23, 26, 0.14);
+}
+
+/* -------------------------------- Dark ---------------------------------- */
+/*
+ * Set by the panel's theme toggle on <html>. Deliberately warm-neutral rather
+ * than pure black — long sessions on a true-black UI are fatiguing, and the
+ * brand red needs a slightly lifted ground to stay AA-legible.
+ */
+.admin-dark {
+  --a-canvas: #131316;
+  --a-canvas-subtle: #0f0f11;
+  --a-surface: #1b1b1f;
+  --a-surface-hover: #232328;
+  --a-elevated: #212127;
+  --a-inverse: #ffffff;
+
+  --a-content: #f4f4f5;
+  --a-content-soft: #c9c9ce;
+  --a-muted: #8e8e97;
+
+  --a-line: #2c2c32;
+  --a-line-strong: #3a3a42;
+
+  --a-accent-soft: rgba(215, 52, 56, 0.16);
+  --a-accent-ring: rgba(255, 90, 93, 0.45);
+
+  --a-ok: #4ade80;
+  --a-ok-soft: rgba(74, 222, 128, 0.14);
+  --a-warn: #fbbf24;
+  --a-warn-soft: rgba(251, 191, 36, 0.14);
+  --a-bad: #ff6b6e;
+  --a-bad-soft: rgba(255, 107, 110, 0.14);
+  --a-info: #7cb0f5;
+  --a-info-soft: rgba(124, 176, 245, 0.14);
+
+  --a-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --a-shadow-pop: 0 10px 34px rgba(0, 0, 0, 0.6);
+}
+
+/* On dark, the accent needs to brighten to stay readable on the near-black. */
+.admin-dark {
+  --color-accent: #f04a4e;
+  --color-accent-hover: #ff6b6e;
+  --color-accent-strong: #ff8f91;
+}
+
+@layer components {
+  /* The panel opts out of the site's body colours. */
+  .admin-root {
+    background: var(--a-canvas);
+    color: var(--a-content);
+    font-size: 0.875rem;
+    line-height: 1.375rem;
+  }
+
+  .admin-card {
+    background: var(--a-surface);
+    border: 1px solid var(--a-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--a-shadow-card);
+  }
+
+  /* Wide tables scroll inside their own box so the page never moves sideways. */
+  .table-scroll {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  /* A restrained scrollbar for the sidebar and long panels. */
+  .admin-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--a-line-strong) transparent;
+  }
+  .admin-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .admin-scroll::-webkit-scrollbar-thumb {
+    background: var(--a-line-strong);
+    border-radius: 9999px;
+  }
+  .admin-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

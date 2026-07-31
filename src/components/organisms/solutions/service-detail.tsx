@@ -16,7 +16,7 @@ import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
 import { HeroEffect } from "@/components/organisms/hero-effect";
 import { HeroStars } from "@/components/three/hero-stars";
-import { ServiceNav, type Chapter } from "@/components/organisms/solutions/service-nav";
+import { ChapterNav, type Chapter } from "@/components/molecules/chapter-nav";
 import {
   ShiftDiagram,
   QuadrantDiagram,
@@ -610,7 +610,7 @@ export function ServiceDetail({
   return (
     <>
       <ServiceHero service={service} />
-      <ServiceNav chapters={chapters} />
+      <ChapterNav chapters={chapters} />
       <ProblemApproach service={service} />
       <WhoFor service={service} isProd={isProd} />
       <Deliverables service={service} />

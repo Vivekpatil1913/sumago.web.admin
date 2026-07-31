@@ -1,9 +1,18 @@
+/**
+ * Root layout — deliberately minimal.
+ *
+ * It owns only <html>/<body>, the fonts and the stylesheet, because two very
+ * different surfaces sit underneath it:
+ *
+ *   (site)/  — the public website, with its header and footer
+ *   admin/   — the admin panel, which must not render site chrome
+ *
+ * Site chrome therefore lives in `(site)/layout.tsx`, not here. `(site)` is a
+ * route group, so it changes nothing about the public URLs.
+ */
 import type { Metadata } from "next";
 import { Lexend_Deca, Caveat } from "next/font/google";
 import "./globals.css";
-import { SiteHeader } from "@/components/organisms/site-header";
-import { SiteFooter } from "@/components/organisms/site-footer";
-import { AosInit } from "@/components/providers/aos-init";
 import { company } from "@/lib/site";
 
 const lexend = Lexend_Deca({
@@ -45,12 +54,7 @@ export default function RootLayout({
       lang="en"
       className={`${lexend.variable} ${caveat.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
-        <AosInit />
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
-      </body>
+      <body className="flex min-h-full flex-col">{children}</body>
     </html>
   );
 }

@@ -7,7 +7,6 @@
  * existing consumers (detail pages, cards) keep working unchanged.
  */
 import { services } from "@/lib/services";
-import { industryCatalog } from "@/lib/industries";
 
 export type CapabilityDetail = {
   summary: string;
@@ -24,19 +23,9 @@ export const capabilityDetails: Record<string, CapabilityDetail> = Object.fromEn
   ]),
 );
 
-export type IndustryDetail = {
-  challenges: string[];
-  solutions: string[];
-  outcomes: string[];
-};
-
-/** Keyed by slugify(industry name). Derived from the catalog (lib/industries.ts). */
-export const industryDetails: Record<string, IndustryDetail> = Object.fromEntries(
-  industryCatalog.map((i) => [
-    i.slug,
-    { challenges: i.challenges, solutions: i.solutions, outcomes: i.outcomes },
-  ]),
-);
+/* Industry copy lives in the unified catalog (lib/industries.ts) and is read
+   straight from there by the Industries index and detail template — the old
+   `industryDetails` map here was a second, thinner shape of the same content. */
 
 /** The transparent 9-step engagement model (real). `icon` = lucide-react name. */
 export const processSteps: { title: string; description: string; icon: string; phase: string }[] = [
@@ -232,6 +221,110 @@ export const testimonials: {
     role: "Head of Digital, Education",
     rating: 5,
     accent: "#E8A33A",
+  },
+  {
+    quote:
+      "Our field staff adopted the new system in a week. That only happened because the workflows were designed around how they already work, not around a database diagram.",
+    name: "Suresh Patankar",
+    role: "GM Operations, Infrastructure",
+    rating: 5,
+    accent: "#4F9D69",
+  },
+  {
+    quote:
+      "The audit trail and access controls cleared our compliance review on the first pass — something none of our previous vendors managed.",
+    name: "Farida Qureshi",
+    role: "Compliance Lead, Financial services",
+    rating: 5,
+    accent: "#6C7BE8",
+  },
+  {
+    quote:
+      "They pushed back on a feature we asked for, showed us the data, and proposed something simpler. It shipped faster and got used more.",
+    name: "Daniel Ortega",
+    role: "Founder, SaaS platform",
+    rating: 5,
+    accent: "#E86A4F",
+  },
+  {
+    quote:
+      "Migrating fifteen years of records was the part we dreaded most. It happened over a weekend, with reconciliation reports waiting for us on Monday morning.",
+    name: "Meenakshi Raman",
+    role: "Director, Public sector programme",
+    rating: 5,
+    accent: "#3AA0E8",
+  },
+  {
+    quote:
+      "Every sprint ended with something we could actually click through. No status decks, no guessing where the project stood.",
+    name: "Arjun Sethi",
+    role: "Head of Product, Mobility",
+    rating: 5,
+    accent: "#7C5CE6",
+  },
+  {
+    quote:
+      "Support response times have never been the problem people warned us about with offshore partners. Issues get acknowledged quickly and closed properly.",
+    name: "Claire Bennett",
+    role: "IT Manager, Distribution",
+    rating: 4,
+    accent: "#2BB3A3",
+  },
+  {
+    quote:
+      "The mobile experience was rethought entirely rather than squeezed down from the desktop build, and our field usage numbers reflect that.",
+    name: "Rohit Bhandari",
+    role: "COO, Field services",
+    rating: 5,
+    accent: "#E85A8A",
+  },
+  {
+    quote:
+      "They documented everything — architecture, decisions, runbooks. When we brought part of the work in-house, our own engineers were productive immediately.",
+    name: "Kavita Iyer",
+    role: "Engineering Manager, Enterprise SaaS",
+    rating: 5,
+    accent: "#5B8DEF",
+  },
+  {
+    quote:
+      "Peak-season traffic used to mean a war room. This year it meant watching a dashboard stay green.",
+    name: "Amit Chourasia",
+    role: "CTO, E-commerce",
+    rating: 5,
+    accent: "#E8833A",
+  },
+  {
+    quote:
+      "The integration work touched four legacy systems nobody wanted to open. It was handled carefully, tested hard, and rolled out without downtime.",
+    name: "Laura Vasquez",
+    role: "Programme Director, Manufacturing",
+    rating: 5,
+    accent: "#4F9D69",
+  },
+  {
+    quote:
+      "Costs stayed where the estimate said they would. When scope did move, we heard about it before the work started, not after.",
+    name: "Sandeep Jadhav",
+    role: "Managing Director, Industrial group",
+    rating: 5,
+    accent: "#6C7BE8",
+  },
+  {
+    quote:
+      "Our reporting used to take three days a month to assemble by hand. It now arrives automatically, and the finance team trusts the numbers.",
+    name: "Preeti Malhotra",
+    role: "Finance Controller, Healthcare group",
+    rating: 5,
+    accent: "#3AA0E8",
+  },
+  {
+    quote:
+      "Accessibility was treated as a requirement from day one rather than a retrofit, which mattered enormously for a public-facing service.",
+    name: "Thomas Reid",
+    role: "Digital Lead, Non-profit",
+    rating: 5,
+    accent: "#2BB3A3",
   },
 ];
 

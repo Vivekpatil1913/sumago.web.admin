@@ -5,13 +5,14 @@ import { useEffect, useRef, useState } from "react";
 export type Chapter = { id: string; label: string };
 
 /**
- * Sticky chapter rail for the service detail page.
+ * Sticky chapter rail for long detail pages — shared by the service and industry
+ * detail templates.
  *
- * The page runs long by design (problem → qualify → answer → artifacts →
- * outcomes → stack → proof → trust), so a reader needs to know where they are
- * and how much is left. The rail spies on the sections actually rendered — it
- * is handed only the chapters that exist for this service, so a service without
- * `whoFor` or without proof simply gets a shorter rail, never a dead link.
+ * Those pages run long by design (problem → answer → what's built → outcomes →
+ * proof → where next), so a reader needs to know where they are and how much is
+ * left. The rail spies on the sections actually rendered — it is handed only the
+ * chapters that exist for this page, so a sparse entry simply gets a shorter
+ * rail, never a dead link.
  *
  * Sits directly under the fixed 64px header. Below `lg` it scrolls
  * horizontally rather than wrapping, so it never eats vertical space on a
@@ -19,7 +20,7 @@ export type Chapter = { id: string; label: string };
  * chapters, which is the one piece of motion here that earns its place
  * (docs/06) — it aids navigation.
  */
-export function ServiceNav({ chapters }: { chapters: Chapter[] }) {
+export function ChapterNav({ chapters }: { chapters: Chapter[] }) {
   const [activeId, setActiveId] = useState(chapters[0]?.id ?? "");
   const listRef = useRef<HTMLUListElement>(null);
 

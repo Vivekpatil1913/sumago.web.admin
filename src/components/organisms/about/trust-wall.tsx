@@ -19,15 +19,16 @@ import { company } from "@/lib/site";
 /**
  * Trust wall — a scroll-driven transition between two full-screen states.
  *
- * State one: a white wall of proof (client quotes, client names, verified
- * metrics). The tiles are completely static — they never animate individually.
- * The whole canvas translates upward as one layer while the headline stays
- * pinned in the middle of the viewport, so it reads as scrolling past a wall of
- * evidence rather than as a carousel or a marquee.
+ * State one: a full-bleed white wall of client quotes. The tiles are completely
+ * static — they never animate individually. The whole canvas translates upward
+ * as one layer, so it reads as scrolling past a wall of evidence rather than as
+ * a carousel or a marquee.
  *
- * State two: the wall fades, white gives way to near-black, the headline
- * separates word by word and digit by digit until it's gone, and a single
- * glowing particle grows into the Sumago lockup with the closing line beneath.
+ * State two: once the wall has run its length, the headline resolves in the
+ * middle of the viewport; then the wall fades, white gives way to near-black,
+ * the headline separates word by word and digit by digit until it's gone, and a
+ * single glowing particle grows into the Sumago lockup with the closing line
+ * beneath.
  *
  * Every value is a pure function of scroll progress — nothing auto-plays, so
  * scrolling back up reverses the whole sequence exactly. Under
@@ -37,21 +38,23 @@ import { company } from "@/lib/site";
 /* ── Scroll choreography ──────────────────────────────────────────────────
    Fractions of the section's scroll range. Windows deliberately overlap so
    each stage hands over mid-motion — nothing ever sits frozen waiting. */
-const TRACK_VH = 460; // total scroll length of the pinned sequence
+const TRACK_VH = 420; // total scroll length of the pinned sequence
 
-const WALL_TRAVEL_END = 0.62; // the wall keeps moving while it fades out
-const FADE_START = 0.44; // wall opacity 1 → 0, white → near-black
-const FADE_END = 0.6;
-const GROUND_OUT = 0.5; // the white ground behind the headline starts clearing
-const SWAP_START = 0.52; // headline hands over from its ink copy to its white one
-const SWAP_END = 0.6;
-const SPLIT_START = 0.62; // headline words/digits drift apart
-const SPLIT_END = 0.8;
-const SPARK_IN = 0.78; // particle appears
-const ORB_FULL = 0.88; // orb at full size, glow at full spread
-const LOGO_IN = 0.86; // lockup fades in as the orb dissolves into a halo
-const LOGO_SET = 0.94;
-const CTA_IN = 0.92;
+const WALL_TRAVEL_END = 0.62; // the wall reaches its last tile exactly as the headline sets
+const HEAD_IN = 0.5; // headline only resolves once the wall has run its length
+const HEAD_SET = 0.62;
+const FADE_START = 0.62; // wall opacity 1 → 0, white → near-black
+const FADE_END = 0.72;
+const GROUND_OUT = 0.64; // the white ground behind the headline starts clearing
+const SWAP_START = 0.66; // headline hands over from its ink copy to its white one
+const SWAP_END = 0.72;
+const SPLIT_START = 0.74; // headline words/digits drift apart
+const SPLIT_END = 0.85;
+const SPARK_IN = 0.83; // particle appears
+const ORB_FULL = 0.91; // orb at full size, glow at full spread
+const LOGO_IN = 0.89; // lockup fades in as the orb dissolves into a halo
+const LOGO_SET = 0.95;
+const CTA_IN = 0.93;
 const CTA_DONE = 1;
 
 /** Headline layers. Words drift as words; the count drifts digit by digit.
@@ -62,125 +65,57 @@ const HEAD_COUNT = "610+";
 const HEAD_TAIL = ["organizations", "and", "counting"];
 
 /* ── Wall content ────────────────────────────────────────────────────────
-   Proof already published elsewhere on this page: the sample quotes (flagged
-   in lib/content), the client roster, and verified metrics/certifications. */
+   Client voices only — the sample quotes flagged in lib/content. Metrics,
+   certifications, and the client roster are proven elsewhere on this page; the
+   wall's job is to read as a wall of people, at full screen width. */
 
-type Tile =
-  | { kind: "quote"; id: string; quote: string; role: string; rating: number; accent: string }
-  | { kind: "client"; id: string; name: string }
-  | { kind: "metric"; id: string; value: string; label: string }
-  | { kind: "badge"; id: string; text: string };
+type Tile = { id: string; quote: string; role: string; rating: number; accent: string };
 
-const QUOTE_TILES: Tile[] = testimonials.map((t) => ({
-  kind: "quote",
-  id: `q-${t.role}`,
+const WALL_TILES: Tile[] = testimonials.map((t, i) => ({
+  id: `q-${i}`,
   quote: t.quote,
   role: t.role,
   rating: t.rating,
   accent: t.accent,
 }));
 
-const CLIENT_TILES: Tile[] = clientNames.map((n) => ({
-  kind: "client",
-  id: `c-${n}`,
-  name: n,
-}));
-
-const METRIC_TILES: Tile[] = company.metrics.map((m) => ({
-  kind: "metric",
-  id: `m-${m.label}`,
-  value: m.value,
-  label: m.label,
-}));
-
-const BADGE_TILES: Tile[] = company.certifications.map((c) => ({
-  kind: "badge",
-  id: `b-${c}`,
-  text: `${c} certified`,
-}));
-
-/** Interleaves the four tile kinds so no two of a kind sit together — the
- *  varied heights are what give the wall its natural, un-gridded rhythm. */
-function buildWall(): Tile[] {
-  const queues = [QUOTE_TILES, CLIENT_TILES, METRIC_TILES, BADGE_TILES].map((q) => [...q]);
-  const cadence = [0, 1, 2, 1, 0, 1, 3, 1, 0, 1, 2, 1]; // quote, client, metric, client…
-  const out: Tile[] = [];
-  let step = 0;
-  while (queues.some((q) => q.length)) {
-    const queue = queues[cadence[step % cadence.length]];
-    step += 1;
-    const tile = queue.shift();
-    if (tile) out.push(tile);
-  }
-  return out;
-}
-
-const WALL_TILES = buildWall();
-
-const TILE_BASE = "mb-6 break-inside-avoid rounded-2xl border border-line bg-paper shadow-sm";
-
 function WallTile({ tile }: { tile: Tile }) {
-  if (tile.kind === "quote") {
-    return (
-      <figure className={`${TILE_BASE} relative p-6`}>
-        <span
-          aria-hidden
-          className="absolute left-0 top-6 h-9 w-1 rounded-r-full"
-          style={{ backgroundColor: tile.accent }}
-        />
-        <div className="flex items-center justify-between">
-          <Quote className="text-ink/15" size={24} aria-hidden />
-          <div className="flex gap-0.5" aria-hidden>
-            {Array.from({ length: 5 }).map((_, s) => (
-              <Star
-                key={s}
-                size={12}
-                className={s < tile.rating ? "text-brand" : "text-ink/20"}
-                fill={s < tile.rating ? "currentColor" : "none"}
-              />
-            ))}
-          </div>
-        </div>
-        <blockquote className="mt-3 text-sm leading-relaxed text-ink/80">{tile.quote}</blockquote>
-        <figcaption className="mt-4 border-t border-line pt-3 text-xs font-medium text-ink/55">
-          {tile.role}
-        </figcaption>
-      </figure>
-    );
-  }
-
-  if (tile.kind === "client") {
-    return (
-      <div className={`${TILE_BASE} px-6 py-5 text-center`}>
-        <p className="text-base font-semibold text-ink/70">{tile.name}</p>
-      </div>
-    );
-  }
-
-  if (tile.kind === "metric") {
-    return (
-      <div className={`${TILE_BASE} px-6 py-6 text-center`}>
-        <p className="font-display text-3xl font-bold text-metal-red">{tile.value}</p>
-        <p className="mt-1 text-xs font-medium uppercase tracking-wider text-ink/55">
-          {tile.label}
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className={`${TILE_BASE} bg-mist px-6 py-5 text-center`}>
-      <p className="text-sm font-bold uppercase tracking-[0.16em] text-ink/60">{tile.text}</p>
-    </div>
+    <figure className="relative mb-5 break-inside-avoid rounded-2xl border border-line bg-paper p-5 shadow-sm">
+      <span
+        aria-hidden
+        className="absolute left-0 top-5 h-9 w-1 rounded-r-full"
+        style={{ backgroundColor: tile.accent }}
+      />
+      <div className="flex items-center justify-between">
+        <Quote className="text-ink/15" size={22} aria-hidden />
+        <div className="flex gap-0.5" aria-hidden>
+          {Array.from({ length: 5 }).map((_, s) => (
+            <Star
+              key={s}
+              size={12}
+              className={s < tile.rating ? "text-brand" : "text-ink/20"}
+              fill={s < tile.rating ? "currentColor" : "none"}
+            />
+          ))}
+        </div>
+      </div>
+      <blockquote className="mt-3 text-sm leading-relaxed text-ink/80">{tile.quote}</blockquote>
+      <figcaption className="mt-4 border-t border-line pt-3 text-xs font-medium text-ink/55">
+        {tile.role}
+      </figcaption>
+    </figure>
   );
 }
 
 /** The static wall canvas — shared by the animated and reduced-motion renders,
- *  so the layout has a single source of truth. */
+ *  so the layout has a single source of truth. Full-bleed: the column count
+ *  climbs with the viewport so a laptop screen is filled edge to edge rather
+ *  than showing three columns inside a centred container. */
 function Wall({ className }: { className?: string }) {
   return (
     <div
-      className={`mx-auto max-w-6xl columns-1 gap-6 px-4 sm:columns-2 lg:columns-3 ${
+      className={`w-full columns-1 gap-5 px-5 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 ${
         className ?? ""
       }`}
     >
@@ -326,13 +261,15 @@ export function TrustWall() {
   /* White → near-black. The overlay sits above the wall, below the headline. */
   const blackOpacity = useTransform(scrollYProgress, [FADE_START + 0.02, FADE_END], [0, 1]);
 
-  /* Headline — spacing opens up, then the line fades out entirely. */
+  /* Headline — arrives only once the wall has reached the end of its travel,
+     settles, then spacing opens up and the line fades out entirely. */
   const spread = useTransform(scrollYProgress, [SPLIT_START, SPLIT_END], [0, 1]);
   const headOpacity = useTransform(
     scrollYProgress,
-    [SPLIT_START, SPLIT_START + 0.06, SPLIT_END],
-    [1, 0.96, 0],
+    [HEAD_IN, HEAD_SET, SPLIT_START, SPLIT_START + 0.06, SPLIT_END],
+    [0, 1, 1, 0.96, 0],
   );
+  const headY = useTransform(scrollYProgress, [HEAD_IN, HEAD_SET], [30, 0]);
   /* The headline is drawn twice — ink on the white ground, white on the black.
      Recolouring a single copy would strand the text mid-grey on a mid-grey
      background exactly while the section changes colour; crossfading the two
@@ -340,10 +277,14 @@ export function TrustWall() {
   const swap = useTransform(scrollYProgress, [SWAP_START, SWAP_END], [0, 1]);
   const inkOpacity = useTransform(() => headOpacity.get() * (1 - swap.get()));
   const whiteOpacity = useTransform(() => headOpacity.get() * swap.get());
-  /* The white ground clears ahead of the swap — it exists to hold the ink copy
-     legible over the wall, and lingering would keep the screen bright while
-     the section is already going black. */
-  const groundOpacity = useTransform(scrollYProgress, [GROUND_OUT, SWAP_END - 0.04], [1, 0]);
+  /* The white ground rises just ahead of the headline and clears ahead of the
+     swap — it exists to hold the ink copy legible over the wall, and lingering
+     would keep the screen bright while the section is already going black. */
+  const groundOpacity = useTransform(
+    scrollYProgress,
+    [HEAD_IN - 0.04, HEAD_SET, GROUND_OUT, SWAP_END - 0.04],
+    [0, 1, 1, 0],
+  );
 
   /* Particle → orb → expanding glow. */
   const sparkScale = useTransform(scrollYProgress, [SPARK_IN, ORB_FULL], [0.04, 1]);
@@ -430,23 +371,30 @@ export function TrustWall() {
 
         {/* Layer 3 — the headline, held centred while the wall passes behind */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4">
-          {/* Soft ground so the headline stays readable over the wall */}
+          {/* Soft ground so the headline stays readable over the wall — kept
+              light and wide-feathered so the tiles stay visible through it
+              rather than being blanked out by a hard white slab. */}
           <motion.div
             aria-hidden
             style={{ opacity: groundOpacity }}
-            className="absolute h-[58vh] w-[min(96vw,64rem)] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.95)_46%,rgba(255,255,255,0.7)_66%,rgba(255,255,255,0)_82%)]"
+            className="absolute h-[64vh] w-[min(100vw,78rem)] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.86)_0%,rgba(255,255,255,0.7)_40%,rgba(255,255,255,0.38)_62%,rgba(255,255,255,0)_84%)]"
           />
           {/* Ink copy (over the wall) and white copy (over the black) — same
-              layout, same drift, crossfaded as the section changes colour. */}
+              layout, same drift, crossfaded as the section changes colour. The
+              ink copy carries its own white halo so the ground can stay light. */}
           {[
-            { key: "ink", opacity: inkOpacity, tone: "text-ink" },
+            {
+              key: "ink",
+              opacity: inkOpacity,
+              tone: "text-ink [text-shadow:0_0_28px_rgba(255,255,255,0.95),0_0_8px_rgba(255,255,255,0.9)]",
+            },
             { key: "white", opacity: whiteOpacity, tone: "text-white" },
           ].map((copy) => (
             <motion.p
               key={copy.key}
               aria-hidden
-              style={{ opacity: copy.opacity }}
-              className={`absolute max-w-5xl px-4 text-center text-[2rem] font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl ${copy.tone}`}
+              style={{ opacity: copy.opacity, y: headY }}
+              className={`absolute max-w-5xl px-4 text-center text-[2rem] font-bold leading-[1.1] tracking-tight will-change-transform sm:text-5xl lg:text-6xl ${copy.tone}`}
             >
               {tokens.map((tok, i) => (
                 <HeadToken

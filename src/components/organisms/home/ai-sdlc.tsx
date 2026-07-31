@@ -2,7 +2,7 @@
 
 import { Sparkles } from "lucide-react";
 import { Reveal } from "@/components/motion/reveal";
-import { cn } from "@/lib/utils";
+import { cn, svgNum } from "@/lib/utils";
 import { toolIcons, type ToolIcon } from "@/lib/tool-icons";
 
 /** Split the 30 tools into two bands that scroll in opposite directions. */
@@ -92,7 +92,9 @@ const STREAKS = (() => {
     const ex = Ox + L * dx;
     const ey = Oy + L * dy;
     const d = `M${Ox} ${Oy} C${c1x.toFixed(1)} ${c1y.toFixed(1)} ${c2x.toFixed(1)} ${c2y.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
-    const depth = 0.45 + 0.55 * Math.sin(t * Math.PI); // brighter/thicker through the middle
+    // brighter/thicker through the middle — rounded so the trig result
+    // serialises identically on the server and in the browser (see `svgNum`)
+    const depth = svgNum(0.45 + 0.55 * Math.sin(t * Math.PI));
     return { d, depth };
   });
 })();

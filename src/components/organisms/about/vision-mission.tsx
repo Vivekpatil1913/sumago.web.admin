@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { svgNum } from "@/lib/utils";
 
 /**
  * Vision & Mission — a diptych: the destination on the left, the daily practice
@@ -60,6 +61,21 @@ const PANELS: Panel[] = [
 
 /* ── Emblems ─────────────────────────────────────────────────────────────── */
 
+/** Compass tick geometry — computed once, rounded so the server and the
+ *  browser serialise byte-identical coordinates (see `svgNum`). */
+const TICKS = Array.from({ length: 24 }, (_, i) => {
+  const cardinal = i % 6 === 0;
+  const a = (i * 15 * Math.PI) / 180;
+  const r1 = cardinal ? 58 : 65;
+  return {
+    cardinal,
+    x1: svgNum(100 + Math.sin(a) * r1),
+    y1: svgNum(100 - Math.cos(a) * r1),
+    x2: svgNum(100 + Math.sin(a) * 70),
+    y2: svgNum(100 - Math.cos(a) * 70),
+  };
+});
+
 /** Compass — the needle drifts, then holds north. Decorative. */
 function CompassEmblem({ active }: { active: boolean }) {
   return (
@@ -110,24 +126,19 @@ function CompassEmblem({ active }: { active: boolean }) {
       />
 
       {/* Degree ticks — cardinals run long */}
-      {Array.from({ length: 24 }, (_, i) => {
-        const cardinal = i % 6 === 0;
-        const a = (i * 15 * Math.PI) / 180;
-        const r1 = cardinal ? 58 : 65;
-        return (
-          <line
-            key={i}
-            x1={100 + Math.sin(a) * r1}
-            y1={100 - Math.cos(a) * r1}
-            x2={100 + Math.sin(a) * 70}
-            y2={100 - Math.cos(a) * 70}
-            stroke={cardinal ? "#a81b22" : "#1a1a1a"}
-            strokeOpacity={cardinal ? 0.55 : 0.18}
-            strokeWidth={cardinal ? 2 : 1}
-            strokeLinecap="round"
-          />
-        );
-      })}
+      {TICKS.map((tick, i) => (
+        <line
+          key={i}
+          x1={tick.x1}
+          y1={tick.y1}
+          x2={tick.x2}
+          y2={tick.y2}
+          stroke={tick.cardinal ? "#a81b22" : "#1a1a1a"}
+          strokeOpacity={tick.cardinal ? 0.55 : 0.18}
+          strokeWidth={tick.cardinal ? 2 : 1}
+          strokeLinecap="round"
+        />
+      ))}
 
       <text
         x={100}

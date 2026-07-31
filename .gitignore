@@ -11,7 +11,7 @@
 !.yarn/versions
 *.zip
 sumga.zip
-
+                
 # testing
 /coverage
 
