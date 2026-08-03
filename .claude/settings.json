@@ -115,7 +115,29 @@
       "PowerShell(foreach \\($id in 27304, 13504\\) { $p = Get-CimInstance Win32_Process -Filter \"ProcessId=$id\" -ErrorAction SilentlyContinue; if \\($p\\) { Write-Output \"PID $id : $\\($p.Name\\)\"; Write-Output \"   cmd: $\\($p.CommandLine\\)\"; Write-Output \"   cwd-ish: $\\($p.ExecutablePath\\)\"; Write-Output \"\" } else { Write-Output \"PID $id : not running\"; Write-Output \"\" } })",
       "PowerShell(Stop-Process -Id 27304 -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2; Write-Output \"--- ports now ---\"; foreach \\($port in 3000,3001,3002,4000\\) { $c = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1; if \\($c\\) { $proc = Get-Process -Id $c.OwningProcess -ErrorAction SilentlyContinue; Write-Output \"$port : IN USE by PID $\\($c.OwningProcess\\) \\($\\($proc.ProcessName\\)\\)\" } else { Write-Output \"$port : free\" } })",
       "Bash(powershell -Command 'Get-CimInstance Win32_Process -Filter \"Name='\\\\''node.exe'\\\\''\" | Where-Object { $_.CommandLine -like '\\\\''*Sumago-Website*'\\\\'' -or $_.CommandLine -like '\\\\''*sumago-website-backend*'\\\\'' -or $_.CommandLine -like '\\\\''*concurrently*'\\\\'' } | ForEach-Object { Write-Output \"stopping $\\($_.ProcessId\\)\"; Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }')",
-      "Bash(powershell -Command 'foreach \\($port in 3100,4000\\) { $c = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { Write-Output \"$port still in use\" } else { Write-Output \"$port free\" } }')"
+      "Bash(powershell -Command 'foreach \\($port in 3100,4000\\) { $c = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { Write-Output \"$port still in use\" } else { Write-Output \"$port free\" } }')",
+      "Bash(echo \"=== TSC EXIT: $? ===\")",
+      "Bash(echo \"ESLINT EXIT: $?\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 90 http://localhost:3000/)",
+      "Bash(curl -s --max-time 60 http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --max-time 120 http://localhost:3100/)",
+      "Bash(echo \"tsc:$?\")",
+      "Bash(echo \"eslint:$?\")",
+      "Bash(node \"C:/Users/VIVEKP~1/AppData/Local/Temp/claude/d--Sumago-Website-and-Admin--17-7-26/0291b69d-2462-4cd2-9dce-9c8ffc53cc98/scratchpad/tw-check.mjs\")",
+      "Bash(node tw-check.mjs)",
+      "Bash(rm -f tw-check.mjs)",
+      "Bash(grep -iE \"^parse5$|^cheerio$|^htmlparser2$|^jsdom$\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 15 http://localhost:3100/)",
+      "Bash(PATHS=\"/\" WIDTHS=\"360,390,768,1280\" node overflow-audit.mjs)",
+      "Bash(node -e 'console.log\\(JSON.stringify\\(process.env.PATHS\\)\\)')",
+      "Read(//c/Users/Vivek Patil/AppData/Local/Temp/claude/d--Sumago-Website-and-Admin--17-7-26/46dee556-c282-445b-872f-99ac41cc8d73/scratchpad/**)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3100/)",
+      "Bash(curl -s http://localhost:3100/)",
+      "Bash(curl -s -o /dev/null http://localhost:3100/)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3100 -State Listen | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Get-Process -Id $_ | Select-Object Id, ProcessName, Path })",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3100/terms)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3100/\" -UseBasicParsing -TimeoutSec 60; $h = $r.Content; $i = $h.IndexOf\\(\"</head>\"\\); $h.Substring\\(0, [Math]::Min\\($i+7, $h.Length\\)\\) | Out-File -FilePath \"C:\\\\Users\\\\VIVEKP~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Sumago-Website-and-Admin--17-7-26\\\\5fd01818-4b9f-4109-9250-3df7e5463ba3\\\\scratchpad\\\\head.html\" -Encoding utf8; \"head chars: $\\($i+7\\)\")",
+      "PowerShell($ua = \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/131.0.0.0 Safari/537.36\"; $r = Invoke-WebRequest -Uri \"http://localhost:3100/\" -UseBasicParsing -TimeoutSec 90 -Headers @{ \"User-Agent\" = $ua }; $h = $r.Content; $i = $h.IndexOf\\(\"<body\"\\); \"--- body start ---\"; $h.Substring\\($i, 400\\); \"--- div hidden count: $\\(\\([regex]::Matches\\($h,'<div hidden'\\)\\).Count\\) ---\")"
     ]
   }
 }

@@ -34,7 +34,10 @@ function initialsOf(name: string): string | null {
 function TestimonialCard({ t }: { t: (typeof testimonials)[number] }) {
   const initials = initialsOf(t.name);
   return (
-    <figure className="mx-3 flex w-[320px] shrink-0 flex-col self-start rounded-2xl border border-line bg-paper p-7 shadow-sm md:w-[380px]">
+    /* Narrower than the narrowest phone on purpose: at a flat 320px the card is
+       the whole viewport, so both its edges sit off-screen and the quote is cut
+       mid-word instead of reading as a card with the next one peeking in. */
+    <figure className="mx-3 flex w-[268px] shrink-0 flex-col self-start rounded-2xl border border-line bg-paper p-6 shadow-sm sm:w-[320px] sm:p-7 md:w-[380px]">
       {/* Person — name above */}
       <figcaption className="flex items-center gap-3">
         <span

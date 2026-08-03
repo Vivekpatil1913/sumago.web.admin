@@ -148,7 +148,11 @@ export function CapabilitiesSection() {
   );
 }
 
-/** A single industry image card used inside the marquee rows. */
+/**
+ * A single industry image card used inside the marquee rows. Sized narrower
+ * than the viewport on phones — at `w-96` a card is wider than a 375px screen,
+ * so both its edges sit off-screen and the row stops reading as cards.
+ */
 function IndustryPill({ name }: { name: string }) {
   const slug = slugify(name);
   const Icon = INDUSTRY_ICONS[slug] ?? FALLBACK_INDUSTRY_ICON;
@@ -156,13 +160,13 @@ function IndustryPill({ name }: { name: string }) {
     <Link
       href={`/industries/${slug}`}
       data-placeholder="stock"
-      className="group/card relative mr-4 block h-52 w-96 shrink-0 overflow-hidden rounded-2xl shadow-sm ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group/card relative mr-3 block h-40 w-64 shrink-0 overflow-hidden rounded-2xl shadow-sm ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:mr-4 sm:h-52 sm:w-96"
     >
       <Image
         src={industryImages[slug]}
         alt={name}
         fill
-        sizes="288px"
+        sizes="(min-width: 640px) 384px, 256px"
         className="object-cover transition-transform duration-500 group-hover/card:scale-105"
       />
       {/* light-black shade rising from the bottom-left */}

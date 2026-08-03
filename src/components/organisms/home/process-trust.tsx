@@ -28,13 +28,18 @@ const PROCESS_ICONS: Record<string, LucideIcon> = {
   Search, Route, Blocks, PenTool, Code2, ShieldCheck, Rocket, GraduationCap, TrendingUp,
 };
 
-/* ---- Straight road geometry (single, static frame) ----------------------- */
+/* ---- Straight road geometry — the ≥lg layout (single, static frame) ------ */
 const H = 300; // frame height (px)
 const MID = 150; // road centre (y)
 const NODE = 46; // node diameter
 const CONN = 26; // connector length from node out to the title
 const PAD = 4; // horizontal inset (%) so edge nodes aren't clipped
 const LABEL_W = 156; // title label width (px)
+
+/* ---- Vertical rail geometry — the <lg layout ----------------------------- */
+const V_NODE = 44; // node diameter (px)
+const V_RAIL = 3; // rail thickness (px)
+const V_GAP = 30; // vertical space between one node and the next (px)
 
 /* Progress-loop timing — advance, pause at each stage, advance again. */
 const PAUSE_MS = 1500; // dwell on each stage
@@ -68,12 +73,24 @@ type Stop =
   | { kind: "start" | "end"; label: string; Icon: LucideIcon }
   | { kind: "step"; step: (typeof processSteps)[number]; num: number };
 
+/** Fill of a lit node — the brushed metallic red, shared by both layouts. */
+const NODE_FILL =
+  "linear-gradient(177deg,#ffb3b4 0%,#ef4a4e 20%,#d73438 40%,#8f1418 52%,#c1282c 66%,#ff8f91 100%)";
+/** Fill of the travelled road/rail. */
+const ROAD_FILL = "linear-gradient(90deg, #0a0a0c, #17171a)";
+
+/** Icon, title and React key for a stop, whichever kind it is. */
+function stopParts(s: Stop) {
+  return s.kind === "step"
+    ? { Icon: PROCESS_ICONS[s.step.icon] ?? Circle, title: s.step.title, key: s.step.title }
+    : { Icon: s.Icon, title: s.label, key: s.kind };
+}
+
 /**
- * Animated progress road: stops begin grey + blurred; a colour front travels
- * from the start and lights each stage one-by-one, then holds and loops.
+ * The progress front, 0 → 1: dwell on each stage, travel to the next, and loop.
+ * Shared by both layouts so only one rAF loop ever runs.
  */
-function RoadTimeline({ stops }: { stops: Stop[] }) {
-  const N = stops.length;
+function useRoadProgress(N: number) {
   const reduce = useReducedMotion();
   const [p, setP] = useState(reduce ? 1 : 0);
 
@@ -120,9 +137,16 @@ function RoadTimeline({ stops }: { stops: Stop[] }) {
     return () => cancelAnimationFrame(raf);
   }, [reduce, phases, total]);
 
-  // Completed road turns black, revealed left→right as progress grows.
-  const fillGradient = "linear-gradient(90deg, #0a0a0c, #17171a)";
+  return p;
+}
 
+/**
+ * The road, laid out horizontally — ≥lg only. Eleven 156px labels need roughly
+ * 1000px of track before same-side neighbours start colliding, so narrower
+ * viewports get `VerticalRoad` instead.
+ */
+function HorizontalRoad({ stops, p }: { stops: Stop[]; p: number }) {
+  const N = stops.length;
   return (
     <div className="relative mx-auto" style={{ height: H }}>
       {/* Road: grey asphalt track + colour progress fill + dashed centre line */}
@@ -137,7 +161,7 @@ function RoadTimeline({ stops }: { stops: Stop[] }) {
           {/* completed road — turns black, clipped from the right to reveal progress */}
           <div
             className="absolute inset-0"
-            style={{ background: fillGradient, clipPath: `inset(0 ${(100 - p * 100).toFixed(2)}% 0 0)` }}
+            style={{ background: ROAD_FILL, clipPath: `inset(0 ${(100 - p * 100).toFixed(2)}% 0 0)` }}
           />
           {/* dashed centre line */}
           <div className="absolute inset-x-4 top-1/2 h-[3px] -translate-y-1/2 opacity-80 [background:repeating-linear-gradient(90deg,#ffffff_0_14px,transparent_14px_40px)]" />
@@ -156,9 +180,11 @@ function RoadTimeline({ stops }: { stops: Stop[] }) {
         const g = groupOf(i);
         const color = g.mid;
         const active = p >= i / (N - 1) - 1e-4;
-        const Icon = s.kind === "step" ? (PROCESS_ICONS[s.step.icon] ?? Circle) : s.Icon;
-        const title = s.kind === "step" ? s.step.title : s.label;
-        const key = s.kind === "step" ? s.step.title : s.kind;
+        const { Icon, title, key } = stopParts(s);
+        /* The label is centred on its node, but clamped to the frame so the
+           first and last never hang off the edge — that overhang was pushing
+           the whole document sideways and giving every page an x-scrollbar. */
+        const labelLeft = `clamp(0px, calc(${pct}% - ${LABEL_W / 2}px), calc(100% - ${LABEL_W}px))`;
 
         return (
           <div key={key}>
@@ -181,9 +207,7 @@ function RoadTimeline({ stops }: { stops: Stop[] }) {
                 width: NODE,
                 height: NODE,
                 transform: `translate(-50%,-50%) scale(${active ? 1 : 0.9})`,
-                background: active
-                  ? "linear-gradient(177deg,#ffb3b4 0%,#ef4a4e 20%,#d73438 40%,#8f1418 52%,#c1282c 66%,#ff8f91 100%)"
-                  : GREY_NODE,
+                background: active ? NODE_FILL : GREY_NODE,
                 borderColor: active ? g.mid : GREY_NODE,
                 opacity: active ? 1 : 0.9,
                 filter: active ? "none" : "blur(1.6px) saturate(0.6)",
@@ -196,18 +220,18 @@ function RoadTimeline({ stops }: { stops: Stop[] }) {
             </div>
             {/* title label (only) */}
             <div
-              className="absolute z-10 flex -translate-x-1/2 justify-center px-1 text-center transition-all duration-500"
+              className="absolute z-10 flex justify-center px-1 text-center transition-all duration-500"
               style={
                 above
                   ? {
-                      left: `${pct}%`,
+                      left: labelLeft,
                       bottom: H - (MID - NODE / 2 - CONN),
                       width: LABEL_W,
                       alignItems: "flex-end",
                       filter: active ? "none" : "blur(1px)",
                     }
                   : {
-                      left: `${pct}%`,
+                      left: labelLeft,
                       top: MID + NODE / 2 + CONN,
                       width: LABEL_W,
                       filter: active ? "none" : "blur(1px)",
@@ -228,6 +252,118 @@ function RoadTimeline({ stops }: { stops: Stop[] }) {
         );
       })}
     </div>
+  );
+}
+
+/**
+ * The same journey, laid out as a vertical rail — the <lg layout. Not the
+ * horizontal road shrunk: read top-to-bottom, every title gets the full column
+ * width, and each stop carries its own connector segment so the geometry needs
+ * no measurement and rows are free to grow when a title wraps.
+ */
+function VerticalRoad({ stops, p }: { stops: Stop[]; p: number }) {
+  const N = stops.length;
+  const seg = 1 / (N - 1);
+
+  return (
+    <ol className="relative mx-auto max-w-md sm:max-w-lg">
+      {stops.map((s, i) => {
+        const g = groupOf(i);
+        const active = p >= i * seg - 1e-4;
+        // Share of the connector below this stop that the front has travelled.
+        const travelled = Math.min(Math.max((p - i * seg) / seg, 0), 1);
+        const { Icon, title, key } = stopParts(s);
+        const last = i === N - 1;
+
+        return (
+          <li
+            key={key}
+            className="relative flex items-start gap-4"
+            style={{ paddingBottom: last ? 0 : V_GAP }}
+          >
+            {/* Rail down to the next node — grey base with the travelled fill
+                clipped in from the bottom. */}
+            {last ? null : (
+              <span
+                aria-hidden
+                className="absolute overflow-hidden rounded-full"
+                style={{
+                  left: V_NODE / 2,
+                  top: V_NODE,
+                  bottom: 0,
+                  width: V_RAIL,
+                  transform: "translateX(-50%)",
+                }}
+              >
+                <span className="absolute inset-0" style={{ background: GREY_LINE }} />
+                <span
+                  className="absolute inset-0"
+                  style={{
+                    background: ROAD_FILL,
+                    clipPath: `inset(0 0 ${((1 - travelled) * 100).toFixed(2)}% 0)`,
+                  }}
+                />
+              </span>
+            )}
+
+            {/* Node */}
+            <span
+              className="relative z-10 grid shrink-0 place-items-center rounded-[26%] border-2 text-white transition-all duration-500"
+              style={{
+                width: V_NODE,
+                height: V_NODE,
+                transform: `scale(${active ? 1 : 0.9})`,
+                background: active ? NODE_FILL : GREY_NODE,
+                borderColor: active ? g.mid : GREY_NODE,
+                filter: active ? "none" : "blur(1.6px) saturate(0.6)",
+                boxShadow: active
+                  ? `0 8px 22px -6px ${rgba(g.mid, 0.8)}`
+                  : "0 6px 14px -8px rgba(0,0,0,0.3)",
+              }}
+            >
+              <Icon size={s.kind === "step" ? 20 : 18} strokeWidth={2} aria-hidden />
+            </span>
+
+            {/* Title — `min-h` of one node keeps a single line optically centred
+                against it, while a wrapped title simply grows downward. */}
+            <span
+              className="flex min-w-0 flex-1 items-center text-base font-bold leading-snug transition-all duration-500 sm:text-lg"
+              style={{
+                minHeight: V_NODE,
+                color: active ? "#1a1a1a" : GREY_LABEL,
+                filter: active ? "none" : "blur(1px)",
+              }}
+            >
+              {title}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+/**
+ * Animated progress road: stops begin grey + blurred; a colour front travels
+ * from the start and lights each stage one-by-one, then holds and loops.
+ *
+ * Two layouts, one progress value — the horizontal road needs ~1000px of track
+ * for eleven labels, so below `lg` the journey reads as a vertical rail instead.
+ * Both trees render and CSS picks one: `display:none` keeps the hidden layout
+ * out of the accessibility tree, and a single `useRoadProgress` means one rAF
+ * loop rather than one per layout.
+ */
+function RoadTimeline({ stops }: { stops: Stop[] }) {
+  const p = useRoadProgress(stops.length);
+  return (
+    <>
+      <div className="lg:hidden">
+        <VerticalRoad stops={stops} p={p} />
+      </div>
+      <div className="hidden lg:block">
+        <HorizontalRoad stops={stops} p={p} />
+      </div>
+    </>
   );
 }
 

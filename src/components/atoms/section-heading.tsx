@@ -38,8 +38,14 @@ export function SectionHeading({
       ) : null}
       <h2
         className={cn(
-          "text-balance font-bold leading-[1.08] tracking-tight",
-          "text-[2rem] sm:text-4xl lg:text-5xl",
+          "text-balance font-bold tracking-tight",
+          /* Line-height rides on the font-size utility (`/…`) rather than a
+             separate `leading-*`: tailwind-merge treats font-size as
+             conflicting with leading, so a `leading-*` listed before the sizes
+             is stripped here — the h2 then inherited body's 20px and mobile
+             headings overlapped. Per-step values also let the ratio loosen as
+             the column narrows, which is what a 3-line mobile heading needs. */
+          "text-[2rem]/[1.2] sm:text-4xl/[1.14] lg:text-5xl/[1.08]",
           dark ? "text-white" : "text-ink",
         )}
       >

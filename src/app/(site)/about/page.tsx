@@ -228,16 +228,7 @@ export default function AboutPage() {
 
       {/* 2 · Our mantra — vision & mission */}
       <Section muted>
-        <SectionHeading
-          eyebrow="Our mantra"
-          title={
-            <>
-              The <span className="text-metal-red">vision</span> we&apos;re chasing, the{" "}
-              <span className="text-metal-red">mission</span> we live by.
-            </>
-          }
-          description="Two ideas keep every decision honest — where we're headed, and how we earn our way there."
-        />
+        <SectionHeading align="left" eyebrow="Our purpose" title="Vision & Mission" />
         <VisionMission />
       </Section>
 

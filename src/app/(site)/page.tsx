@@ -13,6 +13,7 @@ import {
   CultureGallery,
   Testimonials,
 } from "@/components/organisms/home/more-sections";
+import { WhatWeDo } from "@/components/organisms/home/what-we-do";
 import { BrandGateway } from "@/components/organisms/brand-gateway";
 
 export default function HomePage() {
@@ -23,6 +24,10 @@ export default function HomePage() {
       <BrandGateway />
       <HomeHero />
       <AboutSection />
+      {/* Scope before story: `ChallengesWeSolve` below is an 800vh pinned track,
+          so a scanning first-time visitor would otherwise reach "what Sumago
+          actually does" around screen 10. See what-we-do.tsx. */}
+      <WhatWeDo />
       <ChallengesWeSolve />
       <CapabilitiesSection />
       <IndustriesSection />

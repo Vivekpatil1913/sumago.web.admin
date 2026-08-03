@@ -37,6 +37,17 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /**
+     * Safety net against a page-level horizontal scrollbar: one element hanging
+     * past the viewport widens the document, and *every* centered section then
+     * shifts sideways with it. Per-component fixes stay the real fix; this only
+     * stops a single stray box taking the whole page with it.
+     *
+     * `clip`, never `hidden` — `hidden` makes the root a scroll container, which
+     * breaks the pinned `position: sticky` sections (the challenges cinematic).
+     * `clip` does not, so sticky keeps measuring against the viewport.
+     */
+    overflow-x: clip;
   }
   body {
     background: var(--color-paper);

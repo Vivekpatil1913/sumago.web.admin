@@ -45,6 +45,11 @@ const OUTRO_DONE = 0.96;
 // Word-cloud styling for the "all ten" reveal. Words flow (flex-wrap) so they
 // can never overlap; varied sizes, tilts and two tones give the cloud look.
 // Heroes stay untilted (rot 0). Indexed 0–9 to match `problems`.
+//
+// The `vw` term in each size is what keeps the cloud proportional to the stage;
+// the floor is what keeps it legible once `vw` bottoms out on a phone. Phrases
+// wrap below `sm` (see the span below), so a floor that no longer fits one line
+// is fine — it just takes two.
 type CloudItem = { size: string; tone: "red" | "ink" | "muted"; rot: number };
 const CLOUD: CloudItem[] = [
   { size: "clamp(1.5rem, 4vw, 3rem)", tone: "red", rot: 0 }, // hero 1
@@ -191,9 +196,9 @@ export function ChallengesCinematic() {
           {/* Layer B — all ten gather as a word cloud, then crush away */}
           <motion.div
             style={{ opacity: cloudOpacity, scale: cloudScale }}
-            className="pointer-events-none absolute inset-0 flex items-center justify-center px-2"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center px-5 sm:px-2"
           >
-            <div className="flex max-w-5xl flex-wrap items-center justify-center gap-x-8 gap-y-5 md:gap-x-10">
+            <div className="flex max-w-5xl flex-wrap items-center justify-center gap-x-5 gap-y-4 sm:gap-x-8 sm:gap-y-5 md:gap-x-10">
               {problems.map((p, i) => {
                 const c = CLOUD[i];
                 return (
@@ -201,7 +206,11 @@ export function ChallengesCinematic() {
                     key={p}
                     style={{ fontSize: c.size, transform: `rotate(${c.rot}deg)` }}
                     className={cn(
-                      "whitespace-nowrap font-bold uppercase leading-none tracking-tight",
+                      /* Phrases wrap on a phone and hold one line from `sm` up.
+                         Held to one line at every width, the longest of them
+                         overhangs a 390px screen on both sides and the cloud
+                         reads as clipped fragments. */
+                      "text-center font-bold uppercase leading-tight tracking-tight sm:whitespace-nowrap sm:leading-none",
                       TONE[c.tone],
                     )}
                   >

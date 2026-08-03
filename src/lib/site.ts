@@ -128,6 +128,13 @@ export const nav = [
         href: "/industries",
         description: "Domain expertise across ten industries.",
       },
+      /* Also linked under "Our Work" — buyers shopping for AI look under
+         Services, not a showcase group, so the page is reachable from both. */
+      {
+        label: "AI & Automation",
+        href: "/innovation",
+        description: "Chatbots, voice, workflow automation, and applied analytics.",
+      },
     ],
   },
   {

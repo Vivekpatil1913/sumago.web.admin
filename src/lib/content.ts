@@ -44,6 +44,191 @@ export const processPhases: { name: string; tagline: string }[] = [
   { name: "Launch & Grow", tagline: "Ship safely, enable your teams, and improve long after launch." },
 ];
 
+/**
+ * The four modes of work every engagement is made of — a positioning band for
+ * the home page, NOT a process model. `PHASES` (lib/services.ts) stays the
+ * site's functional taxonomy; these four are the message, deliberately kept
+ * free of sequence language so the two don't compete. Copy defers to
+ * COMPANY-PROFILE.md — "AI & Intelligent Automation" and "Maintenance &
+ * Continuous Improvement" are the verified terms (no "RPA", no "AMC").
+ */
+export const whatWeDo: {
+  title: string;
+  description: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+  /** The service that best embodies this mode — where the card routes. */
+  href: string;
+}[] = [
+  {
+    icon: "Compass",
+    title: "Advise",
+    description:
+      "Digital strategy, process study and solution architecture that turn business goals into a roadmap with measurable outcomes.",
+    href: "/solutions/technology-advisory",
+  },
+  {
+    icon: "Code2",
+    title: "Build",
+    description:
+      "Web, mobile, custom software and enterprise platforms — engineered typed, tested and built to be maintained for years.",
+    href: "/solutions/enterprise-software-engineering",
+  },
+  {
+    icon: "Cpu",
+    title: "Automate",
+    description:
+      "AI and intelligent automation that remove the manual effort and error from the work your teams repeat every day.",
+    href: "/solutions/ai-and-intelligent-automation",
+  },
+  {
+    icon: "LifeBuoy",
+    title: "Sustain",
+    description:
+      "Cloud operations, security, maintenance and continuous improvement that keep systems dependable long after launch.",
+    href: "/solutions/cloud-and-devops-engineering",
+  },
+];
+
+/**
+ * Vision & Mission — the purpose diptych on the About page.
+ *
+ * NOTE: this is the modernised statement supplied by the business, not the
+ * longer legacy wording quoted under "Vision (verbatim)" / "Mission (verbatim)"
+ * in COMPANY-PROFILE.md. Update that file to match so the source of truth and
+ * the site don't drift apart.
+ */
+export const visionMission: {
+  key: "vision" | "mission";
+  label: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+  statement: string;
+  /** Vision closes on an aspiration; mission closes on commitments. */
+  support?: string;
+  points?: string[];
+}[] = [
+  {
+    key: "vision",
+    label: "Vision",
+    icon: "Eye",
+    statement:
+      "To empower governments, enterprises and institutions through technology — becoming the most trusted engineering partner for a digital-first India.",
+    support:
+      "We aspire to set the standard for reliability, innovation and long-term public value in every system we deliver.",
+  },
+  {
+    key: "mission",
+    label: "Mission",
+    icon: "Target",
+    statement:
+      "To engineer secure, scalable technology that solves real problems — measurable, dependable and built to last.",
+    points: [
+      "Deliver outcomes, not just deliverables",
+      "Uphold enterprise-grade quality & security",
+      "Design for scale, adoption and longevity",
+      "Partner transparently across the lifecycle",
+    ],
+  },
+];
+
+/**
+ * Applied intelligence — the capability band on /innovation.
+ *
+ * Distinct from the home page's `AiSdlc` section: that one is AI in *how*
+ * Sumago builds (the engineering toolchain); this is AI as what gets built
+ * *for* clients. Same technology, opposite direction — keep them that way.
+ *
+ * "RPA" is deliberately not used as a named practice: COMPANY-PROFILE.md
+ * verifies "AI & Intelligent Automation" and automated workflows, not RPA.
+ */
+export const intelligentSystems: {
+  title: string;
+  description: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+}[] = [
+  {
+    icon: "MessageSquare",
+    title: "AI Chatbots & Assistants",
+    description:
+      "24/7 conversational support trained on your own content and processes.",
+  },
+  {
+    icon: "Mic",
+    title: "Voice & Language AI",
+    description: "Natural voice and multilingual interfaces for wider public reach.",
+  },
+  {
+    icon: "Repeat",
+    title: "Workflow Automation",
+    description:
+      "Rule-based automation that removes repetitive, high-volume back-office work.",
+  },
+  {
+    icon: "BarChart3",
+    title: "Applied Analytics",
+    description: "Dashboards and predictive insight built into everyday decisions.",
+  },
+];
+
+/** What the intelligence above changes in practice — the closing proof strip. */
+export const intelligentOutcomes: { title: string; note: string }[] = [
+  { title: "Round-the-clock service", note: "without added headcount" },
+  { title: "Faster resolution", note: "and response times" },
+  { title: "Auditable decisions", note: "consistent & compliant" },
+  { title: "Staff freed", note: "for higher-value work" },
+];
+
+/**
+ * The systems layer — infrastructure, business platforms and the connections
+ * between them. Sits under the service catalog on /solutions: the chapters say
+ * which problems get solved, this says which systems get run and connected.
+ *
+ * NOTE: CRM / ERP / HRMS and system-integration are stated as capabilities here
+ * but are NOT in COMPANY-PROFILE.md — today they appear only incidentally in
+ * industry copy (and HRMS nowhere at all). Add them to the profile so the
+ * source of truth matches what the site claims.
+ */
+export const platformGroups: {
+  title: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+  items: string[];
+}[] = [
+  {
+    icon: "Cloud",
+    title: "Cloud & DevOps",
+    items: [
+      "Cloud architecture & migration",
+      "CI/CD pipelines & release automation",
+      "Containers & orchestration",
+      "Monitoring, alerting & cost control",
+    ],
+  },
+  {
+    icon: "LayoutGrid",
+    title: "Business Platforms",
+    items: [
+      "CRM — customer & citizen",
+      "ERP — operations & finance",
+      "HRMS — workforce management",
+      "Custom internal platforms",
+    ],
+  },
+  {
+    icon: "Link2",
+    title: "API & Integration",
+    items: [
+      "API-first, microservice design",
+      "REST & GraphQL APIs",
+      "Third-party & payment gateways",
+      "Legacy & ERP connectors",
+      "Secure, documented interfaces",
+    ],
+  },
+];
+
 /** Why organizations choose Sumago (real). */
 export const differentiators: {
   title: string;
