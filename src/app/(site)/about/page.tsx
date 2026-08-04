@@ -1,13 +1,5 @@
 import type { Metadata } from "next";
-import {
-  Award,
-  BadgeCheck,
-  ShieldCheck,
-  Trophy,
-  Sparkles,
-  ArrowRight,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { BadgeCheck, ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/organisms/page-hero";
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
@@ -19,8 +11,9 @@ import { CoreValuesRadial, type CoreValue } from "@/components/organisms/about/c
 import { StoryTimeline } from "@/components/organisms/about/story-timeline";
 import { VisionMission } from "@/components/organisms/about/vision-mission";
 import { TrustWall } from "@/components/organisms/about/trust-wall";
+import { Recognition } from "@/components/organisms/about/recognition";
 import { company } from "@/lib/site";
-import { awards, mediaMentions, clientNames } from "@/lib/content";
+import { clientNames } from "@/lib/content";
 import { previewImages, cultureGalleryImages } from "@/lib/preview-assets";
 
 export const metadata: Metadata = {
@@ -66,15 +59,6 @@ const nameMeaning: [string, string][] = [
   ["Growth", "Continuous improvement and expansion."],
   ["Ownership", "Treating every project as our own."],
 ];
-
-/** Maps award `icon` names (from lib/content) to lucide components. */
-const AWARD_ICONS: Record<string, LucideIcon> = {
-  ShieldCheck,
-  BadgeCheck,
-  Trophy,
-  Sparkles,
-  Award,
-};
 
 /** Team celebration collage — reuses the auto-scrolling mosaic pattern. */
 const teamGalleryImages = cultureGalleryImages.map((src, i) => ({
@@ -281,110 +265,10 @@ export default function AboutPage() {
         </div>
       </Section>
 
-      {/* 4 · Awards & media presence */}
-      <Section muted>
-        <SectionHeading
-          eyebrow="Recognition"
-          title={
-            <>
-              Trust others put <span className="text-metal-red">on the record</span>.
-            </>
-          }
-          description="Certifications, awards, and recognition that back the work with independent proof."
-        />
-        {/* Certifications — the top-tier trust assets, featured as stamped seals. */}
-        <div className="mt-14 grid gap-6 md:grid-cols-2">
-          {awards
-            .filter((a) => a.kind === "certification")
-            .map((a, i) => {
-              const Icon = AWARD_ICONS[a.icon] ?? Award;
-              return (
-                <div
-                  key={a.title}
-                  data-aos="fade-up"
-                  data-aos-delay={i * 80}
-                  className="card-hover relative overflow-hidden rounded-2xl border border-line bg-paper p-7 sm:p-8"
-                >
-                  <div
-                    aria-hidden
-                    className="absolute -right-12 -top-12 h-44 w-44 rounded-full bg-brand/5 blur-2xl"
-                  />
-                  <div className="relative flex items-start gap-5">
-                    {/* Stamped seal — dashed ring around a brand medallion. */}
-                    <span className="relative grid h-16 w-16 shrink-0 place-items-center">
-                      <span
-                        aria-hidden
-                        className="absolute inset-0 rounded-full border-2 border-dashed border-brand/25 motion-safe:animate-[spin_22s_linear_infinite]"
-                      />
-                      <span className="grid h-[52px] w-[52px] place-items-center rounded-full bg-brand/10 text-brand">
-                        <Icon size={26} aria-hidden />
-                      </span>
-                    </span>
-                    <div className="min-w-0">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-success">
-                        <BadgeCheck size={12} aria-hidden />
-                        {a.year}
-                      </span>
-                      <h3 className="mt-2.5 text-2xl font-bold leading-tight text-ink">
-                        {a.title}
-                      </h3>
-                      <p className="mt-2 text-sm leading-relaxed text-ink/65">{a.detail}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-        </div>
-
-        {/* Awards — the supporting recognitions, as compact tiles. */}
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {awards
-            .filter((a) => a.kind === "award")
-            .map((a, i) => {
-              const Icon = AWARD_ICONS[a.icon] ?? Award;
-              return (
-                <div
-                  key={`${a.title}-${a.year}`}
-                  data-aos="fade-up"
-                  data-aos-delay={(i % 3) * 60}
-                  className="card-hover flex h-full flex-col rounded-xl border border-line bg-paper p-5"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="grid h-10 w-10 place-items-center rounded-lg bg-brand/10 text-brand">
-                      <Icon size={18} aria-hidden />
-                    </span>
-                    <span className="text-xs font-bold uppercase tracking-wider text-ink/40">
-                      {a.year}
-                    </span>
-                  </div>
-                  <h3 className="mt-4 text-sm font-semibold leading-snug text-ink">
-                    {a.title}
-                  </h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-ink/60">{a.detail}</p>
-                </div>
-              );
-            })}
-        </div>
-
-        {/* Media presence — slim greyscale press strip.
-            [REAL ASSET NEEDED] Replace placeholders with verified press logos. */}
-        <div className="mt-14 border-t border-line pt-8" data-aos="fade-up">
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
-            <span className="text-xs font-bold uppercase tracking-[0.22em] text-ink/40">
-              Featured in
-            </span>
-            {mediaMentions.map((m) => (
-              <span
-                key={m}
-                title="[REAL ASSET NEEDED] Verified press mention"
-                className="text-base font-semibold text-ink/25 transition-colors duration-200 hover:text-ink/50"
-              >
-                {m}
-              </span>
-            ))}
-          </div>
-        </div>
-      </Section>
+      {/* 4 · Recognition — certifications, awards timeline, press, and the
+          procurement ask. Lives in its own organism (see the file header for
+          why it's built as a credential dossier rather than a badge grid). */}
+      <Recognition />
 
       {/* 5 · Our client partners — two-row scrolling roster on a dark trust band
           (mirrors the home-page TrustIndicators treatment). */}

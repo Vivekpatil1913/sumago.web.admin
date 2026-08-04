@@ -610,6 +610,20 @@ export const awards: {
   kind: "certification" | "award";
   /** lucide-react icon name (mapped to a component at the call site). */
   icon: string;
+  /**
+   * Awarding body / appraising authority, as the recognition section's
+   * credential line. Only ever restates what COMPANY-PROFILE.md verifies —
+   * no named auditor or appraiser is published until it is confirmed.
+   */
+  org?: string;
+  /** Awards: who the recognition is personal to (leadership awards). */
+  recipient?: string;
+  /** Certifications: what the certificate covers. */
+  scope?: string;
+  /** Certifications: the standing it confers — the procurement read. */
+  standing?: string;
+  /** Certifications: the one-line claim under the title. */
+  tagline?: string;
 }[] = [
   {
     title: "CMMI Maturity Level 5",
@@ -619,6 +633,10 @@ export const awards: {
     year: "Certified",
     kind: "certification",
     icon: "ShieldCheck",
+    org: "Independently appraised",
+    scope: "Engineering & delivery process maturity",
+    standing: "Level 5 of 5 — the highest",
+    tagline: "Highest engineering maturity",
   },
   {
     title: "ISO 9001:2015",
@@ -627,6 +645,10 @@ export const awards: {
     year: "Certified",
     kind: "certification",
     icon: "BadgeCheck",
+    org: "Independently audited",
+    scope: "Quality management system",
+    standing: "Certified to the 2015 standard",
+    tagline: "Quality management excellence",
   },
   {
     title: "Maharashtra State Young Women Entrepreneurs Award",
@@ -635,6 +657,8 @@ export const awards: {
     year: "2021",
     kind: "award",
     icon: "Trophy",
+    org: "Maharashtra State",
+    recipient: "Sonali Gorade · Co-founder & CEO",
   },
   {
     title: "Maharashtra State Young Women Entrepreneurs Award",
@@ -643,14 +667,21 @@ export const awards: {
     year: "2018",
     kind: "award",
     icon: "Trophy",
+    org: "Maharashtra State",
+    recipient: "Sonali Gorade · Co-founder & CEO",
   },
   {
     title: "nasscom × Indian Oil — National Recognition",
     short: "nasscom × IOC",
     detail: "Recognised nationally for a hands-on enterprise AI/ML workshop in New Delhi.",
-    year: "National",
+    /* 2024 is owner-supplied (design brief, Aug 2026) — COMPANY-PROFILE.md
+       records the recognition but not its year. [VERIFY] Add the date to the
+       profile so this has a source of truth behind it. */
+    year: "2024",
     kind: "award",
     icon: "Sparkles",
+    org: "nasscom × Indian Oil",
+    recipient: "New Delhi",
   },
 ];
 
@@ -686,6 +717,48 @@ export const clientNames: string[] = [
   "Shreerag",
   "Gadilo",
   "BioDigiSign",
+];
+
+/**
+ * The same roster as `clientNames`, grouped by the segment an evaluator reads
+ * themselves into. A government officer scanning a flat alphabet of 17 names
+ * has to do that sorting in their head; the grouping does it for them, which is
+ * the whole point of a trust strip.
+ *
+ * No name here is new — the two explicit groups are drawn from `clientNames`,
+ * and the third is *derived* as "everything not already placed", so adding a
+ * client to the roster can never quietly drop it from the strip.
+ *
+ * [REAL ASSET NEEDED] Text marks until logo display consent is confirmed
+ * (docs/17); the strip renders images the moment `logo` paths exist.
+ */
+const GOVERNMENT_CLIENTS = [
+  "Govt. of Maharashtra",
+  "MSBTE",
+  "FSSAI",
+  "NIC",
+  "UdyamMitra",
+];
+const ENTERPRISE_CLIENTS = ["Mahindra", "Toyota", "Hinduja", "SVI Carbon", "UMS Technologies"];
+
+export const trustedBy: { segment: string; icon: string; names: string[] }[] = [
+  {
+    segment: "Government & public sector",
+    icon: "Landmark",
+    names: clientNames.filter((n) => GOVERNMENT_CLIENTS.includes(n)),
+  },
+  {
+    segment: "Enterprise & industry",
+    icon: "Building2",
+    names: clientNames.filter((n) => ENTERPRISE_CLIENTS.includes(n)),
+  },
+  {
+    segment: "Platforms & growth businesses",
+    icon: "Rocket",
+    names: clientNames.filter(
+      (n) => !GOVERNMENT_CLIENTS.includes(n) && !ENTERPRISE_CLIENTS.includes(n),
+    ),
+  },
 ];
 
 /** Capability presentation meta — lucide icon name + one-line blurb. Keyed by
