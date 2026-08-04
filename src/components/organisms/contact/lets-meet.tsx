@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowUpRight, Clock, Mail, MapPin, Phone } from "lucide-react";
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
@@ -92,6 +93,22 @@ export function LetsMeet() {
           </article>
         ))}
       </div>
+
+      {/* These three premises are also the delivery network — the capability
+          view of them (role, scale, fit-out) lives on /how-we-deliver. */}
+      <p
+        data-aos="fade-up"
+        className="mt-8 text-center text-sm leading-relaxed text-ink/60"
+      >
+        Curious what runs inside them?{" "}
+        <Link
+          href="/how-we-deliver"
+          className="font-semibold text-brand-ink underline-offset-4 hover:underline"
+        >
+          See how we deliver
+        </Link>{" "}
+        — the engagement model, delivery centres and infrastructure behind the work.
+      </p>
     </Section>
   );
 }

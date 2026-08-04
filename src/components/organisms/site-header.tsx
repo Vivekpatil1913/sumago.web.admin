@@ -17,6 +17,7 @@ import {
   Award,
   Lightbulb,
   Newspaper,
+  Network,
   type LucideIcon,
 } from "lucide-react";
 import { Logo } from "@/components/atoms/logo";
@@ -30,6 +31,7 @@ type NavGroup = (typeof nav)[number];
 /** Icon per destination — keyed by href so nav data stays presentation-free. */
 const ITEM_ICONS: Record<string, LucideIcon> = {
   "/about": Building2,
+  "/how-we-deliver": Network,
   "/team": Users,
   "/life-at-sumago": Sparkles,
   "/careers": Briefcase,

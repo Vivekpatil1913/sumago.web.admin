@@ -29,6 +29,7 @@ This `docs/` repository is the **single source of truth** for the Sumago Infotec
 | 15 | [Deployment](15-deployment.md) | Environments, CI/CD, release gates |
 | 16 | [Location & Geo-Targeting Strategy](16-location-seo-strategy.md) | Broad geo SEO reach (India + international) without per-city pages; office local SEO |
 | 17 | [Preview Content Policy](17-placeholder-and-seed-content.md) | Stock media + sample copy for preview only; swapped before launch; production gate |
+| 18 | [Homepage Conversion Architecture](18-homepage-conversion-architecture.md) | Homepage section order; "Why Choose Us" + delivery-process redesign; motion, CRO & palette extension |
 
 ## Related root files
 - [`/MASTER-PROMPT.md`](../MASTER-PROMPT.md) — condensed operational brief for AI build sessions.

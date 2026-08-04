@@ -223,6 +223,18 @@ export default function AboutPage() {
               </span>
             ))}
           </div>
+
+          {/* The numbers say what was delivered; /how-we-deliver says how, and
+              from where — the due-diligence read for an evaluating buyer. */}
+          <div className="mt-10 flex justify-center">
+            <Button
+              href="/how-we-deliver"
+              variant="outline"
+              className="border-white/25 text-white backdrop-blur-sm hover:bg-white/10"
+            >
+              See the capability behind it <ArrowRight size={16} aria-hidden />
+            </Button>
+          </div>
         </div>
       </Section>
 

@@ -45,6 +45,77 @@ export const processPhases: { name: string; tagline: string }[] = [
 ];
 
 /**
+ * The case for Sumago — framed as the four objections an evaluator actually
+ * carries, each answered with evidence rather than an adjective.
+ *
+ * Every `proof.value` must trace to a NON-`[VERIFY]` line in COMPANY-PROFILE.
+ * "700+ projects" and "70+ team" are deliberately absent: the profile flags
+ * both as unresolved between Sumago and SCOPE (COMPANY-PROFILE.md, "Still to
+ * confirm"), and an overstated number in a trust section discredits every
+ * verified claim beside it. Add them here once the client confirms.
+ */
+export const whyChooseUs: {
+  /** The objection, in the buyer's own words — this is what gets listed. */
+  risk: string;
+  /** Sumago's answer. */
+  title: string;
+  description: string;
+  /** lucide-react icon name, mapped to a component at the call site. */
+  icon: string;
+  proof: { value: string; label: string }[];
+  cta: { label: string; href: string };
+}[] = [
+  {
+    risk: "Has this vendor delivered for government before?",
+    title: "Public-sector proven",
+    description:
+      "A documented delivery record across central, state, defence and PSU institutions — systems that carry citizen load and cannot fail quietly.",
+    icon: "Landmark",
+    proof: [
+      { value: "50+", label: "Government clients" },
+      { value: "13+", label: "Years delivering" },
+    ],
+    cta: { label: "See government work", href: "/industries/government" },
+  },
+  {
+    risk: "Who owns it when something breaks at 2am?",
+    title: "One accountable partner",
+    description:
+      "Strategy, build, deployment and long-term support sit with one in-house team. No subcontractor chain, no handoff where accountability disappears.",
+    icon: "RefreshCw",
+    proof: [
+      { value: "3", label: "Offices in Maharashtra" },
+      { value: "500+", label: "Domestic clients" },
+    ],
+    cta: { label: "How engagements run", href: "/how-we-deliver" },
+  },
+  {
+    risk: "Will this survive a security audit?",
+    title: "Secure by design, not by patch",
+    description:
+      "Architecture, access control and testing planned against the audit the system will actually face — decided before the first line of code, not retrofitted after.",
+    icon: "Lock",
+    proof: [
+      { value: "ISO 9001:2015", label: "Quality certified" },
+      { value: "CMMI Level 5", label: "Process maturity" },
+    ],
+    cta: { label: "Security & assurance", href: "/solutions" },
+  },
+  {
+    risk: "How do I know the quality claim is real?",
+    title: "Independently assessed",
+    description:
+      "CMMI Maturity Level 5 and ISO 9001:2015 are external assessments of how work is actually run — verifiable by a third party, unlike a promise on a website.",
+    icon: "Award",
+    proof: [
+      { value: "CMMI Level 5", label: "Externally assessed" },
+      { value: "60+", label: "International clients" },
+    ],
+    cta: { label: "Inside our delivery", href: "/how-we-deliver" },
+  },
+];
+
+/**
  * The four modes of work every engagement is made of — a positioning band for
  * the home page, NOT a process model. `PHASES` (lib/services.ts) stays the
  * site's functional taxonomy; these four are the message, deliberately kept
@@ -181,51 +252,331 @@ export const intelligentOutcomes: { title: string; note: string }[] = [
 ];
 
 /**
- * The systems layer — infrastructure, business platforms and the connections
- * between them. Sits under the service catalog on /solutions: the chapters say
- * which problems get solved, this says which systems get run and connected.
+ * The reference architecture behind delivery — five layers, read top-down from
+ * what the user touches to what it runs on. Sits under the service catalog on
+ * /solutions: the chapters say which problems get solved, this says how the
+ * systems that solve them are actually put together.
  *
- * NOTE: CRM / ERP / HRMS and system-integration are stated as capabilities here
- * but are NOT in COMPANY-PROFILE.md — today they appear only incidentally in
- * industry copy (and HRMS nowhere at all). Add them to the profile so the
- * source of truth matches what the site claims.
+ * The `Business Platforms` grouping that briefly lived here as its own section
+ * is folded into the services layer ("CRM · ERP · HRMS") — it duplicated the
+ * platform and integration layers below almost line for line.
+ *
+ * NOTE: CRM / ERP / HRMS and system integration are claimed here but are NOT in
+ * COMPANY-PROFILE.md — today they appear only incidentally in industry copy,
+ * and HRMS nowhere at all. Add them to the profile so the source of truth
+ * matches what the site claims.
  */
-export const platformGroups: {
-  title: string;
+export const architectureLayers: {
+  label: string;
   /** lucide-react icon name (mapped to a component at the call site). */
   icon: string;
+  /**
+   * What sits *outside* the system at this layer, drawn as a callout in the
+   * blueprint sheet. Only the layers with an external edge carry one — the
+   * interior layers (services, data) talk to nothing beyond the boundary.
+   */
+  boundary?: string;
   items: string[];
 }[] = [
   {
-    icon: "Cloud",
-    title: "Cloud & DevOps",
-    items: [
-      "Cloud architecture & migration",
-      "CI/CD pipelines & release automation",
-      "Containers & orchestration",
-      "Monitoring, alerting & cost control",
-    ],
-  },
-  {
-    icon: "LayoutGrid",
-    title: "Business Platforms",
-    items: [
-      "CRM — customer & citizen",
-      "ERP — operations & finance",
-      "HRMS — workforce management",
-      "Custom internal platforms",
-    ],
+    icon: "Monitor",
+    label: "Experience",
+    boundary: "Users & citizens",
+    items: ["Citizen & customer portals", "Mobile apps", "Dashboards", "Admin consoles"],
   },
   {
     icon: "Link2",
-    title: "API & Integration",
+    label: "API & Integration",
+    boundary: "Partner systems",
+    items: ["REST & GraphQL", "API gateway", "Payment gateways", "Legacy connectors"],
+  },
+  {
+    icon: "LayoutGrid",
+    label: "Services",
     items: [
-      "API-first, microservice design",
-      "REST & GraphQL APIs",
-      "Third-party & payment gateways",
-      "Legacy & ERP connectors",
-      "Secure, documented interfaces",
+      "Microservices",
+      "Business workflows",
+      "CRM · ERP · HRMS",
+      "Workflow automation",
+      "AI services",
     ],
+  },
+  {
+    icon: "Database",
+    label: "Data",
+    items: ["PostgreSQL · MySQL", "MongoDB · Redis", "Analytics & BI", "Reporting"],
+  },
+  {
+    icon: "Cloud",
+    label: "Platform",
+    boundary: "Cloud regions",
+    items: ["AWS · Azure · GCP", "Docker · Kubernetes", "CI/CD pipelines", "Monitoring"],
+  },
+];
+
+/**
+ * Security & compliance, grouped by *when* each control applies rather than as
+ * a flat list of six claims.
+ *
+ * The lanes are the argument: a buyer in a regulated sector is not asking "do
+ * you have encryption?" (every vendor says yes) — they are asking whether
+ * security is decided in the architecture, held through operations, and
+ * provable to an auditor. Build → run → account for is that answer, and it is
+ * what "by design" actually means.
+ *
+ * This absorbed the old `architectureCrossCutting` rail on the blueprint: the
+ * two sat next to each other on /solutions naming the same three concerns.
+ *
+ * [VERIFY] Only ISO 9001:2015 and CMMI Level 5 are certified (COMPANY-PROFILE).
+ * Nothing here claims a security-specific standard — no ISO 27001, SOC 2 or
+ * "GDPR compliant". The `specifics` are engineering practices already asserted
+ * across the service catalog; keep it that way until an audit says otherwise.
+ */
+export const securityPillars: {
+  key: string;
+  /** Lane label — the stage of the system's life these controls belong to. */
+  stage: string;
+  /** When that stage is, in the client's words. */
+  when: string;
+  controls: {
+    title: string;
+    /** lucide-react icon name (mapped to a component at the call site). */
+    icon: string;
+    description: string;
+    /** Concrete, checkable specifics — what a security reviewer scans for. */
+    specifics: string[];
+  }[];
+}[] = [
+  {
+    key: "built",
+    stage: "Secure by Design",
+    when: "Before the first line of code ships",
+    controls: [
+      {
+        icon: "ShieldCheck",
+        title: "Secure engineering",
+        description:
+          "Threat-aware design and peer-reviewed code — decided in the architecture, not patched in later.",
+        specifics: ["Secure code review", "Dependency scanning", "Hardened defaults"],
+      },
+      {
+        icon: "Lock",
+        title: "Data protection",
+        description:
+          "Encryption in transit and at rest, with least-privilege access to every data store.",
+        specifics: ["Encrypted in transit", "Encrypted at rest", "Least privilege"],
+      },
+    ],
+  },
+  {
+    key: "operated",
+    stage: "Continuous Operations",
+    when: "Every day the system runs",
+    controls: [
+      {
+        icon: "UserCheck",
+        title: "Access & identity",
+        description:
+          "Role-based access with SSO and MFA — each person reaches only what their role needs.",
+        specifics: ["OAuth 2.0", "SSO", "MFA", "WAF"],
+      },
+      {
+        icon: "Activity",
+        title: "Monitoring & response",
+        description:
+          "Continuous logging and alerting, with a defined path from first alert to fix in production.",
+        specifics: ["Logging", "Monitoring", "Alerting"],
+      },
+    ],
+  },
+  {
+    key: "accountable",
+    stage: "Compliance & Governance",
+    when: "When auditors — or incidents — arrive",
+    controls: [
+      {
+        icon: "FileCheck",
+        title: "Audit & data residency",
+        description:
+          "Traceable records of who changed what, aligned to the residency rules governing regulated work.",
+        specifics: ["Audit trails", "Data residency", "Role-based approvals"],
+      },
+      {
+        icon: "HardDrive",
+        title: "Resilience & recovery",
+        description:
+          "Backups, failover and a recovery plan agreed up front — an outage stays an inconvenience.",
+        specifics: ["Backup", "Failover", "DR plan"],
+      },
+    ],
+  },
+];
+
+/**
+ * The assurance strip beneath the security cards — the proof line a regulated
+ * buyer checks after reading the controls.
+ *
+ * [VERIFY] Every entry here is already asserted in COMPANY-PROFILE.md. Three
+ * commonly-requested stats are deliberately absent and must stay absent until
+ * an audit or an SLA says otherwise:
+ *
+ * - **"99.99% uptime"** — an SLA commitment nothing in the profile supports.
+ * - **"SOC 2 compliant"** — an audited attestation Sumago does not hold.
+ * - **"24×7 monitoring"** — implies a staffed SOC. `Continuous monitoring &
+ *   alerting` is the honest form, and it is what `securityPillars` claims.
+ *
+ * Rendered by the shared `Stat` molecule, which counts up anything leading with
+ * a digit and prints the rest verbatim — so the two quantities animate and the
+ * certifications simply appear, with no per-entry flag needed here.
+ */
+export const securityAssuranceStats: { value: string; label: string }[] = [
+  { value: "700+", label: "Projects delivered" },
+  { value: "50+", label: "Government clients" },
+  { value: "ISO 9001:2015", label: "Certified" },
+  { value: "CMMI Level 5", label: "Certified" },
+  { value: "Continuous", label: "Monitoring & alerting" },
+];
+
+/**
+ * Delivery models — the cadence the engagement runs in, which qualifies the
+ * six-step path in `processSteps` rather than restating it.
+ *
+ * Agile is already established across the catalog ("Agile delivery with clear
+ * milestones…", `Agile / Scrum` in three services). Waterfall is new to the
+ * site — low risk for a firm doing government tender work, but it isn't in
+ * COMPANY-PROFILE.md yet either.
+ */
+export const deliveryModels: {
+  key: "agile" | "waterfall";
+  name: string;
+  /** One-line positioning under the name, before the paragraph. */
+  tagline: string;
+  /** The honest position, carried as a pill: default vs exception. */
+  badge: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+  description: string;
+  /** The phase ladder, rendered as a vertical timeline (name + what happens). */
+  steps: { name: string; note: string }[];
+  /** Closes the ladder: agile returns to the top, waterfall runs to a gate. */
+  cadence: "loop" | "sequence";
+  cadenceNote: string;
+  /** What the model buys the client — each carries its own icon. */
+  benefits: { icon: string; text: string }[];
+  /** Work this model fits, as labelled chips. */
+  bestFor: { icon: string; label: string }[];
+}[] = [
+  {
+    key: "agile",
+    name: "Agile",
+    tagline: "Iterative delivery · two-week sprints",
+    badge: "Preferred approach",
+    icon: "RefreshCw",
+    description:
+      "Value delivered in short, reviewable increments, with the client steering priorities every sprint.",
+    steps: [
+      { name: "Plan", note: "Sprint scope agreed from a live backlog" },
+      { name: "Design", note: "Just-enough UX and technical design" },
+      { name: "Develop", note: "Built behind code review and CI" },
+      { name: "Test", note: "Automated and exploratory, inside the sprint" },
+      { name: "Review", note: "Working software demonstrated to the client" },
+      { name: "Release", note: "Shipped, measured, fed back into the backlog" },
+    ],
+    cadence: "loop",
+    cadenceNote: "The loop repeats every two weeks",
+    benefits: [
+      { icon: "Rocket", text: "Working software demonstrated every sprint" },
+      { icon: "Users", text: "Backlog re-prioritised with the client" },
+      { icon: "Shuffle", text: "Change absorbed without contract friction" },
+      { icon: "Gauge", text: "Risk surfaced early, not at final acceptance" },
+    ],
+    bestFor: [
+      { icon: "Cloud", label: "SaaS platforms" },
+      { icon: "Zap", label: "Startup MVPs" },
+      { icon: "Smartphone", label: "Mobile apps" },
+      { icon: "Globe", label: "Web applications" },
+    ],
+  },
+  {
+    key: "waterfall",
+    name: "Waterfall",
+    tagline: "Sequential delivery · stage-gated sign-off",
+    badge: "Compliance driven",
+    icon: "Layers",
+    description:
+      "A sequential, stage-gated path for work governed by compliance, documentation or client mandate.",
+    steps: [
+      { name: "Requirements", note: "Signed-off specification and baseline" },
+      { name: "Design", note: "Architecture and interfaces documented in full" },
+      { name: "Development", note: "Built to the approved specification" },
+      { name: "Verification", note: "Tested against agreed acceptance criteria" },
+      { name: "Deployment", note: "Planned cutover with a rollback path" },
+      { name: "Maintenance", note: "Change handled under formal control" },
+    ],
+    cadence: "sequence",
+    cadenceNote: "Each gate signed off before the next begins",
+    benefits: [
+      { icon: "FileCheck", text: "Full traceability and audit documentation" },
+      { icon: "ClipboardCheck", text: "Fixed scope, schedule and acceptance criteria" },
+      { icon: "ShieldCheck", text: "Every phase gated by a formal sign-off" },
+      { icon: "ScrollText", text: "Suits regulated and tender-governed work" },
+    ],
+    bestFor: [
+      { icon: "Landmark", label: "Government" },
+      { icon: "Banknote", label: "Banking" },
+      { icon: "HeartPulse", label: "Healthcare" },
+      { icon: "Building2", label: "Enterprise systems" },
+    ],
+  },
+];
+
+/**
+ * Side-by-side comparison beneath the two model cards — the dimensions a buyer
+ * actually weighs when a tender asks which methodology will be used.
+ *
+ * Deliberately not scored. No "winner" column, no ticks and crosses: the
+ * argument of the section is that the right model depends on the engagement,
+ * and a scorecard would contradict it.
+ */
+export const methodologyComparison: {
+  dimension: string;
+  agile: string;
+  waterfall: string;
+}[] = [
+  {
+    dimension: "Requirement changes",
+    agile: "Welcomed at any sprint boundary",
+    waterfall: "Handled through formal change control",
+  },
+  {
+    dimension: "Documentation",
+    agile: "Lean and living — enough to build and support",
+    waterfall: "Comprehensive, versioned and audit-ready",
+  },
+  {
+    dimension: "Compliance",
+    agile: "Evidence gathered continuously through delivery",
+    waterfall: "Stage-gate sign-off recorded at every phase",
+  },
+  {
+    dimension: "Speed to first value",
+    agile: "Weeks — the first increment ships early",
+    waterfall: "After the full build clears verification",
+  },
+  {
+    dimension: "Flexibility",
+    agile: "High — priorities re-set every two weeks",
+    waterfall: "Fixed once the baseline is approved",
+  },
+  {
+    dimension: "Client collaboration",
+    agile: "Continuous — demo and review each sprint",
+    waterfall: "Structured around defined milestone reviews",
+  },
+  {
+    dimension: "Delivery model",
+    agile: "Incremental releases, continuously improved",
+    waterfall: "One planned release, then managed maintenance",
   },
 ];
 
@@ -531,4 +882,392 @@ export const faqs: { q: string; a: string }[] = [
     q: "What happens after launch?",
     a: "We treat every project as a long-term partnership, with continuous support and improvement built into how we work.",
   },
+];
+
+/* ============================================================
+   /how-we-deliver — the capability statement.
+   Due-diligence content for the evaluator who has already decided the work
+   is worth doing and now has to defend the vendor choice internally: how an
+   engagement is actually run, where it runs from, and who else has bought it.
+   ============================================================ */
+
+/**
+ * The engagement model — what a client experiences week to week. Each entry
+ * answers a specific procurement objection ("who do I call?", "how do I know
+ * where it stands?", "will the invoice surprise me?"), which is why the copy
+ * leads with the client's position rather than Sumago's process.
+ */
+export const engagementPrinciples: {
+  title: string;
+  description: string;
+  icon: string;
+}[] = [
+  {
+    title: "Single point of contact",
+    description:
+      "One named project manager owns communication and outcomes — no routing between teams to get an answer.",
+    icon: "UserRound",
+  },
+  {
+    title: "Live dashboards",
+    description:
+      "Progress, backlog and risk stay visible in real time, so status is something you check rather than request.",
+    icon: "PieChart",
+  },
+  {
+    title: "Regular demos",
+    description:
+      "Working software shown every sprint — progress is demonstrated, never just reported.",
+    icon: "MonitorPlay",
+  },
+  {
+    title: "Transparent commercials",
+    description:
+      "Scope, change control and billing agreed up front, so spend stays predictable and every change is a decision you make.",
+    icon: "FileText",
+  },
+  {
+    title: "Risk & quality reviews",
+    description:
+      "Risks are tracked and raised early, with quality gates at each stage rather than one inspection at the end.",
+    icon: "ShieldAlert",
+  },
+];
+
+/**
+ * The three delivery centres.
+ *
+ * Addresses deliberately live in `lib/site.ts` (`company.offices`) and are
+ * rendered on /contact only — one address, one home. This list carries the
+ * *capability* view of the same premises: role in the network, scale, and what
+ * each site is fitted out to do.
+ *
+ * [VERIFY] Every `area` figure is unconfirmed — it appears nowhere in
+ * COMPANY-PROFILE.md or docs/. The three also sum exactly to the 23,000+ total,
+ * which reads as derived rather than measured. Confirm with the facilities team
+ * (or drop the figures) before launch; do not treat them as published fact.
+ */
+export const deliveryCentres: {
+  key: string;
+  city: string;
+  locality: string;
+  role: string;
+  /** [VERIFY] — see the note above. */
+  area: string;
+  /** Static, self-authored SVG in /public/delivery — no external host. */
+  illustration: string;
+  alt: string;
+  /** Whether this is the network's primary engineering floor. */
+  lead?: boolean;
+  capabilities: string[];
+  icon: string;
+}[] = [
+  {
+    key: "satpur",
+    city: "Nashik",
+    locality: "Satpur MIDC",
+    role: "Primary engineering hub",
+    area: "15,000+ sq. ft.",
+    illustration: "/delivery/centre-satpur.svg",
+    alt: "Satpur MIDC, Nashik — the primary engineering hub, drawn as a wide saw-tooth delivery floor",
+    lead: true,
+    capabilities: [
+      "The largest engineering floor in the network",
+      "Development labs and dedicated project bays",
+      "Secured compound with controlled entry",
+    ],
+    icon: "Cpu",
+  },
+  {
+    key: "govind-nagar",
+    city: "Nashik",
+    locality: "Govind Nagar",
+    role: "Corporate & delivery HQ",
+    area: "5,000+ sq. ft.",
+    illustration: "/delivery/centre-govind-nagar.svg",
+    alt: "Govind Nagar, Nashik — the corporate and delivery headquarters, with the 4th and 6th floors marked",
+    capabilities: [
+      "Leadership, commercial and client-facing functions",
+      "Conference rooms and the seminar hall",
+      "Where most engagements are kicked off",
+    ],
+    icon: "Briefcase",
+  },
+  {
+    key: "pune",
+    city: "Pune",
+    locality: "Shivajinagar",
+    role: "Western-Maharashtra centre",
+    area: "3,000+ sq. ft.",
+    illustration: "/delivery/centre-pune.svg",
+    alt: "Shivajinagar, Pune — the western-Maharashtra centre, on the third floor of a commercial tower",
+    capabilities: [
+      "Reach into the Pune client and talent market",
+      "On-site presence for western-Maharashtra engagements",
+      "Delivery capacity independent of the Nashik sites",
+    ],
+    icon: "MapPin",
+  },
+];
+
+/**
+ * What every centre is provisioned with. Grouped so the grid reads as three
+ * arguments — can they build, will it stay up, is it secure — rather than
+ * twelve unranked amenities.
+ *
+ * [VERIFY] The inventory is unconfirmed against COMPANY-PROFILE.md.
+ */
+export const facilityGroups: {
+  key: string;
+  label: string;
+  note: string;
+  items: { name: string; icon: string }[];
+}[] = [
+  {
+    key: "engineering",
+    label: "Built to engineer",
+    note: "The floor itself — where the work gets done.",
+    items: [
+      { name: "Development labs", icon: "Cpu" },
+      { name: "Workstations & laptops", icon: "Monitor" },
+      { name: "Conference rooms", icon: "Users" },
+      { name: "Seminar hall", icon: "Mic" },
+    ],
+  },
+  {
+    key: "continuity",
+    label: "Built to stay up",
+    note: "Why a deadline survives a power cut.",
+    items: [
+      { name: "High-speed internet", icon: "Wifi" },
+      { name: "Full Wi-Fi coverage", icon: "Radio" },
+      { name: "Power backup", icon: "BatteryCharging" },
+      { name: "ERP systems", icon: "LayoutGrid" },
+    ],
+  },
+  {
+    key: "security",
+    label: "Built to be secure",
+    note: "Physical controls behind the data commitments.",
+    items: [
+      { name: "Biometric access", icon: "Fingerprint" },
+      { name: "CCTV surveillance", icon: "Video" },
+      { name: "Staffed reception", icon: "DoorOpen" },
+      { name: "On-site medical kit", icon: "HeartPulse" },
+    ],
+  },
+];
+
+/**
+ * Client mix. Figures are the verified ones from COMPANY-PROFILE.md via
+ * `company.metrics` — 50+ government, 500+ domestic, 60+ international.
+ *
+ * No progress bars here, deliberately: a bar implies a denominator, and there
+ * isn't one. `share` is the segment's honest share of the ~610 total, which is
+ * a ratio that actually means something.
+ */
+export const clientMix: {
+  key: string;
+  value: string;
+  label: string;
+  note: string;
+  icon: string;
+}[] = [
+  {
+    key: "government",
+    value: "50+",
+    label: "Government clients",
+    note: "Central, state, defence and PSU bodies",
+    icon: "Landmark",
+  },
+  {
+    key: "domestic",
+    value: "500+",
+    label: "Domestic clients",
+    note: "Enterprise, industry and MSME across India",
+    icon: "Building2",
+  },
+  {
+    key: "international",
+    value: "60+",
+    label: "International clients",
+    note: "Cross-border delivery from Maharashtra",
+    icon: "Globe",
+  },
+];
+
+/** The four constituencies the client base spans. */
+export const clientSegments: {
+  name: string;
+  note: string;
+  icon: string;
+}[] = [
+  {
+    name: "Government departments",
+    note: "Central, state and PSU digital initiatives",
+    icon: "Landmark",
+  },
+  {
+    name: "Universities & institutes",
+    note: "Public institutions and technical bodies",
+    icon: "BookOpen",
+  },
+  {
+    name: "Corporate & industry",
+    note: "IT, banking, manufacturing and services",
+    icon: "Briefcase",
+  },
+  {
+    name: "Social & community",
+    note: "Inclusive, citizen-facing programmes",
+    icon: "Heart",
+  },
+];
+
+/**
+ * "Why Government & Enterprise Choose Us" — the differentiator band on the
+ * homepage, between `IndustriesSection` and `ProcessSection`.
+ *
+ * Placement logic: the section above says *who* Sumago serves, the section
+ * below says *how* the work runs. This is the hinge — why that audience picks
+ * this vendor. It is the only "why us" block on `/`; the equivalent arguments
+ * on /contact (`WhySumago`), /solutions (`WhyPartner`) and the service detail
+ * pages each stay in their own lane, so no page carries two.
+ *
+ * [VERIFY] "central, state, defence and PSU institutions" — COMPANY-PROFILE.md
+ * records `50+ government clients` but does not itemise defence or PSU work.
+ * Copy is client-supplied and reproduced verbatim by instruction; confirm the
+ * breakdown with Sumago before launch, or narrow it to what the profile holds.
+ * Everything else here is already on record: ISO 9001:2015, 13+ years.
+ */
+export const whyChooseReasons: {
+  title: string;
+  description: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+}[] = [
+  {
+    icon: "Landmark",
+    title: "Public-Sector Proven",
+    description:
+      "A documented record across central, state, defence and PSU institutions.",
+  },
+  {
+    icon: "Workflow",
+    title: "Full-Lifecycle Ownership",
+    description:
+      "One accountable partner from strategy to build, run and long-term support.",
+  },
+  {
+    icon: "ShieldCheck",
+    title: "Security & Compliance First",
+    description:
+      "Secure-by-design architecture built for regulated, citizen-facing systems.",
+  },
+  {
+    icon: "Award",
+    title: "Quality-Certified",
+    description: "ISO 9001:2015 processes and 13+ years of dependable delivery.",
+  },
+];
+
+/** The commitment that closes the "why us" band — the section's centrepiece. */
+export const sumagoPromise: {
+  eyebrow: string;
+  statement: string;
+  bullets: string[];
+} = {
+  eyebrow: "The Sumago Promise",
+  statement:
+    "One accountable partner for the entire journey — from the first workshop to production, and every improvement after.",
+  bullets: [
+    "You own the outcome — so do we",
+    "No vendor chains, no finger-pointing",
+    "Enterprise quality at practical cost",
+    "A relationship built to last",
+  ],
+};
+
+/**
+ * The engagement path on /contact — how a first conversation becomes a live
+ * system, in weeks.
+ *
+ * Deliberately *not* `processSteps`. That is the nine-stage delivery lifecycle
+ * (home + /solutions) and this is the pre-sales runway: what happens between
+ * "I filled in the form" and "the build started". It sits between `WhySumago`
+ * and `ScheduleMeeting` because it answers the last objection standing in front
+ * of the form — what am I actually committing to?
+ *
+ * `BeatRun` on /how-we-deliver covers the week-to-week governance *after* a
+ * signature, so the three never overlap.
+ */
+export const engagementPath: {
+  /** Timing badge, in the client's words. */
+  week: string;
+  title: string;
+  description: string;
+  /** lucide-react icon name (mapped to a component at the call site). */
+  icon: string;
+}[] = [
+  {
+    week: "Week 1",
+    title: "Discovery Call",
+    description: "A short conversation to understand goals and constraints.",
+    icon: "PhoneCall",
+  },
+  {
+    week: "Week 1–2",
+    title: "Solution Workshop",
+    description: "We map scope, approach and success metrics together.",
+    icon: "Users",
+  },
+  {
+    week: "Week 2",
+    title: "Proposal & Plan",
+    description: "Transparent scope, timeline, team and commercials.",
+    icon: "ClipboardList",
+  },
+  {
+    week: "Week 3+",
+    title: "Kickoff & Build",
+    description: "Agile delivery begins with demos every sprint.",
+    icon: "Code2",
+  },
+  {
+    week: "Ongoing",
+    title: "Go-Live & Partner",
+    description: "Deployment, handover and ongoing support & growth.",
+    icon: "TrendingUp",
+  },
+];
+
+/**
+ * The three-line headline for the homepage's enterprise band.
+ *
+ * Kept as an array so the component can reveal one line at a time without
+ * splitting a string on punctuation. Line 3 carries the brand treatment.
+ */
+export const whyChooseHeadline: string[] = [
+  "Trusted by Government.",
+  "Chosen by Enterprises.",
+  "Built for India's Digital Future.",
+];
+
+/**
+ * Assurance chips under the capability cards.
+ *
+ * [VERIFY] Only the first is an audited certification — ISO 9001:2015, held
+ * (with CMMI Maturity Level 5) per COMPANY-PROFILE.md. The rest are engineering
+ * postures already asserted across the service catalog, not attestations. Do
+ * not append anything implying an audit Sumago has not passed (no ISO 27001,
+ * no SOC 2, no "GDPR compliant") — that is the first thing procurement checks.
+ */
+export const whyChooseBadges: string[] = [
+  "ISO Certified",
+  "Secure by Design",
+  "Compliance Ready",
+  "Cloud Native",
+  "DevOps",
+  "AI Ready",
+  "Enterprise Support",
 ];

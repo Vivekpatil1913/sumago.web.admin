@@ -12,6 +12,12 @@ type StatProps = {
   tone?: "brand" | "metal" | "gold" | "silver";
   /** Recolor the label for dark backgrounds (numeral tones already read on dark). */
   dark?: boolean;
+  /**
+   * `lg` is the hero/impact treatment. `sm` is for strips that carry more than
+   * three metrics, or non-numeric values like "ISO 9001:2015" that would wrap
+   * badly at display size.
+   */
+  size?: "lg" | "sm";
 };
 
 /** Splits "700+" -> { num: 700, suffix: "+" }; non-numeric returns null num. */
@@ -22,7 +28,14 @@ function parse(value: string) {
 }
 
 /** Trust metric with count-up on scroll (reduced-motion shows final value). */
-export function Stat({ value, label, className, tone = "brand", dark = false }: StatProps) {
+export function Stat({
+  value,
+  label,
+  className,
+  tone = "brand",
+  dark = false,
+  size = "lg",
+}: StatProps) {
   const { num, suffix } = parse(value);
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.5 });
@@ -48,7 +61,10 @@ export function Stat({ value, label, className, tone = "brand", dark = false }: 
     <div ref={ref} className={cn("text-center", className)}>
       <div
         className={cn(
-          "font-display text-4xl font-bold md:text-5xl",
+          "font-display font-bold",
+          size === "lg"
+            ? "text-4xl md:text-5xl"
+            : "text-[1.375rem] leading-tight tracking-tight sm:text-2xl",
           tone === "metal" && "text-metal-black",
           tone === "gold" && "text-metal-gold",
           tone === "silver" && "text-silver",
@@ -57,7 +73,14 @@ export function Stat({ value, label, className, tone = "brand", dark = false }: 
       >
         {display}
       </div>
-      <div className={cn("mt-1 text-sm", dark ? "text-white/60" : "text-ink/60")}>{label}</div>
+      <div
+        className={cn(
+          size === "lg" ? "mt-1 text-sm" : "mt-1.5 text-xs leading-snug",
+          dark ? "text-white/60" : "text-ink/60",
+        )}
+      >
+        {label}
+      </div>
     </div>
   );
 }

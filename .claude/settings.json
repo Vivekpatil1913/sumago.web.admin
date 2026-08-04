@@ -137,7 +137,9 @@
       "PowerShell(Get-NetTCPConnection -LocalPort 3100 -State Listen | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Get-Process -Id $_ | Select-Object Id, ProcessName, Path })",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3100/terms)",
       "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3100/\" -UseBasicParsing -TimeoutSec 60; $h = $r.Content; $i = $h.IndexOf\\(\"</head>\"\\); $h.Substring\\(0, [Math]::Min\\($i+7, $h.Length\\)\\) | Out-File -FilePath \"C:\\\\Users\\\\VIVEKP~1\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--Sumago-Website-and-Admin--17-7-26\\\\5fd01818-4b9f-4109-9250-3df7e5463ba3\\\\scratchpad\\\\head.html\" -Encoding utf8; \"head chars: $\\($i+7\\)\")",
-      "PowerShell($ua = \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/131.0.0.0 Safari/537.36\"; $r = Invoke-WebRequest -Uri \"http://localhost:3100/\" -UseBasicParsing -TimeoutSec 90 -Headers @{ \"User-Agent\" = $ua }; $h = $r.Content; $i = $h.IndexOf\\(\"<body\"\\); \"--- body start ---\"; $h.Substring\\($i, 400\\); \"--- div hidden count: $\\(\\([regex]::Matches\\($h,'<div hidden'\\)\\).Count\\) ---\")"
+      "PowerShell($ua = \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 \\(KHTML, like Gecko\\) Chrome/131.0.0.0 Safari/537.36\"; $r = Invoke-WebRequest -Uri \"http://localhost:3100/\" -UseBasicParsing -TimeoutSec 90 -Headers @{ \"User-Agent\" = $ua }; $h = $r.Content; $i = $h.IndexOf\\(\"<body\"\\); \"--- body start ---\"; $h.Substring\\($i, 400\\); \"--- div hidden count: $\\(\\([regex]::Matches\\($h,'<div hidden'\\)\\).Count\\) ---\")",
+      "Bash(node -e \"try{require.resolve\\('sharp'\\);console.log\\('sharp yes'\\)}catch\\(e\\){console.log\\('sharp no'\\)}\")",
+      "Bash(awk -F: '$1<360')"
     ]
   }
 }

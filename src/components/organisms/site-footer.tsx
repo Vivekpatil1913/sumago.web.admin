@@ -30,6 +30,7 @@ const FOOTER_NAV: {
     heading: "Who We Are",
     links: [
       { label: "About us", href: "/about" },
+      { label: "How we deliver", href: "/how-we-deliver" },
       { label: "Our team", href: "/team" },
       { label: "Life at Sumago", href: "/life-at-sumago" },
       { label: "Careers", href: "/careers", badge: "We're hiring!" },

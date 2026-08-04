@@ -98,6 +98,13 @@ export const nav = [
         href: "/about",
         description: "Who we are, our values, and the trust we're built on.",
       },
+      /* Sits directly under About: the evaluator who believes the story next
+         asks how the work is run and where from — that's this page. */
+      {
+        label: "How we deliver",
+        href: "/how-we-deliver",
+        description: "The engagement model, delivery centres, and infrastructure behind it.",
+      },
       {
         label: "Our team",
         href: "/team",

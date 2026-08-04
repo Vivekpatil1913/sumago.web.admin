@@ -4,6 +4,7 @@ import { PageHero } from "@/components/organisms/page-hero";
 import { buttonVariants } from "@/components/atoms/button";
 import { LetsMeet } from "@/components/organisms/contact/lets-meet";
 import { WhySumago } from "@/components/organisms/contact/why-sumago";
+import { EngagementPath } from "@/components/organisms/contact/engagement-path";
 import { ScheduleMeeting } from "@/components/organisms/contact/schedule-meeting";
 import { company } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,11 @@ export default function ContactPage() {
 
       {/* The trust band — proof, not adjectives. */}
       <WhySumago />
+
+      {/* The runway into the form — what actually happens after it is sent.
+          Light on purpose: it breaks the two dark bands either side of it, and
+          keeps the reader's contrast budget for the form itself. */}
+      <EngagementPath />
 
       {/* Primary conversion — the four-step intake the hero CTA jumps to. */}
       <ScheduleMeeting />

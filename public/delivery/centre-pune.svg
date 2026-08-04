@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" width="640" height="420" fill="none" role="img" aria-hidden="true">
+  <title>Shivajinagar, Pune — the western-Maharashtra centre, third floor of a commercial tower</title>
+  <defs>
+    <pattern id="pn-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0v32" stroke="#e6e6e8" stroke-width="1" />
+    </pattern>
+  </defs>
+
+  <rect width="640" height="420" fill="#ffffff" />
+  <rect width="640" height="420" fill="url(#pn-grid)" opacity="0.5" />
+  <circle cx="520" cy="90" r="130" fill="#d73438" opacity="0.05" />
+  <ellipse cx="320" cy="358" rx="200" ry="12" fill="#1a1a1a" opacity="0.06" />
+
+  <!-- Neighbouring block, for scale -->
+  <rect x="418" y="188" width="82" height="164" rx="3" fill="#f5f5f6" stroke="#1a1a1a"
+        stroke-opacity="0.2" stroke-width="1.5" />
+  <g fill="#1a1a1a" opacity="0.1">
+    <rect x="432" y="204" width="54" height="18" rx="2" />
+    <rect x="432" y="234" width="54" height="18" rx="2" />
+    <rect x="432" y="264" width="54" height="18" rx="2" />
+    <rect x="432" y="294" width="54" height="18" rx="2" />
+  </g>
+
+  <!-- Podium -->
+  <rect x="164" y="276" width="312" height="76" rx="3" fill="#f5f5f6" stroke="#1a1a1a"
+        stroke-opacity="0.24" stroke-width="1.5" />
+  <rect x="182" y="294" width="120" height="14" rx="3" fill="#d73438" opacity="0.7" />
+  <rect x="182" y="318" width="76" height="8" rx="4" fill="#1a1a1a" opacity="0.16" />
+  <rect x="368" y="308" width="76" height="44" rx="2" fill="#ffffff" stroke="#1a1a1a"
+        stroke-opacity="0.28" stroke-width="1.5" />
+  <path d="M406 308v44" stroke="#1a1a1a" stroke-opacity="0.2" stroke-width="1.5" />
+
+  <!-- Tower -->
+  <rect x="226" y="70" width="10" height="14" rx="2" fill="#1a1a1a" opacity="0.2" />
+  <circle cx="231" cy="62" r="4" fill="#d73438" />
+  <rect x="216" y="80" width="188" height="12" rx="3" fill="#1a1a1a" opacity="0.12" />
+  <rect x="224" y="92" width="172" height="184" rx="3" fill="#ffffff" stroke="#1a1a1a"
+        stroke-opacity="0.3" stroke-width="1.5" />
+
+  <path d="M224 122h172M224 152h172M224 182h172M224 212h172M224 246h172"
+        stroke="#1a1a1a" stroke-opacity="0.14" stroke-width="1.5" />
+
+  <!-- Sumago holds the third floor -->
+  <rect x="225" y="182" width="170" height="30" fill="#d73438" opacity="0.08" />
+  <rect x="224" y="182" width="5" height="30" fill="#d73438" />
+  <g fill="#d73438" opacity="0.45">
+    <rect x="240" y="188" width="34" height="18" rx="2" />
+    <rect x="282" y="188" width="34" height="18" rx="2" />
+    <rect x="324" y="188" width="34" height="18" rx="2" />
+    <rect x="366" y="188" width="20" height="18" rx="2" />
+  </g>
+  <g fill="#1a1a1a" opacity="0.13">
+    <rect x="240" y="98" width="34" height="18" rx="2" />
+    <rect x="282" y="98" width="34" height="18" rx="2" />
+    <rect x="324" y="98" width="34" height="18" rx="2" />
+    <rect x="366" y="98" width="20" height="18" rx="2" />
+    <rect x="240" y="128" width="34" height="18" rx="2" />
+    <rect x="282" y="128" width="34" height="18" rx="2" />
+    <rect x="324" y="128" width="34" height="18" rx="2" />
+    <rect x="366" y="128" width="20" height="18" rx="2" />
+    <rect x="240" y="158" width="34" height="18" rx="2" />
+    <rect x="282" y="158" width="34" height="18" rx="2" />
+    <rect x="324" y="158" width="34" height="18" rx="2" />
+    <rect x="366" y="158" width="20" height="18" rx="2" />
+    <rect x="240" y="218" width="34" height="18" rx="2" />
+    <rect x="282" y="218" width="34" height="18" rx="2" />
+    <rect x="324" y="218" width="34" height="18" rx="2" />
+    <rect x="366" y="218" width="20" height="18" rx="2" />
+    <rect x="240" y="252" width="34" height="18" rx="2" />
+    <rect x="282" y="252" width="34" height="18" rx="2" />
+    <rect x="324" y="252" width="34" height="18" rx="2" />
+    <rect x="366" y="252" width="20" height="18" rx="2" />
+  </g>
+
+  <path d="M60 352h520" stroke="#e6e6e8" stroke-width="2.5" stroke-linecap="round" />
+</svg>

@@ -12,6 +12,10 @@
   --color-brand-ink: #a81b22; /* red text on light bg (AA-safe) */
   --color-brand-bright: #ff5a5d; /* red on dark bg (AA-safe on near-black) */
   --color-tech: #1e83f0; /* technology blue — use sparingly */
+  /* Blue text on light bg. `--color-tech` itself is only ~3.5:1 on white, so it
+     is a fill colour, never a text colour; this is its AA/AAA-safe (7.1:1)
+     counterpart, mirroring how --color-brand-ink relates to --color-brand. */
+  --color-tech-ink: #1257a8;
 
   /* Solution / success — paired with brand red in problem→outcome moments */
   --color-success: #16a34a; /* green on light bg (AA-safe) */
@@ -344,6 +348,29 @@
     mask-image: radial-gradient(ellipse 75% 70% at center, #000 30%, transparent 78%);
   }
 
+  /* "Drafting paper" — the light counterpart to .bg-blueprint, for the
+     architecture band. A cool paper wash with a fine engineering grid and one
+     warm brand bloom at the top edge; the grid is edge-masked so cards sitting
+     on it never fight a line. Requires `relative`/`isolate` on the element. */
+  .bg-drafting {
+    background:
+      radial-gradient(48% 55% at 50% -8%, rgba(215, 52, 56, 0.08), transparent 62%),
+      radial-gradient(38% 45% at 100% 100%, rgba(30, 131, 240, 0.05), transparent 65%),
+      linear-gradient(180deg, #fbfbfc 0%, #f1f1f4 100%);
+  }
+  .bg-drafting::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(26, 26, 26, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 26, 26, 0.05) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 75% at center, #000 22%, transparent 82%);
+    mask-image: radial-gradient(ellipse 80% 75% at center, #000 22%, transparent 82%);
+  }
+
   /* Cinematic dark gradient backdrop (hero, bands) */
   .bg-cinematic {
     background:
@@ -352,6 +379,70 @@
       radial-gradient(48% 50% at 100% 100%, rgba(120, 20, 26, 0.18), transparent 65%),
       radial-gradient(40% 50% at 0% 100%, rgba(120, 20, 26, 0.14), transparent 65%),
       #0a0708;
+  }
+
+  /* ============================================================
+     Stage backdrops for the /how-we-deliver cinematic run.
+
+     That page never returns to paper, and an unbroken dark run with no tonal
+     variation collapses into one flat black wall — every section reads as the
+     same void and the eye stops registering section breaks at all.
+
+     These three share a texture (a fine edge-masked grid, plus one broad
+     diagonal sheen) and differ in *base tone* and *light direction*, so
+     consecutive sections read as different rooms. All three sit well above
+     #0a0708 — near-black is the floor of the palette, not its whole range.
+
+     Each requires `relative`/`isolate` on the element, and content above them
+     needs `relative z-10`.
+     ============================================================ */
+
+  /* Warm paper, tinted from the top right. Effectively white — the tint only
+     has to be strong enough to stop the section reading as a bare canvas. */
+  .bg-stage-warm {
+    background:
+      radial-gradient(66% 56% at 82% 0%, rgba(215, 52, 56, 0.07), transparent 62%),
+      radial-gradient(48% 46% at 6% 100%, rgba(215, 52, 56, 0.035), transparent 66%),
+      linear-gradient(180deg, #ffffff 0%, #fcfbfb 55%, #f8f7f8 100%);
+  }
+
+  /* Cool paper, tinted from the top left — the counterpoint section, so a run
+     of light sections never repeats the same temperature back to back. Blue
+     stays very low (docs/03: use `--color-tech` sparingly), as ambient tint
+     only, never as a second brand colour. */
+  .bg-stage-cool {
+    background:
+      radial-gradient(62% 54% at 14% 0%, rgba(30, 131, 240, 0.06), transparent 62%),
+      radial-gradient(54% 50% at 92% 96%, rgba(215, 52, 56, 0.045), transparent 66%),
+      linear-gradient(180deg, #f8f9fa 0%, #f3f4f6 54%, #f7f7f9 100%);
+  }
+
+  /* Ember — the warmest wash, held back for the climax beat. */
+  .bg-stage-ember {
+    background:
+      radial-gradient(70% 60% at 50% -6%, rgba(215, 52, 56, 0.11), transparent 64%),
+      radial-gradient(50% 46% at 0% 100%, rgba(215, 52, 56, 0.05), transparent 66%),
+      radial-gradient(50% 46% at 100% 100%, rgba(215, 52, 56, 0.05), transparent 66%),
+      linear-gradient(180deg, #fffdfd 0%, #fdf8f8 55%, #fbf4f4 100%);
+  }
+
+  /* Shared texture: engineering grid, faded at the frame edges so it never
+     draws a hard rectangle where the mask stops. Ink lines on paper — very
+     low alpha, since a grid that is legible as a grid competes with the
+     content sitting on it. */
+  .bg-stage-warm::before,
+  .bg-stage-cool::before,
+  .bg-stage-ember::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(26, 26, 26, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(26, 26, 26, 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    -webkit-mask-image: radial-gradient(ellipse 84% 80% at 50% 42%, #000 20%, transparent 82%);
+    mask-image: radial-gradient(ellipse 84% 80% at 50% 42%, #000 20%, transparent 82%);
   }
 
   /* Subtle card hover lift */
@@ -929,5 +1020,80 @@
   }
   .admin-scroll::-webkit-scrollbar-track {
     background: transparent;
+  }
+}
+
+/* ============================================================
+   Why Government & Enterprise Choose Us (organisms/home/why-choose)
+   The homepage's dark enterprise band. Everything here is
+   compositor-only (transform/opacity/background-position) so the
+   section adds no layout or paint work to the scroll — see docs/14
+   for the performance gate this has to clear.
+   ============================================================ */
+
+/* Pointer-tracked spotlight inside a capability card. Lives in CSS rather than
+   a Tailwind arbitrary value because the gradient carries commas inside var()
+   fallbacks, which the class parser cannot hold. The card writes --wc-mx/--wc-my
+   on pointermove; with no pointer (touch, keyboard) the fallback centres it. */
+.wc-spotlight {
+  background: radial-gradient(
+    260px circle at var(--wc-mx, 50%) var(--wc-my, 0%),
+    rgba(215, 52, 56, 0.2),
+    transparent 68%
+  );
+}
+
+/* Slow light beams travelling across the band — the "glowing lines". Two
+   elements at different durations so they never pulse in lockstep. */
+@keyframes wc-beam {
+  0% {
+    transform: translate3d(-40%, 0, 0);
+    opacity: 0;
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(140%, 0, 0);
+    opacity: 0;
+  }
+}
+
+/* Dot-matrix network field, drifting. Stands in for a world-map watermark:
+   the mask shapes the dot field into a soft globe. [REAL ASSET NEEDED] if a
+   literal vector map is wanted instead. */
+@keyframes wc-field-drift {
+  to {
+    background-position: 36px 18px;
+  }
+}
+
+/* Film-grain noise over the enterprise band. An feTurbulence tile rather than a
+   raster: ~400 bytes inline, no network request, and it never bands on a wide
+   gradient the way a compressed PNG does. Held at 2–3% opacity at the call
+   site — enough to break up the navy, never enough to read as texture. */
+.wc-noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Signal travelling along the network lines. A long negative offset over a long
+   duration reads as a slow current rather than a marching-ants dash. */
+@keyframes wc-flow {
+  to {
+    stroke-dashoffset: -520;
+  }
+}
+
+/* Network junctions breathing, out of phase with each other via delays. */
+@keyframes wc-node {
+  0%,
+  100% {
+    opacity: 0.25;
+    r: 2;
+  }
+  50% {
+    opacity: 0.9;
+    r: 3.2;
   }
 }

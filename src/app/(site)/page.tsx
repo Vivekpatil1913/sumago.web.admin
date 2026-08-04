@@ -14,6 +14,7 @@ import {
   Testimonials,
 } from "@/components/organisms/home/more-sections";
 import { WhatWeDo } from "@/components/organisms/home/what-we-do";
+import { WhyChoose } from "@/components/organisms/home/why-choose";
 import { BrandGateway } from "@/components/organisms/brand-gateway";
 
 export default function HomePage() {
@@ -31,6 +32,10 @@ export default function HomePage() {
       <ChallengesWeSolve />
       <CapabilitiesSection />
       <IndustriesSection />
+      {/* The hinge between audience and method: the grid above says who Sumago
+          serves, `ProcessSection` below says how the work runs — this answers
+          the question standing between them, "why this vendor?". */}
+      <WhyChoose />
       <ProcessSection />
       <AiSdlc />
       <ImpactPreview />
