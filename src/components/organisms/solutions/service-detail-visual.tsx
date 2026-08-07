@@ -11,7 +11,6 @@ import { CAPABILITY_ICONS, FALLBACK_CAPABILITY_ICON } from "@/lib/capability-ico
 import { PHASES, type ServiceWithSlug } from "@/lib/services";
 import { differentiators } from "@/lib/content";
 import { serviceImages, type ServiceImage } from "@/lib/preview-assets";
-import type { impactStories } from "@/lib/site";
 
 /**
  * Service detail — version 2: the image-led variant.
@@ -39,7 +38,11 @@ import type { impactStories } from "@/lib/site";
  * Server component: the only JS shipped is the hero's lazy 3D starfield.
  */
 
-type Story = (typeof impactStories)[number];
+import type { SuccessStoryRecord } from "@/lib/cms/types";
+
+// Success stories come from the admin panel (Module 3), so the card shape is
+// the API record rather than the committed list this used to read.
+type Story = SuccessStoryRecord;
 
 /** Falls back to an empty set so a service with no imagery still renders. */
 function imagesFor(slug: string): ServiceImage[] {

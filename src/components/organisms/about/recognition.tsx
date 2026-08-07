@@ -14,7 +14,9 @@ import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Stat } from "@/components/molecules/stat";
 import { awards, trustedBy } from "@/lib/content";
-import { company } from "@/lib/site";
+import { getMetrics } from "@/lib/cms";
+import { metricValue } from "@/lib/cms/format";
+import type { Metric } from "@/lib/cms/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -60,20 +62,23 @@ const recognitions = awards
   .sort((a, b) => (Number(a.year) || Infinity) - (Number(b.year) || Infinity));
 
 /* ── Counters ──────────────────────────────────────────────────────────────
-   Read off `company.metrics` rather than re-typed, so these can never drift
-   from the proof band earlier on the page. "Clients" is the sum of the three
+   Read off General Settings rather than re-typed, so these can never drift
+   from the proof band earlier on the page. "Clients" is the sum of the
    verified client figures (50+ government, 500+ domestic, 60+ international) —
-   the same 610+ the trust wall closes on. */
-const metric = (label: string) => company.metrics.find((m) => m.label === label)?.value ?? "";
-const clientTotal = company.metrics
-  .filter((m) => m.label.toLowerCase().includes("clients"))
-  .reduce((sum, m) => sum + (Number(m.value.replace(/\D/g, "")) || 0), 0);
+   the same 610+ the trust wall closes on, and it re-totals itself if a figure
+   is corrected in the admin panel. */
+function buildCounters(metrics: Metric[]): { value: string; label: string }[] {
+  const clientTotal = metrics
+    .filter((m) => m.label.toLowerCase().includes("clients"))
+    .reduce((sum, m) => sum + (Number(m.value.replace(/\D/g, "")) || 0), 0);
 
-const counters: { value: string; label: string }[] = [
-  { value: metric("Years") || "13+", label: "Years in operation" },
-  { value: `${clientTotal}+`, label: "Clients served" },
-  { value: metric("Projects delivered") || "700+", label: "Projects delivered" },
-];
+  return [
+    { value: metricValue(metrics, "Years", "13+"), label: "Years in operation" },
+    // Drop the tile rather than print "0+" if no client metrics survive.
+    ...(clientTotal > 0 ? [{ value: `${clientTotal}+`, label: "Clients served" }] : []),
+    { value: metricValue(metrics, "Projects delivered", "700+"), label: "Projects delivered" },
+  ];
+}
 
 /** Hairline block label used above each beat inside the section. */
 function BlockLabel({ children }: { children: React.ReactNode }) {
@@ -127,7 +132,9 @@ function SealWatermark() {
   );
 }
 
-export function Recognition() {
+export async function Recognition() {
+  const counters = buildCounters(await getMetrics());
+
   return (
     /* Tighter than the site's default `py-16 md:py-22`: this section carries
        four stacked blocks, so the standard section padding on top of the

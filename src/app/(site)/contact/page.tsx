@@ -6,7 +6,9 @@ import { LetsMeet } from "@/components/organisms/contact/lets-meet";
 import { WhySumago } from "@/components/organisms/contact/why-sumago";
 import { EngagementPath } from "@/components/organisms/contact/engagement-path";
 import { ScheduleMeeting } from "@/components/organisms/contact/schedule-meeting";
-import { company } from "@/lib/site";
+import { getExpertLine, getOffices, getSettings } from "@/lib/cms";
+import { localBusinessSchema } from "@/lib/cms/schema-org";
+import { JsonLd } from "@/components/atoms/json-ld";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -15,9 +17,22 @@ export const metadata: Metadata = {
     "Start a conversation with Sumago — talk to an expert or schedule a meeting. Offices across Nashik and Pune.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const [expertLine, settings, offices] = await Promise.all([
+    getExpertLine(),
+    getSettings(),
+    getOffices(),
+  ]);
+
   return (
     <>
+      {/* One LocalBusiness block per office — what a "IT company near me"
+          search matches against, and the reason the address is stored in
+          parts rather than as one string. */}
+      {offices.map((office) => (
+        <JsonLd key={office.id || office.slug} data={localBusinessSchema(office, settings)} />
+      ))}
+
       <PageHero
         variant="rings"
         formation="pulse"
@@ -25,15 +40,19 @@ export default function ContactPage() {
         title={<>Let&apos;s build something with <span className="text-metal-red">Sumago</span>.</>}
         description="Tell Sumago where your business wants to go — every engagement starts with understanding your goals and challenges, never a sales pitch. Reach us any time."
       >
-        {/* Two ways in: call now, or let the team call you. */}
+        {/* Two ways in: call now, or let the team call you. The call button is
+            dropped entirely if no number is published — a dead tel: link is
+            worse than one fewer button. */}
         <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a
-            href={`tel:${company.expertLine.replace(/\s/g, "")}`}
-            className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
-          >
-            <Phone size={17} strokeWidth={2.5} aria-hidden />
-            Talk with an expert
-          </a>
+          {expertLine && (
+            <a
+              href={`tel:${expertLine.replace(/\s/g, "")}`}
+              className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
+            >
+              <Phone size={17} strokeWidth={2.5} aria-hidden />
+              Talk with an expert
+            </a>
+          )}
           <a
             href="#schedule"
             className={cn(
@@ -56,7 +75,7 @@ export default function ContactPage() {
       {/* The runway into the form — what actually happens after it is sent.
           Light on purpose: it breaks the two dark bands either side of it, and
           keeps the reader's contrast budget for the form itself. */}
-      <EngagementPath />
+      <EngagementPath expertLine={expertLine} />
 
       {/* Primary conversion — the four-step intake the hero CTA jumps to. */}
       <ScheduleMeeting />

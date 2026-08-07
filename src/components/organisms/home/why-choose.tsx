@@ -25,7 +25,7 @@ import {
   whyChooseHeadline,
   whyChooseReasons,
 } from "@/lib/content";
-import { company } from "@/lib/site";
+import type { Metric } from "@/lib/cms/types";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -38,15 +38,23 @@ const ICONS: Record<string, LucideIcon> = {
 /** Standard entrance curve (docs/06) — decelerating, no overshoot. */
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
-/** Verified metric by label — the literal-union param makes a typo a build
- *  error, so a KPI can never drift from COMPANY-PROFILE.md. Same guard
- *  `WhySumago` uses on /contact. */
-function metric(label: (typeof company.metrics)[number]["label"]) {
-  return company.metrics.find((m) => m.label === label)!;
+/**
+ * The four KPIs this band shows, picked out of whatever General Settings
+ * holds. A metric that has been renamed or removed is skipped rather than
+ * crashing the home page — the previous code asserted non-null on a `.find()`
+ * against a hardcoded label list, which was safe only while that list was a
+ * compile-time constant.
+ */
+const KPI_LABELS = ["Years", "Projects delivered", "Government clients", "Team members"];
+
+function pickKpis(metrics: Metric[]): Metric[] {
+  return KPI_LABELS.map((label) => metrics.find((m) => m.label === label)).filter(
+    (m): m is Metric => m !== undefined,
+  );
 }
 
 /**
- * The KPI row. Every figure is read out of `company.metrics` rather than
+ * The KPI row. Every figure comes from General Settings rather than being
  * retyped here.
  *
  * [VERIFY] Two figures from the design brief are deliberately not here:
@@ -54,16 +62,9 @@ function metric(label: (typeof company.metrics)[number]["label"]) {
  * already prints further down this same page — the two would disagree on one
  * screen), and **"95% client retention"** appears nowhere in COMPANY-PROFILE.md.
  * Retention is exactly the number a procurement evaluator asks you to evidence.
- * If Sumago can evidence it, add it to `company.metrics` and it will appear
- * here automatically.
+ * If Sumago can evidence it, add it under General Settings > Metrics and it
+ * will appear here automatically.
  */
-const KPIS = [
-  metric("Years"),
-  metric("Projects delivered"),
-  metric("Government clients"),
-  metric("Team members"),
-] as const;
-
 /**
  * "Trusted by Government. Chosen by Enterprises. Built for India's Digital
  * Future." — the homepage's enterprise band, between `IndustriesSection` and
@@ -89,7 +90,7 @@ const KPIS = [
  * | Client-logo proof    | `TrustIndicators` — further down `/`               |
  *
  * The KPI row *is* here, because a claim band with no numbers is adjectives;
- * it reads the same `company.metrics` source `TrustIndicators` does, so the two
+ * it reads the same General Settings metrics `TrustIndicators` does, so the two
  * can never disagree.
  *
  * **Motion budget (docs/06 + the docs/14 release gate).** This page already
@@ -106,7 +107,9 @@ const KPIS = [
  * `WhyChooseBackdrop`, which owns the whole nine-layer canvas so this file can
  * stay about the argument rather than the atmosphere.
  */
-export function WhyChoose() {
+export function WhyChoose({ metrics }: { metrics: Metric[] }) {
+  const KPIS = pickKpis(metrics);
+
   const reduce = useReducedMotion();
 
   /* Pointer parallax. Raw values are written only from `trackPointer` below,

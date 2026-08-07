@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/organisms/page-hero";
 import { Section } from "@/components/atoms/section";
 import { Button } from "@/components/atoms/button";
-import { company } from "@/lib/site";
+import { getSettings } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Terms & Conditions",
@@ -16,7 +16,9 @@ export const metadata: Metadata = {
  * team — never invent contractual terms (CLAUDE.md). This page exists so the
  * footer link resolves instead of 404ing; replace the placeholder before launch.
  */
-export default function TermsPage() {
+export default async function TermsPage() {
+  const settings = await getSettings();
+
   return (
     <>
       <PageHero
@@ -44,7 +46,7 @@ export default function TermsPage() {
             </div>
           </div>
           <p className="mt-6 text-sm text-ink/50">
-            {company.name} · Nashik · Pune
+            {settings.name} · Nashik · Pune
           </p>
         </div>
       </Section>

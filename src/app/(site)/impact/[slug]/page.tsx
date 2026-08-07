@@ -6,10 +6,13 @@ import { Section } from "@/components/atoms/section";
 import { Eyebrow } from "@/components/atoms/eyebrow";
 import { Button } from "@/components/atoms/button";
 import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
-import { impactStories } from "@/lib/site";
+import { getSuccessStories, getSuccessStory } from "@/lib/cms";
+import { toParagraphs } from "@/lib/cms/format";
+import { breadcrumbSchema, caseStudySchema } from "@/lib/cms/schema-org";
+import { JsonLd } from "@/components/atoms/json-ld";
 
-export function generateStaticParams() {
-  return impactStories.map((s) => ({ slug: s.slug }));
+export async function generateStaticParams() {
+  return (await getSuccessStories()).map((story) => ({ slug: story.slug }));
 }
 
 export async function generateMetadata({
@@ -18,8 +21,25 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const story = impactStories.find((s) => s.slug === slug);
-  return { title: story?.title ?? "Success Story", description: story?.summary };
+  const story = await getSuccessStory(slug);
+  if (!story) return { title: "Success Story" };
+
+  return {
+    title: story.metaTitle ?? story.title,
+    description: story.metaDescription ?? story.summary,
+    ...(story.canonicalUrl ? { alternates: { canonical: story.canonicalUrl } } : {}),
+    ...(story.noIndex ? { robots: { index: false, follow: false } } : {}),
+    openGraph: {
+      type: "article",
+      title: story.metaTitle ?? story.title,
+      description: story.metaDescription ?? story.summary,
+      images: story.ogImage
+        ? [{ url: story.ogImage, alt: story.ogImageAlt ?? story.title }]
+        : story.coverImage
+          ? [{ url: story.coverImage, alt: story.title }]
+          : undefined,
+    },
+  };
 }
 
 export default async function ImpactDetailPage({
@@ -28,13 +48,33 @@ export default async function ImpactDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const story = impactStories.find((s) => s.slug === slug);
+  const story = await getSuccessStory(slug);
   if (!story) notFound();
 
-  const more = impactStories.filter((s) => s.slug !== story.slug).slice(0, 3);
+  /*
+   * The four narrative fields are separate columns so an editor fills in a
+   * structured brief rather than one long text area. The page reassembles them
+   * as titled sections, which is also what makes them skimmable.
+   */
+  const sections = [
+    { heading: "Background", body: story.background },
+    { heading: "The challenge", body: story.challenge },
+    { heading: "What was built", body: story.solution },
+    { heading: "Impact", body: story.impact },
+  ].filter((section) => section.body?.trim());
+
+  const more = (await getSuccessStories()).filter((s) => s.slug !== story.slug).slice(0, 3);
 
   return (
     <>
+      <JsonLd data={caseStudySchema(story)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Proof of Work", path: "/impact" },
+          { name: story.title, path: `/impact/${story.slug}` },
+        ])}
+      />
+
       {/* Story header — compact dark band (matches the site's hero language). */}
       <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -67,14 +107,96 @@ export default async function ImpactDetailPage({
 
       <Section>
         <div className="mx-auto max-w-3xl">
-          <MediaPlaceholder src={story.cover} alt={story.title} ratio="16/9" />
-          <div className="mt-10 space-y-6">
-            {story.body.map((para, i) => (
-              <p key={i} className="text-lg leading-relaxed text-ink/80">
-                {para}
-              </p>
+          <MediaPlaceholder src={story.coverImage} alt={story.title} ratio="16/9" />
+
+          {/* Measured results — the reason an evaluator opened this page. */}
+          {story.results.length > 0 && (
+            <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl bg-line lg:grid-cols-4">
+              {story.results.map((result) => (
+                <div key={result.label} className="bg-paper p-6 text-center">
+                  <dt className="sr-only">{result.label}</dt>
+                  <dd>
+                    <span className="block font-display text-3xl font-bold text-brand-ink">
+                      {result.value}
+                    </span>
+                    <span className="mt-1 block text-sm leading-snug text-ink/60">
+                      {result.label}
+                    </span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <div className="mt-10 space-y-10">
+            {sections.map((section) => (
+              <div key={section.heading}>
+                <h2 className="font-display text-xl font-bold text-ink">{section.heading}</h2>
+                <div className="mt-3 space-y-5">
+                  {toParagraphs(section.body).map((para, i) => (
+                    <p key={i} className="text-lg leading-relaxed text-ink/80">
+                      {para}
+                    </p>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
+
+          {/* Gallery — screenshots and photography the editor attached. Stored
+              since the first release but never rendered until now, so anything
+              uploaded here was invisible on the site. Each image carries its
+              own alt text, which the admin panel makes mandatory. */}
+          {story.gallery.length > 0 && (
+            <figure className="mt-12">
+              <ul className="grid gap-4 sm:grid-cols-2">
+                {story.gallery.map((image) => (
+                  <li key={image.url} className="overflow-hidden rounded-xl border border-line">
+                    <MediaPlaceholder src={image.url} alt={image.alt} ratio="4/3" />
+                  </li>
+                ))}
+              </ul>
+              <figcaption className="mt-3 text-center text-xs text-ink/45">
+                From the {story.title} engagement
+              </figcaption>
+            </figure>
+          )}
+
+          {(story.technologies.length > 0 || story.timeline || story.roi) && (
+            <dl className="mt-10 grid gap-5 rounded-2xl border border-line bg-mist p-6 sm:grid-cols-3">
+              {story.technologies.length > 0 && (
+                <div className="sm:col-span-3">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/50">
+                    Technologies
+                  </dt>
+                  <dd className="mt-2 flex flex-wrap gap-2">
+                    {story.technologies.map((tech) => (
+                      <span
+                        key={tech}
+                        className="rounded-full border border-line bg-paper px-3 py-1 text-xs font-medium text-ink/70"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </dd>
+                </div>
+              )}
+              {story.timeline && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/50">
+                    Timeline
+                  </dt>
+                  <dd className="mt-1 text-sm text-ink/75">{story.timeline}</dd>
+                </div>
+              )}
+              {story.roi && (
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/50">ROI</dt>
+                  <dd className="mt-1 text-sm text-ink/75">{story.roi}</dd>
+                </div>
+              )}
+            </dl>
+          )}
 
           <div className="mt-12 rounded-2xl border border-line bg-mist p-8 text-center">
             <h2 className="text-xl font-semibold text-ink">
@@ -113,7 +235,7 @@ export default async function ImpactDetailPage({
               >
                 <div className="overflow-hidden">
                   <MediaPlaceholder
-                    src={s.cover}
+                    src={s.coverImage}
                     alt={s.title}
                     ratio="16/9"
                     className="rounded-none ring-0 transition-transform duration-500 group-hover:scale-[1.05]"

@@ -76,6 +76,22 @@
     background: var(--color-brand);
     color: #fff;
   }
+  /**
+   * Restore the pointer cursor on controls.
+   *
+   * Tailwind v4's Preflight sets `cursor: default` on buttons, reverting to the
+   * CSS spec default rather than the pointer every browser used to apply. The
+   * effect is that nothing built from a <button> — row actions, pagination,
+   * toolbar controls, the whole admin panel — signals that it can be clicked.
+   *
+   * `:disabled` keeps the default arrow, because a disabled control genuinely
+   * is not clickable. <summary> is included for the collapsible SEO sections.
+   */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary {
+    cursor: pointer;
+  }
   /* Honor reduced-motion globally (docs/06) */
   @media (prefers-reduced-motion: reduce) {
     html {

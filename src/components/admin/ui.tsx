@@ -354,6 +354,10 @@ export function Switch({
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      /* Same string as the tooltip: in the data table the switch sits in the
+         Actions group with no column heading above it, so hovering has to be
+         able to say what it does. */
+      title={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(

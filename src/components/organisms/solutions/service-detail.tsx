@@ -30,7 +30,6 @@ import { PHASES, type ServiceWithSlug } from "@/lib/services";
 import { servicePageCopy as copy } from "@/lib/service-page-copy";
 import { renderCopy } from "@/lib/rich-text";
 import { differentiators } from "@/lib/content";
-import type { impactStories } from "@/lib/site";
 
 /**
  * The service detail template — one layout, rendered for all 15 services.
@@ -63,7 +62,11 @@ import type { impactStories } from "@/lib/site";
  * gate (CLAUDE.md) intact.
  */
 
-type Story = (typeof impactStories)[number];
+import type { SuccessStoryRecord } from "@/lib/cms/types";
+
+// Success stories come from the admin panel (Module 3), so the card shape is
+// the API record rather than the committed list this used to read.
+type Story = SuccessStoryRecord;
 
 /**
  * Icons for the trust triplet. The `differentiators` data carries a lucide name

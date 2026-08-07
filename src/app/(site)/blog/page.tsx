@@ -3,7 +3,7 @@ import { PageHero } from "@/components/organisms/page-hero";
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { BlogFeed } from "@/components/organisms/blog/blog-feed";
-import { getAllPosts } from "@/lib/blog";
+import { getBlogPosts } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Insights",
@@ -11,8 +11,9 @@ export const metadata: Metadata = {
     "Engineering notes, product thinking, and perspective from the Sumago team.",
 };
 
-export default function BlogPage() {
-  const posts = getAllPosts();
+export default async function BlogPage() {
+  // Already ordered featured-first, then newest, by the API.
+  const posts = await getBlogPosts();
 
   return (
     <>

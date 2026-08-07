@@ -5,7 +5,9 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
 import { FilterChips, type FilterOption } from "@/components/molecules/filter-chips";
-import { formatDate, type BlogPost } from "@/lib/blog";
+import { formatDate } from "@/lib/cms/format";
+import type { BlogPostRecord } from "@/lib/cms/types";
+import { cn } from "@/lib/utils";
 
 const ALL = "All";
 
@@ -18,8 +20,9 @@ const ALL = "All";
  * Posts arrive as a prop so the page stays a server component and only this
  * subtree ships to the client.
  */
-export function BlogFeed({ posts }: { posts: BlogPost[] }) {
+export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
   const [active, setActive] = useState(ALL);
+  const [tag, setTag] = useState<string | null>(null);
 
   const options = useMemo<FilterOption[]>(() => {
     const counts = new Map<string, number>();
@@ -34,10 +37,24 @@ export function BlogFeed({ posts }: { posts: BlogPost[] }) {
     ];
   }, [posts]);
 
-  const filtered = useMemo(
-    () => (active === ALL ? posts : posts.filter((p) => p.category === active)),
-    [posts, active],
-  );
+  const filtered = useMemo(() => {
+    const byCategory = active === ALL ? posts : posts.filter((p) => p.category === active);
+    return tag ? byCategory.filter((p) => p.tags.includes(tag)) : byCategory;
+  }, [posts, active, tag]);
+
+  /*
+   * Tags are drawn from the posts still visible after the category filter, so
+   * the two controls can never combine into an empty result. Selecting
+   * "Engineering" then a tag that only exists on a Strategy post would leave
+   * the reader staring at nothing with no clue which control to undo.
+   */
+  const tags = useMemo(() => {
+    const inScope = active === ALL ? posts : posts.filter((p) => p.category === active);
+    const found = [...new Set(inScope.flatMap((p) => p.tags))].sort();
+    // Keep the active tag listed even if it has just fallen out of scope, so
+    // the chip the reader clicked does not vanish from under them.
+    return tag && !found.includes(tag) ? [tag, ...found] : found;
+  }, [posts, active, tag]);
 
   // Cards mounted by a filter change are revealed by AOS's own MutationObserver
   // (it watches [data-aos]) — no manual refreshHard needed. Under reduced motion
@@ -49,14 +66,59 @@ export function BlogFeed({ posts }: { posts: BlogPost[] }) {
       <FilterChips
         options={options}
         active={active}
-        onChange={setActive}
+        onChange={(next) => {
+          setActive(next);
+          // A tag from the previous category rarely applies to the new one.
+          setTag(null);
+        }}
         ariaLabel="Filter articles by topic"
       />
 
+      {tags.length > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wider text-ink/40">Tags</span>
+          {tags.map((entry) => {
+            const selected = entry === tag;
+            return (
+              <button
+                key={entry}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => setTag(selected ? null : entry)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2",
+                  selected
+                    ? "border-brand bg-brand text-white"
+                    : "border-line bg-paper text-ink/65 hover:border-brand/40 hover:text-brand-ink",
+                )}
+              >
+                {entry}
+              </button>
+            );
+          })}
+          {tag ? (
+            <button
+              type="button"
+              onClick={() => setTag(null)}
+              className="text-xs font-semibold text-brand-ink underline-offset-4 hover:underline"
+            >
+              Clear
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+
       <p className="sr-only" aria-live="polite">
         Showing {filtered.length} {filtered.length === 1 ? "article" : "articles"}
-        {active !== ALL ? ` in ${active}` : ""}.
+        {active !== ALL ? ` in ${active}` : ""}
+        {tag ? ` tagged ${tag}` : ""}.
       </p>
+
+      {filtered.length === 0 ? (
+        <p className="mt-10 rounded-xl border border-line bg-mist p-8 text-center text-sm text-ink/60">
+          No articles match that combination yet.
+        </p>
+      ) : null}
 
       {/* Featured post */}
       {featured ? (
@@ -117,8 +179,12 @@ export function BlogFeed({ posts }: { posts: BlogPost[] }) {
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-ink/80">
                   <span>{post.category}</span>
-                  <span className="text-ink/30">·</span>
-                  <span className="text-ink/50">{post.readingTime}</span>
+                  {post.readingTime && (
+                    <>
+                      <span className="text-ink/30">·</span>
+                      <span className="text-ink/50">{post.readingTime}</span>
+                    </>
+                  )}
                 </div>
                 <h3 className="mt-2 text-lg font-semibold leading-snug text-ink transition-colors group-hover:text-brand-ink">
                   {post.title}

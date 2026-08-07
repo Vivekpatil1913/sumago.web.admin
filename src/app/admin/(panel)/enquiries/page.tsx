@@ -3,6 +3,7 @@
 /** Module 21 — the sales lead inbox. No delete; archive instead (PRD §4.6). */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Archive, ArchiveRestore, Eye } from "lucide-react";
 import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { DataTable, type RowAction } from "@/components/admin/data-table";
@@ -34,14 +35,20 @@ export default function EnquiriesPage() {
   }
 
   const rowActions: RowAction[] = [
-    { label: "View", onClick: (row) => router.push(`/admin/enquiries/${row["id"]}`) },
+    {
+      label: "View enquiry",
+      icon: Eye,
+      onClick: (row) => router.push(`/admin/enquiries/${row["id"]}`),
+    },
     {
       label: "Archive",
+      icon: Archive,
       onClick: (row) => void archive(row, true),
       visible: (row) => row["archived"] !== true,
     },
     {
-      label: "Restore",
+      label: "Restore from archive",
+      icon: ArchiveRestore,
       onClick: (row) => void archive(row, false),
       visible: (row) => row["archived"] === true,
     },

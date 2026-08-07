@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { PageHero } from "@/components/organisms/page-hero";
 import { Section } from "@/components/atoms/section";
 import { Button } from "@/components/atoms/button";
-import { company } from "@/lib/site";
+import { getEmailFor, getSettings } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
@@ -16,7 +16,13 @@ export const metadata: Metadata = {
  * team — never invent data-handling claims (CLAUDE.md). This page exists so the
  * footer link resolves instead of 404ing; replace the placeholder before launch.
  */
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const [settings, privacyEmail] = await Promise.all([
+    getSettings(),
+    // Falls back to the primary address when no privacy-specific one is set.
+    getEmailFor("privacy"),
+  ]);
+
   return (
     <>
       <PageHero
@@ -44,7 +50,7 @@ export default function PrivacyPage() {
             </div>
           </div>
           <p className="mt-6 text-sm text-ink/50">
-            {company.name} · {company.emails[0]}
+            {settings.name}{privacyEmail ? ` · ${privacyEmail}` : ""}
           </p>
         </div>
       </Section>

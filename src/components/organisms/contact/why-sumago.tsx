@@ -1,61 +1,67 @@
 import { Award, BadgeCheck, CalendarClock, Layers } from "lucide-react";
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
-import { company } from "@/lib/site";
+import { getCertifications, getMetrics } from "@/lib/cms";
+import { metricValue, metricsEndingIn } from "@/lib/cms/format";
 
 /**
  * The trust band — the one content section between the offices and the form,
  * so it answers the only question that matters here: why hand Sumago the work?
- * Proof, not adjectives. Every number is pulled from `company` (which defers to
- * COMPANY-PROFILE.md) rather than retyped, so the copy can't drift from fact.
+ * Proof, not adjectives.
+ *
+ * Every number comes from General Settings rather than being retyped here, so
+ * a figure can be corrected in one place and cannot drift between pages. A
+ * claim whose metric is missing is dropped rather than rendered half-empty:
+ * "years." with no number reads as a bug, and an unbacked proof point is worse
+ * than one fewer.
  */
+export async function WhySumago() {
+  const [metrics, certifications] = await Promise.all([getMetrics(), getCertifications()]);
 
-/** Verified metric by label — the literal-union param makes a typo a build error. */
-function metric(label: (typeof company.metrics)[number]["label"]) {
-  return company.metrics.find((m) => m.label === label)!.value;
-}
+  const years = metricValue(metrics, "Years");
+  const projects = metricValue(metrics, "Projects delivered");
+  const team = metricValue(metrics, "Team members");
 
-const PROOF = [
-  {
-    icon: CalendarClock,
-    claim: `${metric("Years")} years.`,
-    detail:
-      "Building since 2013, through every platform shift the last decade threw at it. Long enough to have been wrong once or twice, and to have learned from it.",
-  },
-  {
-    icon: Layers,
-    claim: `${metric("Projects delivered")} projects delivered.`,
-    detail:
-      "Seven hundred briefs that started exactly where yours does now — a problem, a deadline, and someone who needed it to work.",
-  },
-  {
-    icon: Award,
-    claim: `${metric("Team members")} specialists.`,
-    detail:
-      "Engineers, designers, and architects on staff — the people who'd actually be doing your work, and who you'd meet in week one.",
-  },
-  {
-    icon: BadgeCheck,
-    claim: company.certifications.join(" · ") + ".",
-    detail:
-      "CMMI's highest maturity level, and quality management audited by someone with no stake in the answer. Assessed, not asserted.",
-  },
-] as const;
+  const PROOF = [
+    years && {
+      icon: CalendarClock,
+      claim: `${years} years.`,
+      detail:
+        "Building since 2013, through every platform shift the last decade threw at it. Long enough to have been wrong once or twice, and to have learned from it.",
+    },
+    projects && {
+      icon: Layers,
+      claim: `${projects} projects delivered.`,
+      detail:
+        "Seven hundred briefs that started exactly where yours does now — a problem, a deadline, and someone who needed it to work.",
+    },
+    team && {
+      icon: Award,
+      claim: `${team} specialists.`,
+      detail:
+        "Engineers, designers, and architects on staff — the people who'd actually be doing your work, and who you'd meet in week one.",
+    },
+    certifications.length > 0 && {
+      icon: BadgeCheck,
+      claim: `${certifications.join(" · ")}.`,
+      detail:
+        "CMMI's highest maturity level, and quality management audited by someone with no stake in the answer. Assessed, not asserted.",
+    },
+  ].filter((entry) => entry !== false && entry !== undefined && entry !== "");
 
-const GROUPS = [
-  {
-    label: "Trusted by",
-    items: company.metrics
-      .filter((m) => m.label.endsWith("clients"))
-      .map((m) => `${m.value} ${m.label.toLowerCase()}`),
-  },
-  {
-    label: "How the work happens",
-    items: ["Global delivery", "Flexible time-zone collaboration", "Remote-first engagements"],
-  },
-] as const;
+  const clientMetrics = metricsEndingIn(metrics, "clients");
 
-export function WhySumago() {
+  const GROUPS = [
+    clientMetrics.length > 0 && {
+      label: "Trusted by",
+      items: clientMetrics.map((metric) => `${metric.value} ${metric.label.toLowerCase()}`),
+    },
+    {
+      label: "How the work happens",
+      items: ["Global delivery", "Flexible time-zone collaboration", "Remote-first engagements"],
+    },
+  ].filter((group) => group !== false);
+
   return (
     <Section dark className="relative isolate overflow-hidden">
       {/* Soft brand glow — keeps the dark band from reading flat. */}

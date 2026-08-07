@@ -6,6 +6,7 @@ import { Stat } from "@/components/molecules/stat";
 import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
 import { MosaicGallery } from "@/components/organisms/gallery/mosaic-gallery";
 import { company } from "@/lib/site";
+import { getMetrics, getSettings } from "@/lib/cms";
 import { cn, slugify } from "@/lib/utils";
 import { previewImages, previewPortraits, teamMoments } from "@/lib/preview-assets";
 
@@ -194,7 +195,9 @@ const departmentLeaders: Leader[] = [
   },
 ];
 
-export default function TeamPage() {
+export default async function TeamPage() {
+  const [settings, metrics] = await Promise.all([getSettings(), getMetrics()]);
+
   return (
     <>
       <PageHero
@@ -209,7 +212,7 @@ export default function TeamPage() {
             <span className="text-metal-red-shine">Sumago</span> build.
           </>
         }
-        description={`Founder-led since ${company.foundedYear}, Sumago's 70+ specialists span strategy, design, engineering, cloud, and AI — the range to solve real problems end to end.`}
+        description={`Founder-led since ${settings.foundedYear}, Sumago's 70+ specialists span strategy, design, engineering, cloud, and AI — the range to solve real problems end to end.`}
       />
 
       {/* Leadership + personal message (merged from the retired Founder's Desk). */}
@@ -353,7 +356,7 @@ export default function TeamPage() {
           description="Engineers, designers, consultants, and delivery leads working as one partner across the technology lifecycle."
         />
         <div className="mt-10 grid grid-cols-2 gap-8 sm:grid-cols-4">
-          {company.metrics.slice(0, 4).map((m, i) => (
+          {metrics.slice(0, 4).map((m, i) => (
             <div key={m.label} data-aos="fade-up" data-aos-delay={(i % 4) * 60}>
               <Stat value={m.value} label={m.label} />
             </div>

@@ -5,19 +5,26 @@ import { ArrowLeft, ArrowRight, Check, MapPin, Briefcase, Clock } from "lucide-r
 import { Section } from "@/components/atoms/section";
 import { Reveal } from "@/components/motion/reveal";
 import { ApplyPanel } from "@/components/organisms/apply-panel";
-import { openPositions, getPosition } from "@/lib/careers";
+import { getJob, getJobs, getOffices, getSettings } from "@/lib/cms";
+import { breadcrumbSchema, jobPostingSchema } from "@/lib/cms/schema-org";
+import { JsonLd } from "@/components/atoms/json-ld";
 
-export function generateStaticParams() {
-  return openPositions.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getJobs()).map((job) => ({ slug: job.slug }));
 }
 
+/*
+ * A closed role stops being a page. `getJob` only returns published, active
+ * jobs, so once HR closes one the URL 404s rather than collecting applications
+ * nobody will read.
+ */
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const position = getPosition(slug);
+  const position = await getJob(slug);
   return {
     title: position ? `${position.title} — Careers` : "Careers",
     description: position?.summary,
@@ -30,7 +37,7 @@ export default async function JobDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const position = getPosition(slug);
+  const position = await getJob(slug);
   if (!position) notFound();
 
   const {
@@ -53,10 +60,25 @@ export default async function JobDetailPage({
   ];
 
   // A few other roles to keep the journey moving.
-  const related = openPositions.filter((p) => p.slug !== slug).slice(0, 3);
+  const [related, settings, offices] = await Promise.all([
+    getJobs().then((jobs) => jobs.filter((job) => job.slug !== slug).slice(0, 3)),
+    getSettings(),
+    getOffices(),
+  ]);
 
   return (
     <>
+      {/* JobPosting markup is what lists this role in Google Jobs. It carries
+          `validThrough` from the closing date where HR set one, so a filled
+          role stops being advertised instead of collecting applications. */}
+      <JsonLd data={jobPostingSchema(position, { settings, offices })} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Careers", path: "/careers" },
+          { name: title, path: `/careers/${slug}` },
+        ])}
+      />
+
       {/* Hero — compact dark band (matches the site's article/hero language). */}
       <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -143,7 +165,7 @@ export default async function JobDetailPage({
                 Tell us a little about you and share your CV. It takes a minute.
               </p>
               <div className="mt-5">
-                <ApplyPanel jobTitle={title} />
+                <ApplyPanel jobTitle={title} jobSlug={slug} />
               </div>
 
               <div className="my-6 h-px bg-line" />

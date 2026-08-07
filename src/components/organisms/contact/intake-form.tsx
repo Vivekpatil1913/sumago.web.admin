@@ -1,9 +1,11 @@
 "use client";
 
 import { useId, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { capabilities, industries } from "@/lib/site";
+import { HONEYPOT_FIELD, submitEnquiry } from "@/lib/cms/forms";
+import { Honeypot } from "@/components/atoms/honeypot";
 import { cn } from "@/lib/utils";
 
 /**
@@ -12,8 +14,9 @@ import { cn } from "@/lib/utils";
  * still capturing who they are, their industry, what they need, and the
  * problem in their own words.
  *
- * NOTE: not yet wired to a backend — submitting shows a local confirmation.
- * Phase 4 connects this to the NestJS `leads` API (see docs/10).
+ * Submits to `POST /api/public/contact` (Module 21). The server commits the
+ * lead before attempting any email, so the confirmation below is shown only
+ * once the enquiry is genuinely stored — never optimistically.
  */
 
 const STEPS = [
@@ -44,10 +47,19 @@ const EMPTY: FormState = {
   message: "",
 };
 
+/** The honeypot input is uncontrolled; read it straight from the document. */
+function honeypotValue(): string {
+  if (typeof document === "undefined") return "";
+  const field = document.getElementById(HONEYPOT_FIELD);
+  return field instanceof HTMLInputElement ? field.value : "";
+}
+
 export function IntakeForm() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<FormState>(EMPTY);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const headingRef = useRef<HTMLParagraphElement>(null);
   const uid = useId();
 
@@ -79,6 +91,38 @@ export function IntakeForm() {
     requestAnimationFrame(() => headingRef.current?.focus());
   };
 
+  /**
+   * Send the lead. The confirmation only appears once the server has stored
+   * it — telling someone their enquiry is in when it is not is the one failure
+   * mode this form cannot have.
+   */
+  async function send() {
+    setSending(true);
+    setError(null);
+
+    const result = await submitEnquiry({
+      name: data.name.trim(),
+      email: data.email.trim(),
+      phone: data.mobile.trim(),
+      // The industry is not a column of its own on an enquiry, so it goes into
+      // the message where a salesperson will actually read it.
+      message: `${data.message.trim()}\n\nIndustry: ${data.industry}\nServices of interest: ${data.services.join(", ")}`,
+      serviceInterest: data.services[0],
+      source: "contact:intake-form",
+      // Read from the DOM rather than state: the field is never rendered to a
+      // human, so there is nothing for React to control.
+      honeypot: honeypotValue(),
+    });
+
+    setSending(false);
+    if (result.ok) {
+      setSent(true);
+    } else {
+      setError(result.message);
+      requestAnimationFrame(() => headingRef.current?.focus());
+    }
+  }
+
   if (sent) {
     return (
       <div className="mx-auto max-w-2xl rounded-2xl border border-line bg-paper p-8 text-center sm:p-12">
@@ -94,8 +138,7 @@ export function IntakeForm() {
           problem; the conversation will take care of itself.
         </p>
         <p className="mt-4 text-xs leading-relaxed text-ink/45">
-          [SAMPLE] This form isn&apos;t connected yet — backend wiring comes in Phase 4.
-          Until then, reach the team directly at{" "}
+          Prefer email? Reach the team directly at{" "}
           <a
             href="mailto:info@sumagoinfotech.com"
             className="font-medium text-brand-ink underline underline-offset-4"
@@ -111,9 +154,10 @@ export function IntakeForm() {
               setData(EMPTY);
               setStep(0);
               setSent(false);
+              setError(null);
             }}
           >
-            Start over
+            Send another
           </Button>
         </div>
       </div>
@@ -148,10 +192,11 @@ export function IntakeForm() {
             if (stepComplete) go(step + 1);
             return;
           }
-          if (stepComplete) setSent(true);
+          if (stepComplete && !sending) void send();
         }}
-        className="mt-6 rounded-2xl border border-line bg-paper p-6 sm:p-8"
+        className="relative mt-6 rounded-2xl border border-line bg-paper p-6 sm:p-8"
       >
+        <Honeypot />
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-ink">
           Step {step + 1} of {STEPS.length}
         </p>
@@ -271,6 +316,18 @@ export function IntakeForm() {
           )}
         </div>
 
+        {/* Submission failures are the server's own wording — it writes them
+            for end users, and rephrasing them here would only lose detail. */}
+        {error && (
+          <p
+            role="alert"
+            className="mt-6 flex items-start gap-2.5 rounded-lg border border-brand/30 bg-brand/5 p-4 text-sm leading-relaxed text-ink/80"
+          >
+            <AlertCircle size={17} className="mt-0.5 shrink-0 text-brand" aria-hidden />
+            {error}
+          </p>
+        )}
+
         <div className="mt-8 flex items-center justify-between gap-3 border-t border-line pt-6">
           {step > 0 ? (
             <button
@@ -285,9 +342,18 @@ export function IntakeForm() {
             <span />
           )}
 
-          <Button type="submit" disabled={!stepComplete}>
-            {step === STEPS.length - 1 ? "Request a call back" : "Continue"}
-            {step < STEPS.length - 1 && <ArrowRight size={16} aria-hidden />}
+          <Button type="submit" disabled={!stepComplete || sending}>
+            {sending ? (
+              <>
+                <Loader2 size={16} className="animate-spin" aria-hidden />
+                Sending…
+              </>
+            ) : (
+              <>
+                {step === STEPS.length - 1 ? "Request a call back" : "Continue"}
+                {step < STEPS.length - 1 && <ArrowRight size={16} aria-hidden />}
+              </>
+            )}
           </Button>
         </div>
       </form>

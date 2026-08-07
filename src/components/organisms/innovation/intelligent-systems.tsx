@@ -1,16 +1,9 @@
-import {
-  BarChart3,
-  MessageSquare,
-  Mic,
-  Repeat,
-  type LucideIcon,
-} from "lucide-react";
+import { MessageSquare } from "lucide-react";
 
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
-import { intelligentOutcomes, intelligentSystems } from "@/lib/content";
-
-const ICONS: Record<string, LucideIcon> = { MessageSquare, Mic, Repeat, BarChart3 };
+import { resolveIcon } from "@/lib/icon-registry";
+import { getInnovationItems, getInnovationOutcomes } from "@/lib/cms";
 
 /**
  * Applied intelligence — four capabilities, then a dark strip stating what they
@@ -25,7 +18,12 @@ const ICONS: Record<string, LucideIcon> = { MessageSquare, Mic, Repeat, BarChart
  * than per-cell borders, so the dividers land correctly at 1, 2 and 4 columns
  * without any first-child/row-start special casing.
  */
-export function IntelligentSystems() {
+export async function IntelligentSystems() {
+  const [items, outcomes] = await Promise.all([
+    getInnovationItems(),
+    getInnovationOutcomes(),
+  ]);
+
   return (
     <Section>
       <SectionHeading
@@ -37,8 +35,8 @@ export function IntelligentSystems() {
       />
 
       <ul className="mt-11 grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 lg:mt-14 lg:grid-cols-4">
-        {intelligentSystems.map((item, i) => {
-          const Icon = ICONS[item.icon] ?? MessageSquare;
+        {items.map((item, i) => {
+          const Icon = resolveIcon(item.icon, MessageSquare);
           return (
             <li
               key={item.title}
@@ -55,28 +53,53 @@ export function IntelligentSystems() {
               <p className="mt-4 text-[0.9375rem] leading-relaxed text-ink/65">
                 {item.description}
               </p>
+
+              {item.highlights.length > 0 && (
+                <ul className="mt-4 space-y-1.5 text-sm text-ink/60">
+                  {item.highlights.map((highlight) => (
+                    <li key={highlight} className="flex gap-2">
+                      <span aria-hidden className="mt-2 h-1 w-1 shrink-0 rounded-full bg-brand" />
+                      {highlight}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {item.linkUrl && (
+                <a
+                  href={item.linkUrl}
+                  className="mt-5 inline-flex text-sm font-semibold text-brand-ink underline-offset-4 hover:underline"
+                >
+                  {item.linkLabel ?? "Learn more"}
+                  <span className="sr-only"> about {item.title}</span>
+                </a>
+              )}
             </li>
           );
         })}
       </ul>
 
-      <div
-        data-aos="fade-up"
-        className="mt-6 overflow-hidden rounded-2xl bg-white/10 sm:mt-8"
-      >
-        <dl className="grid grid-cols-1 gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
-          {intelligentOutcomes.map((outcome) => (
-            <div key={outcome.title} className="bg-ink p-6 sm:p-7">
-              <dt className="font-display text-base font-bold leading-snug text-white sm:text-lg">
-                {outcome.title}
-              </dt>
-              <dd className="mt-1.5 text-sm leading-relaxed text-white/55">
-                {outcome.note}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      </div>
+      {/* The strip only earns its space when there is something in it — an
+          empty dark band reads as a rendering fault. */}
+      {outcomes.length > 0 && (
+        <div
+          data-aos="fade-up"
+          className="mt-6 overflow-hidden rounded-2xl bg-white/10 sm:mt-8"
+        >
+          <dl className="grid grid-cols-1 gap-px bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
+            {outcomes.map((outcome) => (
+              <div key={outcome.id || outcome.title} className="bg-ink p-6 sm:p-7">
+                <dt className="font-display text-base font-bold leading-snug text-white sm:text-lg">
+                  {outcome.title}
+                </dt>
+                <dd className="mt-1.5 text-sm leading-relaxed text-white/55">
+                  {outcome.note}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
     </Section>
   );
 }

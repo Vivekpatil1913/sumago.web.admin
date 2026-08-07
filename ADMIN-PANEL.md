@@ -1,6 +1,19 @@
 # Sumago Admin Panel — setup & operations
 
-Implementation of [`Admin Sumago Website PRD.pdf`](Admin%20Sumago%20Website%20PRD.pdf) v1.1 — all 25 modules.
+Implementation of [`Admin Sumago Website PRD.pdf`](Admin%20Sumago%20Website%20PRD.pdf) v1.1 — all 25 modules,
+plus the contact-and-presence split described below.
+
+**Module 13 is five screens, not one.** Phone numbers, email addresses, office
+addresses and social links were `jsonb` and `text[]` columns inside General
+Settings; each is now its own table and module. The reason is that a blob has no
+per-row state: an editor could not take one number off the site, order the
+offices, see who changed a link, or stop a placeholder URL being published. The
+tables give each entry its own Draft/Published status, active switch, sort
+order, audit trail and validation — and the database enforces one headquarters,
+one primary number, one primary address, and no `#` social links.
+
+`npm run migrate` moves any existing blob contents into the new tables and then
+drops the columns, so the two copies can never drift.
 
 | Piece | Path | URL |
 | --- | --- | --- |
@@ -192,24 +205,104 @@ that expires after 15 minutes *and* still requires an HR or Admin session, and
 every issue and download is written to the Activity Log for privacy audits. The
 storage key never appears in an API response.
 
-## 4. Connecting the website
-
-The API already exposes what the site needs:
+## 4. How the website reads the admin
 
 | Purpose | Endpoint |
 | --- | --- |
 | Contact form (Module 21) | `POST /api/public/contact` |
 | Apply form + résumé (Module 19) | `POST /api/public/apply` (multipart) |
 | Published content | `GET /api/public/content/:module` |
+| One record by slug | `GET /api/public/content/:module/:slug` |
 | Published jobs | `GET /api/public/jobs`, `/api/public/jobs/:slug` |
-| Settings + navigation | `GET /api/public/settings` |
+| Settings, navigation, offices, phones, emails, social | `GET /api/public/settings` |
 
 Both form endpoints save the record first and treat email as best-effort, so a
 failing mail server can never lose an enquiry or an application — the failure is
 reported in the response `meta` and logged, but the record is already committed.
 
-Swapping the site's hardcoded `src/lib/*` data for these endpoints is the
-remaining step, and is website work rather than admin work.
+### The site's side
+
+[`src/lib/cms/`](src/lib/cms/) is the only place the website talks to the API:
+
+| File | Holds |
+| --- | --- |
+| `client.ts` | The server-side fetch, with Next caching and per-module cache tags |
+| `types.ts` | The API's record shapes, mirroring the backend registry |
+| `index.ts` | One accessor per thing a page needs (`getBlogPosts`, `getOffices`, …) |
+| `format.ts` | Hydration-safe date formatting and rich-text paragraph splitting |
+| `forms.ts` | The two public form submissions (browser-side) |
+
+Pages import from `@/lib/cms` and nowhere else, so moving a section from
+hardcoded to CMS-driven is a change in that folder rather than in the page.
+
+**Every read falls back to the committed content in `src/lib/*`.** The site has
+to render whether or not the API answers, and `next build` has to succeed on a
+machine where the API is not running — so `getBlogPosts()` returns the posts in
+`lib/blog.ts` if `/content/blog` is unreachable, and so on. Failures are logged
+once (`[cms] … using fallback content`) and never shown to a visitor. A clean
+build log means every module resolved from the database.
+
+The two exceptions are deliberate:
+
+- **Jobs have no fallback.** A stale vacancy costs someone an evening writing an
+  application for a role that closed. An empty careers board is the honest answer.
+- **Social links have no fallback.** The committed list was five `#`
+  placeholders; an icon that goes nowhere costs more trust than no icon. The
+  database rejects `#` outright, and the footer renders no icons until a real
+  profile URL is published.
+
+Content is cached for 60 seconds (120 for the settings bundle), matching the
+`s-maxage` the API sets on the same responses.
+
+### Publishing shows up immediately
+
+Waiting out a 60-second cache is fine for a visitor and maddening for an editor,
+who publishes and then reloads an unchanged page wondering whether it saved. So
+after any successful write the API POSTs to `/api/revalidate` on the website and
+the affected cache tag is dropped.
+
+Set the **same** `REVALIDATE_SECRET` in both environments to switch it on. Leave
+it empty and the call is skipped — content still goes live on its own 60-second
+schedule, so a missing variable degrades to *slower*, never to *broken*. The
+same is true if the website is down or mid-deploy: the purge is best-effort and
+its failure can never turn a successful save into an error the editor sees.
+
+### What happens when the API is unavailable
+
+| Situation | Behaviour |
+| --- | --- |
+| API returns 5xx / connection dropped | One retry after 150ms, then the fallback |
+| API accepts the connection and stalls | Aborted at 4s, then the fallback |
+| API returns 404 for a slug | `notFound()` → the site's 404 page |
+| API returns HTML instead of JSON | Treated as a failure; logged with the content-type |
+| API down during `next build` | Build succeeds on fallback content |
+
+Every failure logs one `[cms] … using fallback content` line and is never shown
+to a visitor. A build log with no `[cms]` lines means every module resolved from
+the database. (Next also prints its own `TypeError: fetch failed` for the same
+failures — that trace is the framework's, not an unhandled error.)
+
+### Structured data, sitemap and robots
+
+Because the content is in a database, the markup search engines read is
+generated from the same records the page renders, so the two cannot drift:
+
+| Page | Emits |
+| --- | --- |
+| Home | `Organization`, with `sameAs` from the published social links and one `LocalBusiness` per office |
+| `/contact` | One `LocalBusiness` per office — the reason the address is stored in parts |
+| `/blog/[slug]` | `BlogPosting` + breadcrumbs |
+| `/impact/[slug]` | `Article` + breadcrumbs |
+| `/careers/[slug]` | `JobPosting` + breadcrumbs — what lists a role in Google Jobs |
+
+`sitemap.xml` is built from the same reads, so unpublishing a story removes it
+on the next revalidation and a closed job disappears. `noIndex` records are
+excluded, because asking Google to crawl a page you have told it not to index is
+a contradiction it reports as an error.
+
+**Salary is deliberately absent from `JobPosting`.** The field is free text in
+the CMS ("competitive", "12–18 LPA"); guessing a currency and period from that
+would publish a figure to Google that Sumago never stated.
 
 ## 5. Open decisions (PRD §9)
 

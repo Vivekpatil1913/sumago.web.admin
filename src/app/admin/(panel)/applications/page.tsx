@@ -3,6 +3,7 @@
 /** Module 19 — the HR resume inbox. No delete; archive instead (PRD §4.6). */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Archive, ArchiveRestore, Eye, FileDown } from "lucide-react";
 import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { DataTable, type RowAction } from "@/components/admin/data-table";
@@ -48,15 +49,21 @@ export default function ApplicationsPage() {
   }
 
   const rowActions: RowAction[] = [
-    { label: "View", onClick: (row) => router.push(`/admin/applications/${row["id"]}`) },
-    { label: "Résumé", onClick: (row) => void downloadResume(row) },
+    {
+      label: "View application",
+      icon: Eye,
+      onClick: (row) => router.push(`/admin/applications/${row["id"]}`),
+    },
+    { label: "Download résumé", icon: FileDown, onClick: (row) => void downloadResume(row) },
     {
       label: "Archive",
+      icon: Archive,
       onClick: (row) => void archive(row, true),
       visible: (row) => row["archived"] !== true,
     },
     {
-      label: "Restore",
+      label: "Restore from archive",
+      icon: ArchiveRestore,
       onClick: (row) => void archive(row, false),
       visible: (row) => row["archived"] === true,
     },

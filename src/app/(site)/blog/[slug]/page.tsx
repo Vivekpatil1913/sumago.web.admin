@@ -6,10 +6,13 @@ import { Section } from "@/components/atoms/section";
 import { Eyebrow } from "@/components/atoms/eyebrow";
 import { Button } from "@/components/atoms/button";
 import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
-import { getAllPosts, getPost, formatDate } from "@/lib/blog";
+import { getBlogPost, getBlogPosts } from "@/lib/cms";
+import { formatDate, toParagraphs } from "@/lib/cms/format";
+import { articleSchema, breadcrumbSchema } from "@/lib/cms/schema-org";
+import { JsonLd } from "@/components/atoms/json-ld";
 
-export function generateStaticParams() {
-  return getAllPosts().map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getBlogPosts()).map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -18,10 +21,29 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getBlogPost(slug);
+  if (!post) return { title: "Article" };
+
+  // Every SEO field is an override with a sensible fallback, which is the
+  // contract the admin panel's help text promises the editor.
   return {
-    title: post?.title ?? "Article",
-    description: post?.excerpt,
+    title: post.metaTitle ?? post.title,
+    description: post.metaDescription ?? post.excerpt,
+    ...(post.canonicalUrl ? { alternates: { canonical: post.canonicalUrl } } : {}),
+    ...(post.noIndex ? { robots: { index: false, follow: false } } : {}),
+    openGraph: {
+      type: "article",
+      title: post.metaTitle ?? post.title,
+      description: post.metaDescription ?? post.excerpt,
+      publishedTime: post.date,
+      authors: [post.author],
+      tags: post.tags,
+      images: post.ogImage
+        ? [{ url: post.ogImage, alt: post.ogImageAlt ?? post.title }]
+        : post.cover
+          ? [{ url: post.cover, alt: post.title }]
+          : undefined,
+    },
   };
 }
 
@@ -31,15 +53,31 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getPost(slug);
+  const post = await getBlogPost(slug);
   if (!post) notFound();
 
-  const more = getAllPosts()
-    .filter((p) => p.slug !== post.slug)
-    .slice(0, 3);
+  const paragraphs = toParagraphs(post.body);
+
+  /*
+   * "Keep reading" prefers posts sharing a tag, then falls back to the newest.
+   * Related-by-topic beats related-by-recency for someone who has just read to
+   * the bottom of an article.
+   */
+  const others = (await getBlogPosts()).filter((p) => p.slug !== post.slug);
+  const tags = new Set(post.tags);
+  const sameTopic = others.filter((p) => p.tags.some((tag) => tags.has(tag)));
+  const more = [...sameTopic, ...others.filter((p) => !sameTopic.includes(p))].slice(0, 3);
 
   return (
     <>
+      <JsonLd data={articleSchema(post)} />
+      <JsonLd
+        data={breadcrumbSchema([
+          { name: "Insights", path: "/blog" },
+          { name: post.title, path: `/blog/${post.slug}` },
+        ])}
+      />
+
       {/* Article header — compact dark band (matches the site's hero language). */}
       <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
@@ -61,14 +99,34 @@ export default async function BlogPostPage({
               <span>{post.category}</span>
               <span className="text-white/30">·</span>
               <span className="text-white/50">{formatDate(post.date)}</span>
-              <span className="text-white/30">·</span>
-              <span className="text-white/50">{post.readingTime}</span>
+              {post.readingTime && (
+                <>
+                  <span className="text-white/30">·</span>
+                  <span className="text-white/50">{post.readingTime}</span>
+                </>
+              )}
             </div>
             <h1 className="mt-3 text-4xl font-bold leading-tight tracking-[-0.02em] md:text-5xl">
               {post.title}
             </h1>
             <p className="mt-5 text-lg leading-relaxed text-white/70">{post.excerpt}</p>
-            <p className="mt-6 text-sm font-medium text-white/60">By {post.author}</p>
+            <p className="mt-6 text-sm font-medium text-white/60">
+              By {post.author}
+              {post.authorRole ? <span className="text-white/40"> · {post.authorRole}</span> : null}
+            </p>
+
+            {post.tags.length > 0 && (
+              <ul className="mt-5 flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <li
+                    key={tag}
+                    className="rounded-full border border-white/15 px-3 py-1 text-xs font-medium text-white/60"
+                  >
+                    {tag}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </section>
@@ -77,7 +135,7 @@ export default async function BlogPostPage({
         <div className="mx-auto max-w-3xl">
           <MediaPlaceholder src={post.cover} alt={post.title} ratio="16/9" />
           <div className="mt-10 space-y-6">
-            {post.body.map((para, i) => (
+            {paragraphs.map((para, i) => (
               <p key={i} className="text-lg leading-relaxed text-ink/80">
                 {para}
               </p>

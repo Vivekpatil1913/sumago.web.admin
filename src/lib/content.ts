@@ -1010,7 +1010,7 @@ export const engagementPrinciples: {
 /**
  * The three delivery centres.
  *
- * Addresses deliberately live in `lib/site.ts` (`company.offices`) and are
+ * Addresses live in the admin panel (Office Addresses, Module 13a) and are
  * rendered on /contact only — one address, one home. This list carries the
  * *capability* view of the same premises: role in the network, scale, and what
  * each site is fitted out to do.
@@ -1133,7 +1133,7 @@ export const facilityGroups: {
 
 /**
  * Client mix. Figures are the verified ones from COMPANY-PROFILE.md via
- * `company.metrics` — 50+ government, 500+ domestic, 60+ international.
+ * General Settings metrics — 50+ government, 500+ domestic, 60+ international.
  *
  * No progress bars here, deliberately: a bar implies a denominator, and there
  * isn't one. `share` is the segment's honest share of the ~610 total, which is

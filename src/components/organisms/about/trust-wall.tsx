@@ -14,7 +14,6 @@ import { ArrowRight, Quote, Star } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Eyebrow } from "@/components/atoms/eyebrow";
 import { testimonials, clientNames } from "@/lib/content";
-import { company } from "@/lib/site";
 
 /**
  * Trust wall — a scroll-driven transition between two full-screen states.
@@ -196,7 +195,9 @@ function ClosingCopy() {
   );
 }
 
-export function TrustWall() {
+/** Certifications arrive as a prop — this is a client component, and the CMS
+ *  layer is server-only. */
+export function TrustWall({ certifications }: { certifications: string[] }) {
   const reduced = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const wallRef = useRef<HTMLDivElement>(null);
@@ -458,7 +459,7 @@ export function TrustWall() {
           ))}
         </ul>
         <p>
-          Clients include {clientNames.join(", ")}. {company.certifications.join(" and ")}{" "}
+          Clients include {clientNames.join(", ")}. {certifications.join(" and ")}{" "}
           certified.
         </p>
       </div>

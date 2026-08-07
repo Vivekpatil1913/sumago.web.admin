@@ -26,7 +26,6 @@ import {
 import { Button } from "@/components/atoms/button";
 import { Eyebrow } from "@/components/atoms/eyebrow";
 import { engagementPath } from "@/lib/content";
-import { company } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -73,7 +72,8 @@ const EASE_OUT = [0.22, 1, 0.36, 1] as const;
  * so the phone layout is the same idea at a tighter gauge, not a broken desktop
  * one.
  */
-export function EngagementPath() {
+/** The expert line arrives as a prop — client component, server-only CMS. */
+export function EngagementPath({ expertLine }: { expertLine: string | null }) {
   const reduce = useReducedMotion();
   const trackRef = useRef<HTMLOListElement>(null);
   const [active, setActive] = useState(0);
@@ -239,13 +239,18 @@ export function EngagementPath() {
                   Book the discovery call
                   <ArrowRight size={17} strokeWidth={2.5} aria-hidden />
                 </Button>
-                <a
-                  href={`tel:${company.expertLine.replace(/\s/g, "")}`}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-semibold text-ink/70 underline-offset-4 transition-colors duration-200 hover:text-brand-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
-                >
-                  <Phone size={16} strokeWidth={2.4} aria-hidden />
-                  Talk with an expert
-                </a>
+                {/* Dropped rather than rendered dead when no number is
+                    published — a tel: link to nothing is worse than one
+                    fewer way to get in touch. */}
+                {expertLine ? (
+                  <a
+                    href={`tel:${expertLine.replace(/\s/g, "")}`}
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-2 py-2 text-sm font-semibold text-ink/70 underline-offset-4 transition-colors duration-200 hover:text-brand-ink hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
+                  >
+                    <Phone size={16} strokeWidth={2.4} aria-hidden />
+                    Talk with an expert
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>

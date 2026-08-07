@@ -21,7 +21,7 @@ const VERIFY_HINT = "[VERIFY] Floor area not yet confirmed against COMPANY-PROFI
  *
  * The *capability* view of the premises lives here (role, scale, what the site
  * can do); the *visit* view (address, phone line, map) stays on /contact, which
- * already renders it from `company.offices`. The source design duplicated the
+ * already renders it from the Office Addresses module. The source design duplicated the
  * addresses across two sections, and two copies of an address is two things to
  * keep in sync.
  */

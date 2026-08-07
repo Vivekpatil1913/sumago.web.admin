@@ -9,7 +9,7 @@ import { BeatRun } from "@/components/organisms/delivery/beat-run";
 import { BeatBuilt } from "@/components/organisms/delivery/beat-built";
 import { InfrastructureBand } from "@/components/organisms/delivery/infrastructure-band";
 import { BeatTrusted } from "@/components/organisms/delivery/beat-trusted";
-import { company } from "@/lib/site";
+import { getCertifications, getMetrics } from "@/lib/cms";
 
 export const metadata: Metadata = {
   title: "How We Deliver",
@@ -56,7 +56,9 @@ export const metadata: Metadata = {
  * allocated one per page, and skipping the extra Three.js scene keeps headroom
  * in the performance budget for the two pinned sequences.
  */
-export default function HowWeDeliverPage() {
+export default async function HowWeDeliverPage() {
+  const [metrics, certifications] = await Promise.all([getMetrics(), getCertifications()]);
+
   return (
     <>
       <PageHero
@@ -103,7 +105,7 @@ export default function HowWeDeliverPage() {
 
           <div className="mx-auto mt-12 max-w-5xl rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-10 backdrop-blur-sm sm:px-8">
             <div className="grid grid-cols-2 gap-y-10 md:grid-cols-4">
-              {company.metrics.slice(0, 4).map((metric, i) => (
+              {metrics.slice(0, 4).map((metric, i) => (
                 <div
                   key={metric.label}
                   data-aos="fade-up"
@@ -117,7 +119,7 @@ export default function HowWeDeliverPage() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            {company.certifications.map((certification) => (
+            {certifications.map((certification) => (
               <span
                 key={certification}
                 className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur"

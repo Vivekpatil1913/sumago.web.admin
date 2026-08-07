@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GraduationCap, BadgeCheck, Users, Gem, ArrowRight } from "lucide-react";
-import { openPositions } from "@/lib/careers";
+import { getJobs } from "@/lib/cms";
 import { PageHero } from "@/components/organisms/page-hero";
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
@@ -50,7 +50,11 @@ const culturePillars = [
   },
 ];
 
-export default function LifeAtSumagoPage() {
+export default async function LifeAtSumagoPage() {
+  // The same source /careers reads, so the two pages can never disagree about
+  // how many roles are open.
+  const openPositions = await getJobs();
+
   return (
     <>
       <PageHero
@@ -144,7 +148,9 @@ export default function LifeAtSumagoPage() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
                   <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand" />
                 </span>
-                {openPositions.length} open roles
+                {openPositions.length > 0
+                  ? `${openPositions.length} open ${openPositions.length === 1 ? "role" : "roles"}`
+                  : "Always hiring good people"}
               </span>
 
               <h2 className="mt-5 text-3xl font-bold leading-[1.1] tracking-tight text-ink sm:text-4xl lg:text-5xl">
@@ -167,7 +173,9 @@ export default function LifeAtSumagoPage() {
               </div>
             </div>
 
-            {/* Real openings — concrete beats a generic invitation. */}
+            {/* Real openings — concrete beats a generic invitation. Dropped
+                entirely when nothing is open, rather than shown empty. */}
+            {openPositions.length > 0 ? (
             <div className="rounded-2xl border border-line bg-mist/60 p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ink/45">
                 Open roles
@@ -203,6 +211,7 @@ export default function LifeAtSumagoPage() {
                 <ArrowRight size={14} />
               </Link>
             </div>
+            ) : null}
           </div>
         </div>
       </Section>

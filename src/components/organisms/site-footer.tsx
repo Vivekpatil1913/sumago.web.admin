@@ -1,8 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { Logo } from "@/components/atoms/logo";
-import { company, primaryCta, industries } from "@/lib/site";
+import { primaryCta, industries } from "@/lib/site";
+import {
+  getEmails,
+  getFooterSocialLinks,
+  getHeadOffice,
+  getPhones,
+  getSettings,
+} from "@/lib/cms";
+import { telHref } from "@/lib/cms/format";
 import { brands } from "@/lib/brands";
 import { services } from "@/lib/services";
 import { slugify } from "@/lib/utils";
@@ -114,8 +122,22 @@ function NavGroup({ group }: { group: (typeof FOOTER_NAV)[number] }) {
   );
 }
 
-export function SiteFooter() {
+export async function SiteFooter() {
   const year = 2026; // static to avoid hydration drift; update per build
+
+  const [settings, socialLinks, allPhones, allEmails, headOffice] = await Promise.all([
+    getSettings(),
+    getFooterSocialLinks(),
+    getPhones(),
+    getEmails(),
+    getHeadOffice(),
+  ]);
+
+  // `showInFooter` is per-record in the admin panel, so an internal-only line
+  // can be published for the contact page without appearing on every page.
+  const phones = allPhones.filter((phone) => phone.showInFooter);
+  const emails = allEmails.filter((email) => email.showInFooter);
+
   const whoWeAre = FOOTER_NAV.find((g) => g.heading === "Who We Are")!;
   const ourServices = FOOTER_NAV.find((g) => g.heading === "Our Services")!;
   const ourIndustries = FOOTER_NAV.find((g) => g.heading === "Industries")!;
@@ -180,9 +202,54 @@ export function SiteFooter() {
             </div>
             <p className="mt-5 text-sm leading-relaxed text-white/60">
               A technology consulting, digital transformation &amp; product engineering
-              partner since {company.foundedYear} — 700+ projects across enterprises,
+              partner since {settings.foundedYear} — 700+ projects across enterprises,
               startups, and government, from Nashik with an office in Pune.
             </p>
+
+            {/* Reach us — every number and address flagged "show in footer" in
+                the admin panel. Previously the footer offered no way to make
+                contact at all, which on the page every visitor scrolls to was
+                the most expensive omission on the site. */}
+            {(phones.length > 0 || emails.length > 0) && (
+              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2.5 text-sm">
+                {phones.map((phone) => (
+                  <li key={phone.id || phone.phoneNumber}>
+                    <a
+                      href={telHref(phone.phoneNumber)}
+                      className="inline-flex items-center gap-2 text-white/70 transition-colors hover:text-white"
+                    >
+                      <Phone size={14} className="shrink-0 text-white/35" aria-hidden />
+                      <span>
+                        {phone.phoneNumber}
+                        <span className="ml-1.5 text-xs text-white/40">{phone.label}</span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+                {emails.map((email) => (
+                  <li key={email.id || email.emailAddress}>
+                    <a
+                      href={`mailto:${email.emailAddress}`}
+                      className="inline-flex items-center gap-2 text-white/70 transition-colors hover:text-white"
+                    >
+                      <Mail size={14} className="shrink-0 text-white/35" aria-hidden />
+                      {email.emailAddress}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {/* Head office, so the footer carries a physical address — what a
+                procurement reviewer checks for before anything else. */}
+            {headOffice && (
+              <address className="mt-5 not-italic text-sm leading-relaxed text-white/50">
+                <span className="inline-flex items-start gap-2">
+                  <MapPin size={14} className="mt-0.5 shrink-0 text-white/35" aria-hidden />
+                  {headOffice.address}
+                </span>
+              </address>
+            )}
           </div>
 
           {/* Right column — certification logos, with social icons beneath.
@@ -204,28 +271,36 @@ export function SiteFooter() {
               ))}
             </div>
 
-            {/* Social icons */}
-            <div className="flex flex-wrap gap-2.5 md:justify-end">
-              {company.social.map((s) => {
-                const path = SOCIAL_PATHS[s.label];
-                return (
-                  <Link
-                    key={s.label}
-                    href={s.href}
-                    aria-label={s.label}
-                    className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/80 transition-colors duration-300 hover:bg-brand hover:text-white"
-                  >
-                    {path ? (
-                      <svg viewBox="0 0 24 24" width={15} height={15} fill="currentColor" aria-hidden>
-                        <path d={path} />
-                      </svg>
-                    ) : (
-                      s.label[0]
-                    )}
-                  </Link>
-                );
-              })}
-            </div>
+            {/* Social icons — CMS-driven, and absent until a real profile URL
+                is published. The row renders nothing rather than a set of
+                icons that go nowhere. Plain <a>, not <Link>: these are
+                external destinations, so there is no route to prefetch. */}
+            {socialLinks.length > 0 && (
+              <div className="flex flex-wrap gap-2.5 md:justify-end">
+                {socialLinks.map((social) => {
+                  const path = SOCIAL_PATHS[social.platform];
+                  return (
+                    <a
+                      key={social.id || social.platform}
+                      href={social.href}
+                      aria-label={social.label || social.platform}
+                      {...(social.openInNewTab
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                      className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/80 transition-colors duration-300 hover:bg-brand hover:text-white"
+                    >
+                      {path ? (
+                        <svg viewBox="0 0 24 24" width={15} height={15} fill="currentColor" aria-hidden>
+                          <path d={path} />
+                        </svg>
+                      ) : (
+                        social.platform[0]
+                      )}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -261,9 +336,7 @@ export function SiteFooter() {
 
         {/* Bottom bar */}
         <div className="mt-12 flex flex-col gap-3 border-t border-white/10 py-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {year} {company.name}. All rights reserved.
-          </p>
+          <p>{settings.copyrightText ?? `© ${year} ${settings.name}. All rights reserved.`}</p>
           <div className="flex gap-5">
             <Link href="/terms" className="hover:text-white">
               Terms &amp; Conditions

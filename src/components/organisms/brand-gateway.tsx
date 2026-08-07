@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion, type Variants } from "framer
 import { ArrowRight, ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
 import { HeroStars } from "@/components/three/hero-stars";
 import { brands, GATEWAY_STORAGE_KEY, type Brand } from "@/lib/brands";
-import { company, visitableOffices } from "@/lib/site";
+import type { Office } from "@/lib/cms/types";
 import { cn } from "@/lib/utils";
 
 /* The site's shared "expo-out" — same curve as the page and home heroes. */
@@ -25,7 +25,13 @@ const GATEWAY_YEAR = 2026;
  * Rendered as a native <dialog>, which buys the focus trap, the Escape handler,
  * background inertness, and top-layer stacking for free.
  */
-export function BrandGateway() {
+export function BrandGateway({
+  offices,
+  companyName,
+}: {
+  offices: Office[];
+  companyName: string;
+}) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
@@ -132,7 +138,7 @@ export function BrandGateway() {
                   </div>
                 </div>
 
-                <GatewayFooter />
+                <GatewayFooter offices={offices} companyName={companyName} />
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -173,10 +179,13 @@ function GatewayMasthead() {
 /**
  * Offices + copyright, closing the gateway page. Same dark palette as the
  * chooser above it rather than a separate footer treatment, so the whole page
- * reads as one surface. Driven off `visitableOffices` (lib/site.ts) — the walk-in
- * locations with their own line and hours — so addresses live in one place.
+ * reads as one surface.
+ *
+ * Offices and the company name arrive as props from the page: this is a client
+ * component (it owns a <dialog> and its focus management) and the CMS layer is
+ * server-only, so the data is read once on the server and handed down.
  */
-function GatewayFooter() {
+function GatewayFooter({ offices, companyName }: { offices: Office[]; companyName: string }) {
   return (
     <footer className="relative z-10 border-t border-white/10 bg-[#0a0708] px-6 py-14 md:px-10 md:py-16">
       <div className="mx-auto max-w-6xl">
@@ -185,13 +194,13 @@ function GatewayFooter() {
         </h2>
 
         <div className="mt-8 grid gap-5 md:grid-cols-3">
-          {visitableOffices.map((office) => (
+          {offices.map((office) => (
             <div
-              key={office.city}
+              key={office.id || office.slug}
               className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-sm transition-colors duration-300 hover:border-brand/40"
             >
               <p className="text-sm font-bold uppercase tracking-[0.14em] text-white/90">
-                {office.city}
+                {office.name}
               </p>
 
               <p className="mt-4 flex gap-3 text-sm leading-relaxed text-white/60">
@@ -199,27 +208,32 @@ function GatewayFooter() {
                 {office.address}
               </p>
 
-              <a
-                href={`mailto:${office.email}`}
-                className="mt-3 flex items-center gap-3 text-sm text-white/60 transition-colors hover:text-white"
-              >
-                <Mail aria-hidden className="h-4 w-4 shrink-0 text-brand-bright" />
-                {office.email}
-              </a>
+              {/* Email and phone are optional on an office record. */}
+              {office.email ? (
+                <a
+                  href={`mailto:${office.email}`}
+                  className="mt-3 flex items-center gap-3 text-sm text-white/60 transition-colors hover:text-white"
+                >
+                  <Mail aria-hidden className="h-4 w-4 shrink-0 text-brand-bright" />
+                  {office.email}
+                </a>
+              ) : null}
 
-              <a
-                href={`tel:${office.phone.replace(/\s/g, "")}`}
-                className="mt-2 flex items-center gap-3 text-sm text-white/60 transition-colors hover:text-white"
-              >
-                <Phone aria-hidden className="h-4 w-4 shrink-0 text-brand-bright" />
-                {office.phone}
-              </a>
+              {office.phone ? (
+                <a
+                  href={`tel:${office.phone.replace(/\s/g, "")}`}
+                  className="mt-2 flex items-center gap-3 text-sm text-white/60 transition-colors hover:text-white"
+                >
+                  <Phone aria-hidden className="h-4 w-4 shrink-0 text-brand-bright" />
+                  {office.phone}
+                </a>
+              ) : null}
             </div>
           ))}
         </div>
 
         <p className="mt-12 text-center text-xs text-white/45">
-          © {GATEWAY_YEAR} All rights reserved by {company.name}
+          © {GATEWAY_YEAR} All rights reserved by {companyName}
         </p>
       </div>
     </footer>

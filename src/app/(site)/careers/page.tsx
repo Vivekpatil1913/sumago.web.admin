@@ -6,11 +6,13 @@ import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
 import { OpenPositions } from "@/components/organisms/open-positions";
 import { CareersCulture } from "@/components/organisms/careers-culture";
-import { company } from "@/lib/site";
+import { getEmailFor, getJobs } from "@/lib/cms";
 
 export const metadata: Metadata = { title: "Life at Sumago" };
 
-export default function CareersPage() {
+export default async function CareersPage() {
+  const [jobs, careersEmail] = await Promise.all([getJobs(), getEmailFor("careers")]);
+
   return (
     <>
       <PageHero
@@ -28,7 +30,7 @@ export default function CareersPage() {
           description="Explore current openings across our teams. Filter by team, then apply in a click."
         />
         <div className="mt-12">
-          <OpenPositions />
+          <OpenPositions jobs={jobs} />
         </div>
         <div
           data-aos="fade-up"
@@ -60,7 +62,11 @@ export default function CareersPage() {
             </p>
             <div className="mt-7 flex justify-center">
               <Button
-                href={`mailto:${company.emails[1]}?subject=General%20Application`}
+                href={
+                  careersEmail
+                    ? `mailto:${careersEmail}?subject=General%20Application`
+                    : "/contact"
+                }
               >
                 Send us your profile
               </Button>

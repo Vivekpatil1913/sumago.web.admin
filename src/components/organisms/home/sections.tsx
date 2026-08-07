@@ -8,18 +8,21 @@ import { Stat } from "@/components/molecules/stat";
 import { CapabilityCard } from "@/components/molecules/capability-card";
 import { ChallengesCinematic } from "@/components/organisms/home/challenges-cinematic";
 import { ImpactShowcase } from "@/components/organisms/home/impact-showcase";
-import { company, industries, impactStories, primaryCta } from "@/lib/site";
+import { industries, primaryCta } from "@/lib/site";
+import { getMetrics, getSuccessStories } from "@/lib/cms";
 import { featuredServices } from "@/lib/services";
 import { industryImages } from "@/lib/preview-assets";
 import { INDUSTRY_ICONS, FALLBACK_INDUSTRY_ICON } from "@/lib/industry-meta";
 import { slugify } from "@/lib/utils";
 
 /** Trust bar — real metrics. */
-export function TrustBar() {
+export async function TrustBar() {
+  const metrics = await getMetrics();
+
   return (
     <Section muted className="py-14 md:py-16">
       <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-6">
-        {company.metrics.map((m, i) => (
+        {metrics.map((m, i) => (
           <div key={m.label} data-aos="fade-up" data-aos-delay={(i % 6) * 60}>
             <Stat value={m.value} label={m.label} />
           </div>
@@ -30,7 +33,9 @@ export function TrustBar() {
 }
 
 /** About Sumago — narrative + the metrics counter + a few verified proof points. */
-export function AboutSection() {
+export async function AboutSection() {
+  const metrics = await getMetrics();
+
   const highlights: { label: string; text: string }[] = [
     {
       label: "ISO 9001:2015 · CMMI Level 5",
@@ -72,7 +77,7 @@ export function AboutSection() {
 
       {/* Metrics counter — numbers in metallic gold, no container (below) */}
       <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-6">
-        {company.metrics.map((m, i) => (
+        {metrics.map((m, i) => (
           <div key={m.label} data-aos="fade-up" data-aos-delay={(i % 6) * 60}>
             <Stat value={m.value} label={m.label} tone="metal" />
           </div>
@@ -232,14 +237,25 @@ export function IndustriesSection() {
   );
 }
 
-/** Impact stories preview — flagship work in a horizontal showcase carousel. */
-export function ImpactPreview() {
-  const items = impactStories.map((s) => ({
-    slug: s.slug,
-    title: s.title,
-    summary: s.summary,
-    src: s.cover,
+/**
+ * Impact stories preview — flagship work in a horizontal showcase carousel.
+ *
+ * CMS-driven, and featured-first: the API returns featured stories at the head
+ * of the list, so marketing controls what leads the home page without touching
+ * the manual sort order used on /impact.
+ */
+export async function ImpactPreview() {
+  const stories = await getSuccessStories();
+  const items = stories.map((story) => ({
+    slug: story.slug,
+    title: story.title,
+    summary: story.summary,
+    src: story.coverImage,
   }));
+
+  // The carousel needs something to scroll; an empty band reads as broken.
+  if (items.length === 0) return null;
+
   return (
     <section className="py-16 md:py-22">
       <ImpactShowcase

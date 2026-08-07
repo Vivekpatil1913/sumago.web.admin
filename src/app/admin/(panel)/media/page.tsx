@@ -8,7 +8,7 @@
  * "missing alt" and "is stock" filters exist because both block launch.
  */
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Grid3x3, List, Search, Upload, X } from "lucide-react";
+import { AlertTriangle, Grid3x3, Info, List, Search, Upload, X } from "lucide-react";
 import { api, queryString } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatBytes, formatDate } from "@/lib/admin/format";
@@ -158,7 +158,9 @@ export default function MediaPage() {
         <DataTable
           module={module}
           refreshKey={refreshKey}
-          rowActions={[{ label: "Details", onClick: (row) => void openDetail(row) }]}
+          rowActions={[
+            { label: "Asset details", icon: Info, onClick: (row) => void openDetail(row) },
+          ]}
         />
       ) : (
         <>

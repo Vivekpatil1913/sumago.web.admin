@@ -13,6 +13,7 @@ import { VisionMission } from "@/components/organisms/about/vision-mission";
 import { TrustWall } from "@/components/organisms/about/trust-wall";
 import { Recognition } from "@/components/organisms/about/recognition";
 import { company } from "@/lib/site";
+import { getCertifications, getMetrics, getSettings } from "@/lib/cms";
 import { clientNames } from "@/lib/content";
 import { previewImages, cultureGalleryImages } from "@/lib/preview-assets";
 
@@ -86,7 +87,15 @@ function ClientChip({ name }: { name: string }) {
   );
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  // Founded year, metrics and certifications are General Settings. Leadership
+  // is still the committed list — that module is not wired to the site yet.
+  const [settings, metrics, certifications] = await Promise.all([
+    getSettings(),
+    getMetrics(),
+    getCertifications(),
+  ]);
+
   return (
     <>
       <PageHero
@@ -108,7 +117,7 @@ export default function AboutPage() {
             </span>
           </>
         }
-        description={`Since ${company.foundedYear}, Sumago has turned technology into real business outcomes for enterprises, startups, and governments — built on trust, engineering rigor, and partnerships that outlast the project.`}
+        description={`Since ${settings.foundedYear}, Sumago has turned technology into real business outcomes for enterprises, startups, and governments — built on trust, engineering rigor, and partnerships that outlast the project.`}
       />
 
       {/* 1 · About Sumago — centered image, justified story, milestone timeline. */}
@@ -148,7 +157,7 @@ export default function AboutPage() {
           className="mx-auto mt-12 max-w-3xl space-y-4 text-justify text-lg leading-relaxed text-ink/75"
         >
           <p>
-            In {company.foundedYear}, Sumago began in Nashik as a small software team
+            In {settings.foundedYear}, Sumago began in Nashik as a small software team
             led by {company.leadership[0].name}, built around one stubborn belief — that
             great technology shouldn&apos;t belong only to the few who could afford it. The
             mission was simple to say and hard to do: make IT a tool for the masses as much
@@ -183,7 +192,7 @@ export default function AboutPage() {
           {/* Glass proof panel — brushed-silver numerals, hairline column rules. */}
           <div className="mx-auto mt-10 max-w-6xl rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-10 backdrop-blur-sm sm:px-8">
             <div className="grid grid-cols-2 gap-y-10 md:grid-cols-3 lg:grid-cols-6">
-              {company.metrics.map((m, i) => (
+              {metrics.map((m, i) => (
                 <div
                   key={m.label}
                   data-aos="fade-up"
@@ -197,7 +206,7 @@ export default function AboutPage() {
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            {company.certifications.map((c) => (
+            {certifications.map((c) => (
               <span
                 key={c}
                 className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur"
@@ -316,7 +325,7 @@ export default function AboutPage() {
 
       {/* 6 · What they say — scroll-driven wall of proof that resolves
           into the closing brand moment. Full-bleed: no Section wrapper. */}
-      <TrustWall />
+      <TrustWall certifications={certifications} />
 
       {/* 7 · The team behind it all */}
       <Section>

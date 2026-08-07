@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, MapPin, Clock, Briefcase } from "lucide-react";
-import type { OpenPosition } from "@/lib/careers";
+import type { JobRecord } from "@/lib/cms/types";
 
 /**
  * A compact open-position card — title, a short hook, a tight meta line
@@ -8,7 +8,7 @@ import type { OpenPosition } from "@/lib/careers";
  * of small cards. The whole card links to the role's detail page, where
  * candidates read the full spec and apply.
  */
-export function JobCard({ position }: { position: OpenPosition }) {
+export function JobCard({ position }: { position: JobRecord }) {
   const { slug, title, department, location, type, experience, summary } = position;
 
   return (

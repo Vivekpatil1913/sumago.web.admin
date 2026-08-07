@@ -12,7 +12,7 @@ import { INDUSTRY_ICONS, FALLBACK_INDUSTRY_ICON } from "@/lib/industry-meta";
 import { type IndustryPoint, type IndustryWithSlug } from "@/lib/industries";
 import { industryPageCopy as copy } from "@/lib/industry-page-copy";
 import { renderCopy } from "@/lib/rich-text";
-import { company, type impactStories } from "@/lib/site";
+import { getCertifications, getMetrics } from "@/lib/cms";
 import type { ServiceWithSlug } from "@/lib/services";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +48,11 @@ import { cn } from "@/lib/utils";
  * gate (CLAUDE.md) intact.
  */
 
-type Story = (typeof impactStories)[number];
+import type { SuccessStoryRecord } from "@/lib/cms/types";
+
+// Success stories come from the admin panel (Module 3), so the card shape is
+// the API record rather than the committed list this used to read.
+type Story = SuccessStoryRecord;
 
 /** Stable ids — shared by the sections and the chapter rail. */
 const IDS = {
@@ -71,10 +75,12 @@ const IDS = {
  * and closes on verified company proof — the fastest trust signal available
  * above the fold, and the only claim on this page carrying numbers.
  */
-function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
+async function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
   const Icon = INDUSTRY_ICONS[industry.slug] ?? FALLBACK_INDUSTRY_ICON;
-  /* Verified proof points only (COMPANY-PROFILE.md via lib/site.ts). */
-  const proof = company.metrics.slice(0, 3);
+  /* Verified proof points only — from General Settings, so a corrected figure
+     updates every industry page at once. */
+  const [metrics, certifications] = await Promise.all([getMetrics(), getCertifications()]);
+  const proof = metrics.slice(0, 3);
 
   return (
     <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
@@ -151,7 +157,7 @@ function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
                 </span>
               </span>
             ))}
-            {company.certifications.map((c) => (
+            {certifications.map((c) => (
               <span
                 key={c}
                 className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-white/70 backdrop-blur-sm"
@@ -631,7 +637,7 @@ function Proof({
                 className="group relative flex min-h-[19rem] flex-col justify-end overflow-hidden rounded-2xl ring-1 ring-line transition-all duration-300 hover:-translate-y-1.5 hover:ring-brand/40 md:min-h-[21rem]"
               >
                 <Image
-                  src={s.cover}
+                  src={s.coverImage}
                   alt=""
                   fill
                   sizes="(min-width: 768px) 50vw, 100vw"

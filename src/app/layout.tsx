@@ -13,7 +13,7 @@
 import type { Metadata } from "next";
 import { Lexend_Deca, Caveat } from "next/font/google";
 import "./globals.css";
-import { company } from "@/lib/site";
+import { getSettings } from "@/lib/cms";
 
 const lexend = Lexend_Deca({
   variable: "--font-lexend",
@@ -31,20 +31,42 @@ const caveat = Caveat({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://www.sumagoinfotech.com"),
-  title: {
-    default: `${company.name} — ${company.tagline}`,
-    template: `%s — ${company.shortName}`,
-  },
-  description:
-    "Sumago Infotech helps businesses solve complex problems through technology — digital transformation, product engineering, and AI. ISO 9001:2015 & CMMI Level 5 certified.",
-  openGraph: {
-    title: company.name,
-    description: "Helping businesses solve complex problems through technology.",
-    type: "website",
-  },
-};
+/**
+ * Title, description, favicon and the social-share default all come from
+ * General Settings, so renaming the company or swapping the share image is an
+ * edit in the admin panel rather than a deploy.
+ *
+ * `generateMetadata` rather than a static export because it has to await the
+ * settings read. It still resolves once per revalidation window, not per
+ * request — `getSettings` shares the cached `/settings` bundle the footer uses.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+
+  const description =
+    `${settings.positioning} ${settings.certifications.join(" & ")}${
+      settings.certifications.length > 0 ? " certified." : ""
+    }`.trim();
+
+  return {
+    metadataBase: new URL("https://www.sumagoinfotech.com"),
+    title: {
+      default: `${settings.name} — ${settings.tagline}`,
+      template: `%s — ${settings.shortName}`,
+    },
+    description,
+    openGraph: {
+      siteName: settings.name,
+      title: settings.name,
+      description: settings.positioning,
+      type: "website",
+      // Per-page metadata overrides this; it is the fallback for pages that
+      // set no share image of their own.
+      ...(settings.defaultOgImage ? { images: [{ url: settings.defaultOgImage }] } : {}),
+    },
+    ...(settings.favicon ? { icons: { icon: settings.favicon } } : {}),
+  };
+}
 
 export default function RootLayout({
   children,

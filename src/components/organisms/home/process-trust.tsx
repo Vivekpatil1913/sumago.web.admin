@@ -21,7 +21,7 @@ import {
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Reveal } from "@/components/motion/reveal";
-import { company } from "@/lib/site";
+
 import { processSteps, clientNames } from "@/lib/content";
 
 const PROCESS_ICONS: Record<string, LucideIcon> = {
@@ -420,7 +420,12 @@ function ClientChip({ name }: { name: string }) {
 }
 
 /** Certifications + clients — demonstrated trust, centered on a dark band. */
-export function TrustIndicators() {
+/**
+ * Certifications arrive as a prop rather than being read here: this is a
+ * client component, and the CMS layer is server-only. The page fetches them
+ * once and passes them down.
+ */
+export function TrustIndicators({ certifications }: { certifications: string[] }) {
   return (
     <section className="relative overflow-hidden bg-blueprint text-white">
       <div className="container-page py-16 md:py-22">
@@ -440,7 +445,7 @@ export function TrustIndicators() {
 
         {/* Certifications */}
         <Reveal className="mt-8 flex flex-wrap justify-center gap-3">
-          {company.certifications.map((c) => (
+          {certifications.map((c) => (
             <span
               key={c}
               className="inline-flex items-center gap-2 rounded-full border border-brand-bright/30 bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white backdrop-blur-sm"

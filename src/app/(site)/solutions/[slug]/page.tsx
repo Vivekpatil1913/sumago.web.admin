@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ServiceDetail } from "@/components/organisms/solutions/service-detail";
-import { impactStories } from "@/lib/site";
+import { getSuccessStories } from "@/lib/cms";
 import { services } from "@/lib/services";
 
 /**
@@ -37,10 +37,15 @@ export default async function SolutionDetailPage({
   if (!service) notFound();
 
   /* Real stories that genuinely involved this service — only 3 of 15 have any.
-     Where none exist, a flagged gap renders outside production (docs/17). */
+     Where none exist, a flagged gap renders outside production (docs/17).
+
+     The link is still a slug list on the service (lib/services.ts); the story
+     itself now comes from the admin panel, so a story that is unpublished or
+     deleted simply drops out of the list here. */
+  const published = await getSuccessStories();
   const stories = (service.stories ?? [])
-    .map((s) => impactStories.find((st) => st.slug === s))
-    .filter((s): s is (typeof impactStories)[number] => Boolean(s));
+    .map((wanted) => published.find((story) => story.slug === wanted))
+    .filter((story) => story !== undefined);
 
   /* Prefer siblings from the same lifecycle phase — the services a visitor is
      most likely weighing at the same time — then top up from the rest. */

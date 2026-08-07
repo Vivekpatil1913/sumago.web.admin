@@ -11,10 +11,11 @@
  * It collapses to an icon rail on wide screens (the preference persists) and
  * becomes a drawer on small ones.
  */
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import * as icons from "lucide-react";
-import { LayoutDashboard, LogOut, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Search, X } from "lucide-react";
 import { useApp } from "@/lib/admin/app-context";
 import { cn, Avatar } from "@/components/admin/ui";
 import { SumagoWordmark } from "@/components/admin/brand";
@@ -62,14 +63,55 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const { user, modules, signOut } = useApp();
+  const [filter, setFilter] = useState("");
 
-  const grouped = GROUP_ORDER.map((group) => ({
-    group,
-    label: GROUP_LABELS[group],
-    items: modules.filter((module) => module.group === group),
-  })).filter((entry) => entry.items.length > 0);
+  const query = filter.trim().toLowerCase();
+
+  /**
+   * Group → subgroup → modules, preserving registry order within each level.
+   * Filtering flattens the subgroups: when someone is searching they want the
+   * six matches, not six headings each holding one item.
+   */
+  const grouped = useMemo(() => {
+    const matches = query
+      ? modules.filter(
+          (entry) =>
+            entry.label.toLowerCase().includes(query) ||
+            entry.key.toLowerCase().includes(query),
+        )
+      : modules;
+
+    return GROUP_ORDER.map((group) => {
+      const items = matches.filter((entry) => entry.group === group);
+
+      // Map preserves insertion order, so subgroups appear in registry order.
+      // (`entry`, not `module` — the latter shadows the CommonJS global and
+      // trips @next/next/no-assign-module-variable.)
+      const sections = new Map<string, ModuleSchema[]>();
+      const ungrouped: ModuleSchema[] = [];
+      for (const entry of items) {
+        const heading = query ? undefined : entry.subgroup;
+        if (!heading) {
+          ungrouped.push(entry);
+          continue;
+        }
+        const existing = sections.get(heading);
+        if (existing) existing.push(entry);
+        else sections.set(heading, [entry]);
+      }
+
+      return {
+        group,
+        label: GROUP_LABELS[group],
+        count: items.length,
+        ungrouped,
+        sections: [...sections.entries()],
+      };
+    }).filter((entry) => entry.count > 0);
+  }, [modules, query]);
 
   const dashboardActive = pathname === "/admin";
+  const noMatches = query !== "" && grouped.length === 0;
 
   return (
     <>
@@ -113,6 +155,26 @@ export function Sidebar({
 
         {/* Navigation */}
         <nav className="admin-scroll flex-1 overflow-y-auto px-2 py-3">
+          {/* Jump-to. Thirty-odd modules is more than anyone scans reliably;
+              typing three letters beats reading the list. Hidden on the icon
+              rail, where there is nowhere to put it. */}
+          {!collapsed ? (
+            <div className="relative mb-3">
+              <Search
+                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"
+                aria-hidden
+              />
+              <input
+                type="search"
+                value={filter}
+                onChange={(event) => setFilter(event.target.value)}
+                placeholder="Jump to…"
+                aria-label="Filter modules"
+                className="w-full rounded-[var(--radius-field)] border border-line-soft bg-surface-hover py-1.5 pl-8 pr-2.5 text-[13px] text-content placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              />
+            </div>
+          ) : null}
+
           <NavLink
             href="/admin"
             label="Dashboard"
@@ -121,6 +183,12 @@ export function Sidebar({
             collapsed={collapsed}
             onNavigate={onCloseMobile}
           />
+
+          {noMatches ? (
+            <p className="px-2.5 py-6 text-center text-[13px] text-muted">
+              No module matches “{filter.trim()}”.
+            </p>
+          ) : null}
 
           {grouped.map((entry) => (
             <div key={entry.group} className="mt-4">
@@ -132,24 +200,26 @@ export function Sidebar({
                 </p>
               )}
 
-              <ul className="space-y-0.5">
-                {entry.items.map((module) => {
-                  const href = moduleHref(module);
-                  const active = pathname === href || pathname.startsWith(`${href}/`);
-                  return (
-                    <li key={module.key}>
-                      <NavLink
-                        href={href}
-                        label={module.label}
-                        icon={<ModuleIcon name={module.icon} className="h-[18px] w-[18px] shrink-0" />}
-                        active={active}
-                        collapsed={collapsed}
-                        onNavigate={onCloseMobile}
-                      />
-                    </li>
-                  );
-                })}
-              </ul>
+              <ModuleList
+                modules={entry.ungrouped}
+                pathname={pathname}
+                collapsed={collapsed}
+                onNavigate={onCloseMobile}
+              />
+
+              {entry.sections.map(([heading, items]) => (
+                <div key={heading} className="mt-2.5">
+                  {!collapsed ? (
+                    <p className="px-2.5 pb-1 text-[11px] font-medium text-muted/80">{heading}</p>
+                  ) : null}
+                  <ModuleList
+                    modules={items}
+                    pathname={pathname}
+                    collapsed={collapsed}
+                    onNavigate={onCloseMobile}
+                  />
+                </div>
+              ))}
             </div>
           ))}
         </nav>
@@ -193,6 +263,42 @@ export function Sidebar({
         </div>
       </aside>
     </>
+  );
+}
+
+/** One run of module links — used for both the ungrouped and headed sections. */
+function ModuleList({
+  modules,
+  pathname,
+  collapsed,
+  onNavigate,
+}: {
+  modules: ModuleSchema[];
+  pathname: string;
+  collapsed: boolean;
+  onNavigate: () => void;
+}) {
+  if (modules.length === 0) return null;
+
+  return (
+    <ul className="space-y-0.5">
+      {modules.map((module) => {
+        const href = moduleHref(module);
+        const active = pathname === href || pathname.startsWith(`${href}/`);
+        return (
+          <li key={module.key}>
+            <NavLink
+              href={href}
+              label={module.label}
+              icon={<ModuleIcon name={module.icon} className="h-[18px] w-[18px] shrink-0" />}
+              active={active}
+              collapsed={collapsed}
+              onNavigate={onNavigate}
+            />
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

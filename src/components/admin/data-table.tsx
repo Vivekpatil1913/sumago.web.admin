@@ -10,7 +10,7 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Download, Plus, Search, X } from "lucide-react";
+import { Download, Plus, Search, X, type LucideIcon } from "lucide-react";
 import { ApiError, api, downloadFile, queryString } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatDate, formatDateTime, humanise, statusTone, truncate } from "@/lib/admin/format";
@@ -36,6 +36,14 @@ export interface RowAction {
   tone?: "default" | "danger";
   /** Hide the action for rows where it makes no sense. */
   visible?: (row: RecordValue) => boolean;
+  /**
+   * Rendered instead of the label text, which becomes the button's accessible
+   * name and its tooltip. Repeating "Edit / Delete" down every row is a lot of
+   * text for two actions people recognise by shape — but an icon with no
+   * accessible name is a button that screen readers announce as nothing, so
+   * `label` stays required either way.
+   */
+  icon?: LucideIcon;
 }
 
 interface DataTableProps {
@@ -82,6 +90,17 @@ export function DataTable({
 }: DataTableProps) {
   const { loadOptions } = useApp();
   const { notify } = useToast();
+
+  /*
+   * The Active switch lives inside the Actions column, so that column has to
+   * appear for a module that carries the switch even when it offers no row
+   * actions — otherwise the toggle would have nowhere to render.
+   *
+   * Neither shows in the Trash: a deleted record's only meaningful action is
+   * Restore, and flipping "active" on something nobody can see is noise.
+   */
+  const showActiveToggle = Boolean(module.hasActive) && !trash;
+  const showActionsColumn = rowActions.length > 0 || showActiveToggle;
 
   const [rows, setRows] = useState<RecordValue[]>([]);
   const [total, setTotal] = useState(0);
@@ -407,15 +426,6 @@ export function DataTable({
                     </th>
                   ) : null}
 
-                  {module.hasActive && !trash ? (
-                    <th
-                      scope="col"
-                      className="w-20 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted"
-                    >
-                      Active
-                    </th>
-                  ) : null}
-
                   {module.columns.map((column) => (
                     <th
                       key={column.name}
@@ -446,7 +456,7 @@ export function DataTable({
                     </th>
                   ))}
 
-                  {rowActions.length > 0 ? (
+                  {showActionsColumn ? (
                     <th scope="col" className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
                       Actions
                     </th>
@@ -478,16 +488,6 @@ export function DataTable({
                         </td>
                       ) : null}
 
-                      {module.hasActive && !trash ? (
-                        <td className="px-3 py-2.5">
-                          <ActiveCell
-                            row={row}
-                            module={module}
-                            onToggleActive={onToggleActive}
-                          />
-                        </td>
-                      ) : null}
-
                       {module.columns.map((column, index) => (
                         <td key={column.name} className="px-3 py-2.5 align-middle">
                           {index === 0 && rowHref ? (
@@ -503,24 +503,63 @@ export function DataTable({
                         </td>
                       ))}
 
-                      {rowActions.length > 0 ? (
+                      {showActionsColumn ? (
                         <td className="whitespace-nowrap px-3 py-2.5 text-right">
-                          <div className="inline-flex gap-1">
+                          <div className="inline-flex items-center gap-0.5">
+                            {/* The Active switch sits at the head of the action
+                                group rather than in a column of its own: it is
+                                something you *do* to a row, not something the
+                                row *is*, and grouping it here keeps every
+                                control in one place at the end of the line. */}
+                            {showActiveToggle ? (
+                              <>
+                                <ActiveCell
+                                  row={row}
+                                  module={module}
+                                  onToggleActive={onToggleActive}
+                                />
+                                {rowActions.length > 0 ? (
+                                  <span
+                                    aria-hidden
+                                    className="mx-1.5 h-5 w-px shrink-0 bg-line-soft"
+                                  />
+                                ) : null}
+                              </>
+                            ) : null}
+
                             {rowActions
                               .filter((action) => !action.visible || action.visible(row))
-                              .map((action) => (
-                                <button
-                                  key={action.label}
-                                  type="button"
-                                  onClick={() => action.onClick(row)}
-                                  className={cn(
-                                    "rounded px-1.5 py-1 text-xs font-medium hover:bg-canvas-subtle",
-                                    action.tone === "danger" ? "text-bad" : "text-content-soft",
-                                  )}
-                                >
-                                  {action.label}
-                                </button>
-                              ))}
+                              .map((action) => {
+                                const Icon = action.icon;
+                                return (
+                                  <button
+                                    key={action.label}
+                                    type="button"
+                                    onClick={() => action.onClick(row)}
+                                    /* Both, deliberately: `title` gives sighted
+                                       users the native tooltip that tells them
+                                       what the glyph means, `aria-label` gives
+                                       the button a name to announce. */
+                                    {...(Icon ? { title: action.label, "aria-label": action.label } : {})}
+                                    className={cn(
+                                      "inline-flex items-center justify-center rounded-md font-medium transition-colors",
+                                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-surface",
+                                      // 32px square keeps the tap target usable
+                                      // on touch without widening the column.
+                                      Icon ? "h-8 w-8" : "px-1.5 py-1 text-xs",
+                                      action.tone === "danger"
+                                        ? "text-bad hover:bg-bad/10"
+                                        : "text-muted hover:bg-canvas-subtle hover:text-content",
+                                    )}
+                                  >
+                                    {Icon ? (
+                                      <Icon className="h-4 w-4" aria-hidden />
+                                    ) : (
+                                      action.label
+                                    )}
+                                  </button>
+                                );
+                              })}
                           </div>
                         </td>
                       ) : null}

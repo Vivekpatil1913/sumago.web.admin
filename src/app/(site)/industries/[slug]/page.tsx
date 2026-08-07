@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { IndustryDetail } from "@/components/organisms/industries/industry-detail";
 import { industryCatalog, industryBySlug } from "@/lib/industries";
 import { services } from "@/lib/services";
-import { impactStories } from "@/lib/site";
+import { getSuccessStories } from "@/lib/cms";
 
 /**
  * Industry detail route — one template for all 10 industries.
@@ -42,10 +42,14 @@ export default async function IndustryDetailPage({
     .filter((s): s is (typeof services)[number] => Boolean(s));
 
   /* Real stories that genuinely involved this industry — only 3 of 10 have any.
-     Where none exist, a flagged gap renders outside production (docs/17). */
+     Where none exist, a flagged gap renders outside production (docs/17).
+
+     Unpublishing a story in the admin panel removes it from here too, so a
+     withdrawn case study cannot linger on an industry page. */
+  const published = await getSuccessStories();
   const stories = (industry.stories ?? [])
-    .map((s) => impactStories.find((st) => st.slug === s))
-    .filter((s): s is (typeof impactStories)[number] => Boolean(s));
+    .map((wanted) => published.find((story) => story.slug === wanted))
+    .filter((story) => story !== undefined);
 
   const siblings = industryCatalog.filter((i) => i.slug !== slug);
 

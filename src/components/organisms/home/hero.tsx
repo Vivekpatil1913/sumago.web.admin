@@ -4,13 +4,17 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { HeroVisual } from "@/components/three/hero-visual";
-import { company, primaryCta } from "@/lib/site";
+import { primaryCta } from "@/lib/site";
 
 /* Easing — a soft, confident "expo-out" used across the entrance. */
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 /** Cinematic homepage hero — dark, immersive, outcome-first, trust-forward. */
-export function HomeHero() {
+/**
+ * Tagline and founded year arrive as props: this is a client component (the
+ * 3D star field needs the browser), and the CMS layer is server-only.
+ */
+export function HomeHero({ tagline, foundedYear }: { tagline: string; foundedYear: number }) {
   const reduce = useReducedMotion();
 
   const container: Variants = {
@@ -62,7 +66,7 @@ export function HomeHero() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand" />
           </span>
-          {company.tagline}
+          {tagline}
         </motion.span>
 
         {/* Headline — line-by-line mask reveal */}
@@ -87,7 +91,7 @@ export function HomeHero() {
           variants={item}
           className="max-w-2xl leading-relaxed text-white/70 text-base sm:text-lg"
         >
-          A strategic technology partner since {company.foundedYear} — turning
+          A strategic technology partner since {foundedYear} — turning
           digital transformation, product engineering, and AI into measurable
           business outcomes for enterprises, startups, and government.
         </motion.p>

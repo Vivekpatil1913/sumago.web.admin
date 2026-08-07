@@ -3,6 +3,7 @@
 /** Generic list screen — serves every module that has no dedicated view. */
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { DataTable, type RowAction } from "@/components/admin/data-table";
@@ -80,12 +81,13 @@ export default function ModuleListPage({ params }: { params: Promise<{ module: s
   }
 
   const rowActions: RowAction[] = showTrash
-    ? [{ label: "Restore", onClick: (row) => void restore(row) }]
-    : [{ label: "Edit", onClick: (row) => router.push(`${base}/${row["id"]}`) }];
+    ? [{ label: "Restore", icon: RotateCcw, onClick: (row) => void restore(row) }]
+    : [{ label: "Edit", icon: Pencil, onClick: (row) => router.push(`${base}/${row["id"]}`) }];
 
   if (module.canDelete && !showTrash) {
     rowActions.push({
       label: "Delete",
+      icon: Trash2,
       tone: "danger",
       onClick: (row) => {
         setDeleteError(null);

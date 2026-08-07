@@ -124,6 +124,8 @@ export interface ModuleSchema {
   label: string;
   singular: string;
   group: "content" | "hr" | "sales" | "platform";
+  /** Second-level sidebar heading; absent means "list me ungrouped". */
+  subgroup?: string;
   icon: string;
   prdModule: number;
   description?: string;
