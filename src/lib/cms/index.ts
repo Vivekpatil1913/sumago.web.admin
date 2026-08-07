@@ -20,6 +20,8 @@ import type {
   InnovationOutcome,
   JobRecord,
   Metric,
+  NavGroup,
+  Navigation,
   Office,
   Settings,
   SiteBundle,
@@ -231,6 +233,90 @@ function orFallback<T>(rows: T[] | null, fallback: T[], allowEmpty = false): T[]
 }
 
 /* -------------------------------------------------------------------------- */
+/* Normalising what the API actually sent                                      */
+/*                                                                             */
+/* The types in `./types` describe what the API is *supposed* to return. They  */
+/* are a compile-time claim about a separate service that deploys on its own   */
+/* schedule — so at runtime they are a hope, not a guarantee.                  */
+/*                                                                             */
+/* This is not hypothetical. A production API running a build from before      */
+/* `blog_posts.tags` existed returns posts with no `tags` key at all; the type */
+/* still says `string[]`, so `post.tags.some(…)` compiles and then throws      */
+/* "Cannot read properties of undefined" during prerender, failing the whole   */
+/* build on one page.                                                          */
+/*                                                                             */
+/* Every record is therefore coerced here, at the one boundary it crosses,     */
+/* rather than guarded at each of the thirty-odd places a template reads a     */
+/* list. A field the API has never heard of arrives as an empty array and the  */
+/* section that renders it quietly disappears — which is the correct behaviour */
+/* for a site whose CMS is mid-upgrade.                                        */
+/* -------------------------------------------------------------------------- */
+
+/** Anything that is not an array becomes one. Never returns undefined. */
+function arr<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+/** Coerce to a finite number, or fall back — guards arithmetic and `toString`. */
+function num(value: unknown, fallback: number): number {
+  const parsed = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function normaliseBlogPost(post: BlogPostRecord): BlogPostRecord {
+  return { ...post, tags: arr<string>(post.tags), viewCount: num(post.viewCount, 0) };
+}
+
+function normaliseStory(story: SuccessStoryRecord): SuccessStoryRecord {
+  return {
+    ...story,
+    gallery: arr(story.gallery),
+    technologies: arr<string>(story.technologies),
+    results: arr(story.results),
+    relatedServices: arr<string>(story.relatedServices),
+  };
+}
+
+function normaliseInnovation(item: InnovationItem): InnovationItem {
+  return { ...item, highlights: arr<string>(item.highlights) };
+}
+
+function normaliseJob(job: JobRecord): JobRecord {
+  return {
+    ...job,
+    tags: arr<string>(job.tags),
+    responsibilities: arr<string>(job.responsibilities),
+    requirements: arr<string>(job.requirements),
+    niceToHave: arr<string>(job.niceToHave),
+    openings: num(job.openings, 1),
+  };
+}
+
+function normaliseSettings(settings: Settings): Settings {
+  return {
+    ...settings,
+    metrics: arr(settings.metrics),
+    certifications: arr<string>(settings.certifications),
+    foundedYear: num(settings.foundedYear, FALLBACK_SETTINGS.foundedYear),
+  };
+}
+
+function normaliseNavigation(navigation: Navigation | null): Navigation | null {
+  if (!navigation) return null;
+  return {
+    ...navigation,
+    groups: arr<NavGroup>(navigation.groups).map((group) => ({
+      ...group,
+      items: arr(group.items),
+    })),
+    footerColumns: arr<NavGroup>(navigation.footerColumns).map((column) => ({
+      ...column,
+      items: arr(column.items),
+    })),
+  };
+}
+
+/* -------------------------------------------------------------------------- */
 /* Site-wide: settings, offices, phones, emails, social, navigation           */
 /* -------------------------------------------------------------------------- */
 
@@ -248,12 +334,14 @@ export const getSite = cache(async (): Promise<SiteBundle> => {
   });
 
   return {
-    settings: bundle?.settings ?? FALLBACK_SETTINGS,
-    navigation: bundle?.navigation ?? null,
-    offices: orFallback(bundle?.offices ?? null, FALLBACK_OFFICES),
-    phones: orFallback(bundle?.phones ?? null, FALLBACK_PHONES),
-    emails: orFallback(bundle?.emails ?? null, FALLBACK_EMAILS),
-    social: orFallback(bundle?.social ?? null, FALLBACK_SOCIAL, true),
+    settings: normaliseSettings(bundle?.settings ?? FALLBACK_SETTINGS),
+    navigation: normaliseNavigation(bundle?.navigation ?? null),
+    // `arr()` before `orFallback`: an older API may omit these keys entirely,
+    // and `undefined` must read as "no answer" rather than reach a `.map()`.
+    offices: orFallback(bundle ? arr<Office>(bundle.offices) : null, FALLBACK_OFFICES),
+    phones: orFallback(bundle ? arr<ContactPhone>(bundle.phones) : null, FALLBACK_PHONES),
+    emails: orFallback(bundle ? arr<ContactEmail>(bundle.emails) : null, FALLBACK_EMAILS),
+    social: orFallback(bundle ? arr<SocialLink>(bundle.social) : null, FALLBACK_SOCIAL, true),
   };
 });
 
@@ -331,12 +419,12 @@ export async function getEmailFor(purpose: ContactEmail["purpose"]): Promise<str
 
 export const getBlogPosts = cache(async (): Promise<BlogPostRecord[]> => {
   const rows = await getContent<BlogPostRecord>("blog");
-  return orFallback(rows, FALLBACK_POSTS);
+  return orFallback(rows?.map(normaliseBlogPost) ?? null, FALLBACK_POSTS);
 });
 
 export async function getBlogPost(slug: string): Promise<BlogPostRecord | undefined> {
   const record = await getContentBySlug<BlogPostRecord>("blog", slug);
-  if (record) return record;
+  if (record) return normaliseBlogPost(record);
   // Falling back by slug rather than returning undefined keeps the committed
   // posts reachable when the API is down; a genuinely unknown slug still 404s.
   return (await getBlogPosts()).find((post) => post.slug === slug);
@@ -354,12 +442,12 @@ export async function getBlogTags(): Promise<string[]> {
 
 export const getSuccessStories = cache(async (): Promise<SuccessStoryRecord[]> => {
   const rows = await getContent<SuccessStoryRecord>("success-stories");
-  return orFallback(rows, FALLBACK_STORIES);
+  return orFallback(rows?.map(normaliseStory) ?? null, FALLBACK_STORIES);
 });
 
 export async function getSuccessStory(slug: string): Promise<SuccessStoryRecord | undefined> {
   const record = await getContentBySlug<SuccessStoryRecord>("success-stories", slug);
-  if (record) return record;
+  if (record) return normaliseStory(record);
   return (await getSuccessStories()).find((story) => story.slug === slug);
 }
 
@@ -369,7 +457,7 @@ export async function getSuccessStory(slug: string): Promise<SuccessStoryRecord 
 
 export const getInnovationItems = cache(async (): Promise<InnovationItem[]> => {
   const rows = await getContent<InnovationItem>("innovation");
-  return orFallback(rows, FALLBACK_INNOVATION);
+  return orFallback(rows?.map(normaliseInnovation) ?? null, FALLBACK_INNOVATION);
 });
 
 export const getInnovationOutcomes = cache(async (): Promise<InnovationOutcome[]> => {
@@ -387,11 +475,13 @@ export const getInnovationOutcomes = cache(async (): Promise<InnovationOutcome[]
  * careers page is the honest answer.
  */
 export const getJobs = cache(async (): Promise<JobRecord[]> => {
-  return (await getJson<JobRecord[]>("/jobs")) ?? [];
+  const rows = await getJson<JobRecord[]>("/jobs");
+  return arr<JobRecord>(rows).map(normaliseJob);
 });
 
 export async function getJob(slug: string): Promise<JobRecord | undefined> {
-  return (await getJson<JobRecord>(`/jobs/${encodeURIComponent(slug)}`)) ?? undefined;
+  const job = await getJson<JobRecord>(`/jobs/${encodeURIComponent(slug)}`);
+  return job ? normaliseJob(job) : undefined;
 }
 
 export { previewImages };
