@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 import {
   Search,
@@ -22,7 +23,7 @@ import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Reveal } from "@/components/motion/reveal";
 
-import { processSteps, clientNames } from "@/lib/content";
+import { processSteps, clientNames, clientLogos } from "@/lib/content";
 
 const PROCESS_ICONS: Record<string, LucideIcon> = {
   Search, Route, Blocks, PenTool, Code2, ShieldCheck, Rocket, GraduationCap, TrendingUp,
@@ -404,17 +405,31 @@ const CLIENT_STRIP_MASK =
   "relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]";
 
 /** Split the roster into two strips so they can scroll in opposite directions. */
-const clientRowA = clientNames.filter((_, i) => i % 2 === 0);
-const clientRowB = clientNames.filter((_, i) => i % 2 === 1);
+const clientRowA = clientLogos.filter((_, i) => i % 2 === 0);
+const clientRowB = clientLogos.filter((_, i) => i % 2 === 1);
 
 /**
- * One client on the marquee. Text chip today; drop a logo image in
- * `public/clients/` and render it here once display consent is confirmed.
+ * One client mark on the marquee. The marks are full-colour on a dark band, so
+ * each sits on a light plate rather than fighting the blueprint background.
+ *
+ * Alt text is empty by design: the strip duplicates itself for the seamless
+ * scroll, so announcing every mark would read the roster twice. The complete
+ * list is exposed once, as text, in the strip's screen-reader summary.
  */
-function ClientChip({ name }: { name: string }) {
+function ClientLogo({ name, logo }: { name: string; logo: string }) {
   return (
-    <span className="mx-2 inline-flex shrink-0 items-center rounded-lg border border-white/12 bg-white/[0.06] px-5 py-2.5 text-sm font-medium text-white/80 backdrop-blur-sm">
-      {name}
+    <span
+      title={name}
+      className="mx-2 flex h-16 w-32 shrink-0 items-center justify-center rounded-xl border border-white/12 bg-white/92 p-1.5 backdrop-blur-sm sm:h-[4.5rem] sm:w-36 sm:p-2"
+    >
+      <Image
+        src={logo}
+        alt=""
+        width={144}
+        height={72}
+        sizes="144px"
+        className="max-h-full w-auto max-w-full object-contain"
+      />
     </span>
   );
 }
@@ -461,27 +476,26 @@ export function TrustIndicators({ certifications }: { certifications: string[] }
           <p className="text-sm font-medium uppercase tracking-wider text-white/45">
             Trusted by 50+ government, 500+ domestic &amp; 60+ international clients
           </p>
-          <div className="mt-8 flex flex-col gap-4">
+          <div className="mt-8 flex flex-col gap-4" aria-hidden>
             {/* Row 1 → scrolls left */}
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite]">
-                {[...clientRowA, ...clientRowA].map((name, i) => (
-                  <ClientChip key={`a-${name}-${i}`} name={name} />
+                {[...clientRowA, ...clientRowA].map((c, i) => (
+                  <ClientLogo key={`a-${c.name}-${i}`} name={c.name} logo={c.logo} />
                 ))}
               </div>
             </div>
             {/* Row 2 → scrolls right */}
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite_reverse]">
-                {[...clientRowB, ...clientRowB].map((name, i) => (
-                  <ClientChip key={`b-${name}-${i}`} name={name} />
+                {[...clientRowB, ...clientRowB].map((c, i) => (
+                  <ClientLogo key={`b-${c.name}-${i}`} name={c.name} logo={c.logo} />
                 ))}
               </div>
             </div>
           </div>
-          <p className="mt-6 text-xs text-white/35">
-            Client names shown as text — logos displayed with permission.
-          </p>
+          {/* The roster once, in text, for anyone who can't read the marks. */}
+          <p className="sr-only">Clients include {clientNames.join(", ")}.</p>
         </Reveal>
       </div>
     </section>

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   Award,
   BadgeCheck,
@@ -345,11 +346,10 @@ export async function Recognition() {
 
         {/* ── 4 · Trusted by ───────────────────────────────────────────────
             Grouped by segment, so a government officer finds their own kind
-            first instead of sorting 17 names in their head. Marks rest muted
-            and resolve to full contrast on hover/focus — the greyscale-to-colour
-            behaviour, done in a way that also works before real logos exist.
-            [REAL ASSET NEEDED] Swap the text plates for <Image> marks (with
-            `grayscale hover:grayscale-0`) once display consent is confirmed. */}
+            first instead of sorting 20+ marks in their head. Marks rest
+            greyscale and resolve to full colour on hover — quiet in aggregate,
+            legible on inspection. Clients whose mark hasn't been supplied yet
+            keep the text plate, so the roster stays complete. */}
         <div className="mt-12">
           <BlockLabel>Trusted by</BlockLabel>
 
@@ -370,11 +370,27 @@ export async function Recognition() {
                     {group.segment}
                   </p>
                   <ul className="mt-4 flex flex-wrap gap-2">
-                    {group.names.map((name) => (
-                      <li key={name}>
-                        <span className="inline-flex rounded-lg border border-line bg-mist/60 px-3 py-2 text-sm font-semibold text-ink/60 transition-[color,border-color,background-color,transform] duration-200 hover:border-brand/30 hover:bg-paper hover:text-ink motion-safe:hover:-translate-y-0.5">
-                          {name}
-                        </span>
+                    {group.clients.map((client) => (
+                      <li key={client.name}>
+                        {client.logo ? (
+                          <span
+                            title={client.name}
+                            className="group/mark flex h-16 w-24 items-center justify-center rounded-lg border border-line bg-paper p-2.5 transition-[border-color,transform] duration-200 hover:border-brand/30 motion-safe:hover:-translate-y-0.5"
+                          >
+                            <Image
+                              src={client.logo}
+                              alt={client.name}
+                              width={96}
+                              height={64}
+                              sizes="96px"
+                              className="max-h-full w-auto object-contain grayscale transition-[filter] duration-300 group-hover/mark:grayscale-0 motion-reduce:transition-none"
+                            />
+                          </span>
+                        ) : (
+                          <span className="inline-flex h-16 items-center rounded-lg border border-line bg-mist/60 px-3 text-sm font-semibold text-ink/60 transition-[color,border-color,background-color,transform] duration-200 hover:border-brand/30 hover:bg-paper hover:text-ink motion-safe:hover:-translate-y-0.5">
+                            {client.name}
+                          </span>
+                        )}
                       </li>
                     ))}
                   </ul>

@@ -698,66 +698,97 @@ export const mediaMentions: string[] = [
   "[Business magazine]",
 ];
 
-/** Real client names (text only — logo display needs consent, see docs/17). */
-export const clientNames: string[] = [
-  "Mahindra",
-  "Toyota",
-  "Hinduja",
-  "Govt. of Maharashtra",
-  "MSBTE",
-  "FSSAI",
-  "NIC",
-  "UdyamMitra",
-  "ALF",
-  "SVI Carbon",
-  "Chaudhari Yatra Company",
-  "Habits",
-  "UMS Technologies",
-  "Doshvio",
-  "Shreerag",
-  "Gadilo",
-  "BioDigiSign",
-];
+/** A client on the trust strips. `logo` is a path under `public/logo/`; a
+ *  client without one falls back to a text plate until its mark is supplied. */
+export type Client = {
+  name: string;
+  /** Segment an evaluator reads themselves into — drives the About grouping. */
+  segment: "government" | "enterprise" | "growth";
+  logo?: string;
+};
 
 /**
- * The same roster as `clientNames`, grouped by the segment an evaluator reads
- * themselves into. A government officer scanning a flat alphabet of 17 names
- * has to do that sorting in their head; the grouping does it for them, which is
- * the whole point of a trust strip.
- *
- * No name here is new — the two explicit groups are drawn from `clientNames`,
- * and the third is *derived* as "everything not already placed", so adding a
- * client to the roster can never quietly drop it from the strip.
- *
- * [REAL ASSET NEEDED] Text marks until logo display consent is confirmed
- * (docs/17); the strip renders images the moment `logo` paths exist.
+ * Real clients, with the supplied logo marks. Names stay as written in
+ * COMPANY-PROFILE.md so alt text and the text summary match the source of
+ * truth even where a mark renders a variant wordmark.
  */
-const GOVERNMENT_CLIENTS = [
-  "Govt. of Maharashtra",
-  "MSBTE",
-  "FSSAI",
-  "NIC",
-  "UdyamMitra",
+export const clients: Client[] = [
+  // Government & public sector
+  {
+    name: "Govt. of Maharashtra — Planning Department",
+    segment: "government",
+    logo: "/logo/planning-department-maharashtra.png",
+  },
+  {
+    name: "Maharashtra Industrial Development Department",
+    segment: "government",
+    logo: "/logo/midc-maharashtra.png",
+  },
+  { name: "MSBTE", segment: "government", logo: "/logo/msbte.png" },
+  { name: "FSSAI", segment: "government", logo: "/logo/fssai.png" },
+  { name: "NIC", segment: "government", logo: "/logo/nic.png" },
+  { name: "UdyamMitra", segment: "government", logo: "/logo/udyammitra.png" },
+  {
+    name: "Regiment of Artillery",
+    segment: "government",
+    logo: "/logo/regiment-of-artillery.png",
+  },
+  {
+    name: "Telangana State Seeds Development Corporation",
+    segment: "government",
+    logo: "/logo/telangana-seeds.png",
+  },
+  // Enterprise & industry
+  { name: "Mahindra", segment: "enterprise", logo: "/logo/mahindra.png" },
+  { name: "Toyota", segment: "enterprise", logo: "/logo/toyota.png" },
+  { name: "Hinduja", segment: "enterprise", logo: "/logo/hinduja.png" },
+  { name: "SVI Carbon", segment: "enterprise", logo: "/logo/svi-carbon.png" },
+  { name: "UMS Technologies", segment: "enterprise", logo: "/logo/ums-technologies.png" },
+  { name: "Laghu Udyog Bharati", segment: "enterprise", logo: "/logo/laghu-udyog-bharati.png" },
+  // Platforms & growth businesses
+  { name: "ALF", segment: "growth", logo: "/logo/alf.png" },
+  { name: "Chaudhari Yatra Company", segment: "growth", logo: "/logo/chaudhari-yatra.png" },
+  { name: "Habits", segment: "growth", logo: "/logo/habits.png" },
+  { name: "Gadilo", segment: "growth", logo: "/logo/gadilo.png" },
+  { name: "BioDigiSign", segment: "growth", logo: "/logo/biodigisign.png" },
+  { name: "Positive", segment: "growth", logo: "/logo/positive.png" },
+  { name: "Soil Charger Technology", segment: "growth", logo: "/logo/soil-charger.png" },
+  { name: "Doshvio", segment: "growth" },
+  { name: "Shreerag", segment: "growth" },
 ];
-const ENTERPRISE_CLIENTS = ["Mahindra", "Toyota", "Hinduja", "SVI Carbon", "UMS Technologies"];
 
-export const trustedBy: { segment: string; icon: string; names: string[] }[] = [
+/** Clients whose mark exists — the only ones a logo-only strip can show. */
+export const clientLogos = clients.filter(
+  (c): c is Client & { logo: string } => Boolean(c.logo),
+);
+
+/** Full roster as plain names, for prose summaries and screen-reader text. */
+export const clientNames: string[] = clients.map((c) => c.name);
+
+/**
+ * The same roster as `clients`, grouped by the segment an evaluator reads
+ * themselves into. A government officer scanning a flat alphabet of 20+ marks
+ * has to do that sorting in their head; the grouping does it for them, which is
+ * the whole point of a trust wall.
+ *
+ * Derived from `clients` by `segment`, so adding a client to the roster can
+ * never quietly drop it from the wall.
+ */
+export const trustedBy: { segment: string; icon: string; clients: Client[] }[] = [
   {
     segment: "Government & public sector",
     icon: "Landmark",
-    names: clientNames.filter((n) => GOVERNMENT_CLIENTS.includes(n)),
+    clients: clients.filter((c) => c.segment === "government"),
   },
   {
     segment: "Enterprise & industry",
     icon: "Building2",
-    names: clientNames.filter((n) => ENTERPRISE_CLIENTS.includes(n)),
+    clients: clients.filter((c) => c.segment === "enterprise"),
   },
   {
     segment: "Platforms & growth businesses",
     icon: "Rocket",
-    names: clientNames.filter(
-      (n) => !GOVERNMENT_CLIENTS.includes(n) && !ENTERPRISE_CLIENTS.includes(n),
-    ),
+    clients: clients.filter((c) => c.segment === "growth"),
   },
 ];
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { BadgeCheck, ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/organisms/page-hero";
 import { Section } from "@/components/atoms/section";
@@ -14,7 +15,7 @@ import { TrustWall } from "@/components/organisms/about/trust-wall";
 import { Recognition } from "@/components/organisms/about/recognition";
 import { company } from "@/lib/site";
 import { getCertifications, getMetrics, getSettings } from "@/lib/cms";
-import { clientNames } from "@/lib/content";
+import { clientNames, clientLogos } from "@/lib/content";
 import { previewImages, cultureGalleryImages } from "@/lib/preview-assets";
 
 export const metadata: Metadata = {
@@ -72,17 +73,28 @@ const CLIENT_STRIP_MASK =
   "relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]";
 
 /** Split the roster into two strips so they scroll in opposite directions. */
-const clientRowA = clientNames.filter((_, i) => i % 2 === 0);
-const clientRowB = clientNames.filter((_, i) => i % 2 === 1);
+const clientRowA = clientLogos.filter((_, i) => i % 2 === 0);
+const clientRowB = clientLogos.filter((_, i) => i % 2 === 1);
 
 /**
- * One client on the marquee — text chip today; drop a logo image in
- * `public/clients/` and render it here once display consent is confirmed.
+ * One client mark on the marquee (matches home). Alt text is empty because the
+ * strip duplicates itself for the seamless scroll; the roster is exposed once,
+ * as text, in the screen-reader summary below the strips.
  */
-function ClientChip({ name }: { name: string }) {
+function ClientLogo({ name, logo }: { name: string; logo: string }) {
   return (
-    <span className="mx-2 inline-flex shrink-0 items-center rounded-lg border border-white/12 bg-white/[0.06] px-5 py-2.5 text-sm font-medium text-white/80 backdrop-blur-sm">
-      {name}
+    <span
+      title={name}
+      className="mx-2 flex h-16 w-32 shrink-0 items-center justify-center rounded-xl border border-white/12 bg-white/92 p-1.5 backdrop-blur-sm sm:h-[4.5rem] sm:w-36 sm:p-2"
+    >
+      <Image
+        src={logo}
+        alt=""
+        width={144}
+        height={72}
+        sizes="144px"
+        className="max-h-full w-auto max-w-full object-contain"
+      />
     </span>
   );
 }
@@ -295,24 +307,26 @@ export default async function AboutPage() {
             description="From global brands to government bodies — a partial list of the teams who trust Sumago with mission-critical work."
           />
 
-          <div className="mt-12 flex flex-col gap-4">
+          <div className="mt-12 flex flex-col gap-4" aria-hidden>
             {/* Row 1 → scrolls left */}
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite]">
-                {[...clientRowA, ...clientRowA].map((name, i) => (
-                  <ClientChip key={`a-${name}-${i}`} name={name} />
+                {[...clientRowA, ...clientRowA].map((c, i) => (
+                  <ClientLogo key={`a-${c.name}-${i}`} name={c.name} logo={c.logo} />
                 ))}
               </div>
             </div>
             {/* Row 2 → scrolls right */}
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite_reverse]">
-                {[...clientRowB, ...clientRowB].map((name, i) => (
-                  <ClientChip key={`b-${name}-${i}`} name={name} />
+                {[...clientRowB, ...clientRowB].map((c, i) => (
+                  <ClientLogo key={`b-${c.name}-${i}`} name={c.name} logo={c.logo} />
                 ))}
               </div>
             </div>
           </div>
+          {/* The roster once, in text, for anyone who can't read the marks. */}
+          <p className="sr-only">Clients include {clientNames.join(", ")}.</p>
 
           <p className="mt-8 text-center text-sm font-medium uppercase tracking-wider text-white/45">
             50+ government · 500+ domestic · 60+ international clients and counting
