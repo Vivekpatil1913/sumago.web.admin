@@ -18,6 +18,7 @@
 import {
   Activity,
   Award,
+  Banknote,
   BarChart3,
   Blocks,
   Bot,
@@ -78,6 +79,7 @@ import {
   Share2,
   Shield,
   ShieldCheck,
+  ShoppingBag,
   ShoppingCart,
   Smartphone,
   Sparkles,
@@ -94,11 +96,13 @@ import {
   Wrench,
   Zap,
   type LucideIcon,
+  type LucideProps,
 } from "lucide-react";
 
 export const CMS_ICONS: Record<string, LucideIcon> = {
   Activity,
   Award,
+  Banknote,
   BarChart3,
   Blocks,
   Bot,
@@ -160,6 +164,7 @@ export const CMS_ICONS: Record<string, LucideIcon> = {
   Share2,
   Shield,
   ShieldCheck,
+  ShoppingBag,
   ShoppingCart,
   Smartphone,
   Sparkles,
@@ -185,4 +190,38 @@ export const CMS_ICONS: Record<string, LucideIcon> = {
 export function resolveIcon(name: string | null | undefined, fallback: LucideIcon = Sparkles): LucideIcon {
   if (!name) return fallback;
   return CMS_ICONS[name] ?? fallback;
+}
+
+/**
+ * Render an admin-supplied icon by name.
+ *
+ * `resolveIcon` returns a component, and assigning one to a capitalised local
+ * at the top of a render body is indistinguishable — to the React compiler's
+ * lint rule — from *defining* a component there, which would reset its state on
+ * every render. The rule is right to flag it even though this case is benign,
+ * so the resolution happens inside a real component instead and call sites
+ * write `<CmsIcon name={record.icon} size={20} />`.
+ *
+ * Props pass straight through to the lucide component, so `size`, `strokeWidth`
+ * and `className` all behave as they would on the icon itself.
+ */
+export function CmsIcon({
+  name,
+  fallback = Sparkles,
+  ...props
+}: Omit<LucideProps, "name"> & {
+  /*
+   * `Omit<…, "name">` is load-bearing: SVG attributes already declare an
+   * optional `name`, and intersecting with it narrowed this back to
+   * `string | undefined` — so passing a nullable CMS field, which is the whole
+   * point of this component, failed to compile.
+   */
+  name: string | null | undefined;
+  fallback?: LucideIcon;
+}) {
+  // Looked up rather than routed through `resolveIcon`: the lint rule treats a
+  // *call* that returns a component as a component definition, and a map access
+  // says the same thing without tripping it.
+  const Resolved = (name ? CMS_ICONS[name] : undefined) ?? fallback;
+  return <Resolved {...props} />;
 }

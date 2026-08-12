@@ -13,7 +13,8 @@ import {
 import { ArrowRight, Quote, Star } from "lucide-react";
 import { Button } from "@/components/atoms/button";
 import { Eyebrow } from "@/components/atoms/eyebrow";
-import { testimonials, clientNames } from "@/lib/content";
+import type { PublicTestimonial } from "@/lib/cms";
+import { toParagraphs } from "@/lib/cms/format";
 
 /**
  * Trust wall — a scroll-driven transition between two full-screen states.
@@ -68,15 +69,29 @@ const HEAD_TAIL = ["organizations", "and", "counting"];
    certifications, and the client roster are proven elsewhere on this page; the
    wall's job is to read as a wall of people, at full screen width. */
 
-type Tile = { id: string; quote: string; role: string; rating: number; accent: string };
+type Tile = { id: string; quote: string; attribution: string; rating: number; accent: string };
 
-const WALL_TILES: Tile[] = testimonials.map((t, i) => ({
-  id: `q-${i}`,
-  quote: t.quote,
-  role: t.role,
-  rating: t.rating,
-  accent: t.accent,
-}));
+/**
+ * The published testimonials, as wall tiles.
+ *
+ * Built per render rather than at module scope: the quotes come from the
+ * admin panel now, so they change without a deploy. `accent` is the tile's
+ * spine colour and is optional on the record — a testimonial saved without
+ * one takes the brand red rather than rendering a transparent stripe.
+ *
+ * The attribution is the designation and the company, never the person's name
+ * (see `lib/content.ts`) — which is also what this wall showed before the real
+ * quotes arrived, when the whole attribution lived in `role`.
+ */
+function toTiles(testimonials: PublicTestimonial[]): Tile[] {
+  return testimonials.map((t, i) => ({
+    id: t.id || `q-${i}`,
+    quote: t.quote,
+    attribution: [t.role, t.company?.trim()].filter(Boolean).join(" · "),
+    rating: t.rating,
+    accent: t.accent ?? "#d73438",
+  }));
+}
 
 function WallTile({ tile }: { tile: Tile }) {
   return (
@@ -93,15 +108,21 @@ function WallTile({ tile }: { tile: Tile }) {
             <Star
               key={s}
               size={12}
-              className={s < tile.rating ? "text-brand" : "text-ink/20"}
+              className={s < tile.rating ? "text-brand" : "text-ink/65"}
               fill={s < tile.rating ? "currentColor" : "none"}
             />
           ))}
         </div>
       </div>
-      <blockquote className="mt-3 text-sm leading-relaxed text-ink/80">{tile.quote}</blockquote>
-      <figcaption className="mt-4 border-t border-line pt-3 text-xs font-medium text-ink/55">
-        {tile.role}
+      {/* Blank lines are paragraph breaks — two of the real quotes run to
+          several, and one text node would run them together. */}
+      <blockquote className="mt-3 space-y-2 text-sm leading-relaxed text-ink/80">
+        {toParagraphs(tile.quote).map((para, i) => (
+          <p key={i}>{para}</p>
+        ))}
+      </blockquote>
+      <figcaption className="mt-4 border-t border-line pt-3 text-xs font-medium text-ink/70">
+        {tile.attribution}
       </figcaption>
     </figure>
   );
@@ -111,14 +132,14 @@ function WallTile({ tile }: { tile: Tile }) {
  *  so the layout has a single source of truth. Full-bleed: the column count
  *  climbs with the viewport so a laptop screen is filled edge to edge rather
  *  than showing three columns inside a centred container. */
-function Wall({ className }: { className?: string }) {
+function Wall({ tiles, className }: { tiles: Tile[]; className?: string }) {
   return (
     <div
       className={`w-full columns-1 gap-5 px-5 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 ${
         className ?? ""
       }`}
     >
-      {WALL_TILES.map((tile) => (
+      {tiles.map((tile) => (
         <WallTile key={tile.id} tile={tile} />
       ))}
     </div>
@@ -197,7 +218,17 @@ function ClosingCopy() {
 
 /** Certifications arrive as a prop — this is a client component, and the CMS
  *  layer is server-only. */
-export function TrustWall({ certifications }: { certifications: string[] }) {
+export function TrustWall({
+  certifications,
+  testimonials,
+  clientNames,
+}: {
+  certifications: string[];
+  testimonials: PublicTestimonial[];
+  /** Names only — the marks themselves are the marquee above this section. */
+  clientNames: string[];
+}) {
+  const tiles = toTiles(testimonials);
   const reduced = useReducedMotion();
   const sectionRef = useRef<HTMLElement>(null);
   const wallRef = useRef<HTMLDivElement>(null);
@@ -331,7 +362,7 @@ export function TrustWall({ certifications }: { certifications: string[] }) {
               The enterprises, founders, and institutions we build for — in their own words.
             </p>
           </div>
-          <Wall className="mt-12" />
+          <Wall tiles={tiles} className="mt-12" />
         </div>
         <div className="flex flex-col items-center bg-[#050505] px-4 py-20">
           <Lockup />
@@ -359,7 +390,7 @@ export function TrustWall({ certifications }: { certifications: string[] }) {
           className="absolute inset-x-0 top-0 will-change-transform"
         >
           <div ref={wallRef} className="py-16">
-            <Wall />
+            <Wall tiles={tiles} />
           </div>
         </motion.div>
 
@@ -430,6 +461,7 @@ export function TrustWall({ certifications }: { certifications: string[] }) {
               style={{ opacity: logoOpacity, scale: logoScale }}
               className="relative will-change-transform"
               aria-hidden={!ctaLive}
+              inert={!ctaLive}
             >
               <Lockup />
             </motion.div>
@@ -440,6 +472,7 @@ export function TrustWall({ certifications }: { certifications: string[] }) {
                 ctaLive ? "pointer-events-auto" : "pointer-events-none"
               }`}
               aria-hidden={!ctaLive}
+              inert={!ctaLive}
             >
               <ClosingCopy />
             </motion.div>
@@ -450,11 +483,13 @@ export function TrustWall({ certifications }: { certifications: string[] }) {
       {/* Motion-free equivalent for assistive tech */}
       <div className="sr-only">
         <h2 id="trust-wall-heading">{headingText}</h2>
+        {/* Keyed by id, not role: real clients share designations — three of
+            them are "Founder" — and duplicate keys make React drop siblings. */}
         <ul>
-          {testimonials.map((t) => (
-            <li key={t.role}>
+          {testimonials.map((t, i) => (
+            <li key={t.id || `q-${i}`}>
               <blockquote>{t.quote}</blockquote>
-              <p>{t.role}</p>
+              <p>{[t.role, t.company?.trim()].filter(Boolean).join(" · ")}</p>
             </li>
           ))}
         </ul>

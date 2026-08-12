@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Eyebrow } from "@/components/atoms/eyebrow";
-import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
+import { Media, isStockAsset } from "@/components/molecules/media-placeholder";
 
 export type ShowcaseItem = {
   slug: string;
@@ -116,11 +116,13 @@ export function ImpactShowcase({
               className="group flex w-[82%] shrink-0 snap-start flex-col sm:w-[420px]"
             >
               <div className="overflow-hidden rounded-2xl">
-                <MediaPlaceholder
+                <Media
                   src={item.src}
                   alt={item.title}
                   ratio="16/11"
+                  sizes="(max-width: 640px) 82vw, 420px"
                   className="rounded-2xl transition-transform duration-500 group-hover:scale-[1.04]"
+                  stock={isStockAsset(item.src)}
                 />
               </div>
               <h3 className="mt-5 text-xl font-bold leading-snug text-ink transition-colors group-hover:text-brand-ink">

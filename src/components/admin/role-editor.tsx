@@ -12,6 +12,7 @@ import {
   Button,
   FieldError,
   FieldHelp,
+  InfoTip,
   Input,
   Label,
   Notice,
@@ -108,7 +109,8 @@ export function RoleEditor({ roleId }: { roleId?: string }) {
   const editingOwnRole = roleId && user.permissions && roleId === (user as unknown as { roleId?: string }).roleId;
 
   return (
-    <div className="mx-auto max-w-4xl pb-24">
+    // No bottom padding: the save bar is sticky and holds its own space.
+    <div className="mx-auto max-w-4xl">
       <Link
         href="/admin/roles"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-content"
@@ -117,9 +119,16 @@ export function RoleEditor({ roleId }: { roleId?: string }) {
         Roles &amp; Permissions
       </Link>
 
-      <h1 className="mb-5 text-xl font-semibold text-content">
-        {roleId ? `Edit ${name || "role"}` : "New role"}
-      </h1>
+      <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h1 className="text-xl font-semibold text-content">
+          {roleId ? `Edit ${name || "role"}` : "New role"}
+        </h1>
+        <InfoTip label="About editing a role">
+          View lets a holder open a module, Edit lets them change it, Delete lets them send a record
+          to the Trash. A role with full administrator access ignores every checkbox. Saving takes
+          effect on each holder&rsquo;s next action — nobody has to sign back in.
+        </InfoTip>
+      </div>
 
       {error ? (
         <div className="mb-4">
@@ -219,7 +228,7 @@ export function RoleEditor({ roleId }: { roleId?: string }) {
         />
       </section>
 
-      <div className="sticky bottom-0 z-30 -mx-4 mt-6 border-t border-line-soft sm:-mx-6 lg:-mx-8 bg-[color-mix(in_srgb,var(--a-surface)_92%,transparent)] px-4 py-3 backdrop-blur-md">
+      <div className="sticky bottom-0 z-30 -mx-4 mt-4 border-t border-line-soft sm:-mx-6 lg:-mx-8 bg-[color-mix(in_srgb,var(--a-surface)_92%,transparent)] px-4 py-3 backdrop-blur-md">
         <div className="mx-auto flex max-w-4xl items-center justify-end gap-2">
           {editingOwnRole ? (
             <span className="mr-auto text-xs text-warn">

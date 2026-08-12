@@ -72,11 +72,11 @@ export function ArchitectureBlueprint() {
           aria-hidden
           className="mt-12 hidden items-center gap-4 lg:flex"
         >
-          <span className="text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-ink/45">
+          <span className="text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-ink/65">
             User-facing
           </span>
           <span className="h-px flex-1 bg-gradient-to-r from-brand/45 via-line to-ink/15" />
-          <span className="text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-ink/45">
+          <span className="text-[0.6875rem] font-bold uppercase tracking-[0.18em] text-ink/65">
             Infrastructure
           </span>
         </div>

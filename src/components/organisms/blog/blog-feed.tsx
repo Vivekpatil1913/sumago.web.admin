@@ -76,7 +76,7 @@ export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
 
       {tags.length > 0 ? (
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wider text-ink/40">Tags</span>
+          <span className="text-xs font-medium uppercase tracking-wider text-ink/65">Tags</span>
           {tags.map((entry) => {
             const selected = entry === tag;
             return (
@@ -139,8 +139,8 @@ export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
           <div className="flex flex-col justify-center p-8 md:p-10">
             <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-brand-ink/80">
               <span>{featured.category}</span>
-              <span className="text-ink/30">·</span>
-              <span className="text-ink/50">{formatDate(featured.date)}</span>
+              <span className="text-ink/65">·</span>
+              <span className="text-ink/65">{formatDate(featured.date)}</span>
             </div>
             <h2 className="mt-3 text-2xl font-semibold leading-snug text-ink transition-colors group-hover:text-brand-ink md:text-3xl">
               {featured.title}
@@ -181,8 +181,8 @@ export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
                   <span>{post.category}</span>
                   {post.readingTime && (
                     <>
-                      <span className="text-ink/30">·</span>
-                      <span className="text-ink/50">{post.readingTime}</span>
+                      <span className="text-ink/65">·</span>
+                      <span className="text-ink/65">{post.readingTime}</span>
                     </>
                   )}
                 </div>
@@ -192,7 +192,7 @@ export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
                 <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink/60">
                   {post.excerpt}
                 </p>
-                <span className="mt-auto pt-4 text-xs font-medium text-ink/45">
+                <span className="mt-auto pt-4 text-xs font-medium text-ink/65">
                   {formatDate(post.date)}
                 </span>
               </div>

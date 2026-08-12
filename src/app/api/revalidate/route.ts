@@ -47,6 +47,13 @@ const KNOWN_MODULES = new Set([
   "awards",
   "faqs",
   "legal-pages",
+  "media-mentions",
+  "process-steps",
+  "process-phases",
+  "culture-values",
+  "growth-opportunities",
+  "event-galleries",
+  "seo-metadata",
 ]);
 
 /**

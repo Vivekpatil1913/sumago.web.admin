@@ -17,7 +17,7 @@ import type {
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export function cn(...values: unknown[]): string {
   return twMerge(clsx(values));
@@ -37,18 +37,21 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
   primary:
-    "bg-accent text-on-accent shadow-sm hover:bg-accent-hover active:translate-y-px disabled:bg-line-strong disabled:text-muted disabled:shadow-none",
+    "bg-accent text-on-accent shadow-[0_2px_8px_var(--a-accent-ring)] hover:bg-accent-hover active:translate-y-px disabled:bg-line-strong disabled:text-muted disabled:shadow-none",
   secondary:
-    "bg-surface text-content ring-1 ring-inset ring-line-soft hover:bg-surface-hover hover:ring-line-strong disabled:text-muted",
-  subtle: "bg-canvas-subtle text-content-soft hover:bg-surface-hover hover:text-content disabled:text-muted",
-  ghost: "bg-transparent text-content-soft hover:bg-surface-hover hover:text-content disabled:text-muted",
+    "bg-surface text-content-soft ring-1 ring-inset ring-line-strong hover:bg-surface-hover hover:text-content hover:ring-accent/40 disabled:text-muted",
+  subtle: "bg-canvas-subtle text-content-soft hover:bg-accent-soft hover:text-accent disabled:text-muted",
+  ghost: "bg-transparent text-content-soft hover:bg-canvas-subtle hover:text-content disabled:text-muted",
   danger: "bg-bad text-white shadow-sm hover:brightness-110 active:translate-y-px disabled:bg-line-strong",
 };
 
+/* Buttons are a touch taller and heavier than a stock control — they are the
+   one thing on a dense screen that has to look pressable from across the
+   room. */
 const BUTTON_SIZES = {
-  sm: "h-8 gap-1.5 rounded-[var(--radius-field)] px-2.5 text-xs",
-  md: "h-9 gap-2 rounded-[var(--radius-field)] px-3.5 text-sm",
-  lg: "h-11 gap-2 rounded-[var(--radius-field)] px-5 text-sm",
+  sm: "h-9 gap-1.5 rounded-[var(--radius-field)] px-3 text-xs",
+  md: "h-10 gap-2 rounded-[var(--radius-field)] px-4 text-sm",
+  lg: "h-12 gap-2 rounded-[var(--radius-field)] px-6 text-sm",
 };
 
 export function Button({
@@ -67,7 +70,7 @@ export function Button({
       {...props}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex shrink-0 items-center justify-center font-medium transition-all duration-150 disabled:cursor-not-allowed",
+        "inline-flex shrink-0 items-center justify-center font-semibold transition-all duration-150 disabled:cursor-not-allowed",
         BUTTON_SIZES[size],
         BUTTON_VARIANTS[variant],
         block && "w-full",
@@ -106,8 +109,8 @@ export function CardHeader({
   return (
     <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold text-content">{title}</h2>
-        {description ? <p className="mt-0.5 text-xs text-muted">{description}</p> : null}
+        <h2 className="text-base font-bold tracking-tight text-content">{title}</h2>
+        {description ? <p className="mt-0.5 text-[13px] text-muted">{description}</p> : null}
       </div>
       {action}
     </div>
@@ -139,7 +142,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] px-2 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded-[var(--radius-pill)] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.05em] whitespace-nowrap",
         TONE_STYLES[tone],
       )}
     >
@@ -151,7 +154,18 @@ export function Badge({
 
 /* ------------------------------------------------------------------ Avatar */
 
-export function Avatar({ name, size = 32, src }: { name: string; size?: number; src?: string | null }) {
+export function Avatar({
+  name,
+  size = 32,
+  src,
+  /** `light` is the version that sits on the dark navigation rail. */
+  tone = "default",
+}: {
+  name: string;
+  size?: number;
+  src?: string | null;
+  tone?: "default" | "light";
+}) {
   const initials = name
     .split(" ")
     .filter(Boolean)
@@ -174,7 +188,12 @@ export function Avatar({ name, size = 32, src }: { name: string; size?: number; 
   return (
     <span
       style={{ width: size, height: size, fontSize: size * 0.36 }}
-      className="inline-flex shrink-0 items-center justify-center rounded-full bg-accent-soft font-semibold text-accent"
+      className={cn(
+        "inline-flex shrink-0 items-center justify-center rounded-full font-bold",
+        tone === "light"
+          ? "bg-[linear-gradient(135deg,#4d7ce8_0%,#2b56c4_100%)] text-white ring-1 ring-white/20"
+          : "bg-[linear-gradient(135deg,#4d7ce8_0%,#1d4ed8_100%)] text-white",
+      )}
       aria-hidden
     >
       {initials || "?"}
@@ -194,10 +213,17 @@ export function Label({
   required?: boolean;
 }) {
   return (
-    <label htmlFor={htmlFor} className="block text-[13px] font-medium text-content-soft">
+    <label
+      htmlFor={htmlFor}
+      /* Small caps with wide tracking: on a form of twenty fields the labels
+         become a texture the eye skips over, and the values read as the
+         content. The required marker is red — the one place red still means
+         "look here" rather than "destructive". */
+      className="block text-[11px] font-bold uppercase tracking-[0.08em] text-content-soft"
+    >
       {children}
       {required ? (
-        <span className="ml-1 text-accent" aria-hidden>
+        <span className="ml-1 text-bad" aria-hidden>
           *
         </span>
       ) : null}
@@ -206,7 +232,7 @@ export function Label({
 }
 
 const CONTROL =
-  "block w-full rounded-[var(--radius-field)] border-0 bg-surface px-3 py-2 text-sm text-content ring-1 ring-inset ring-line-soft transition-shadow placeholder:text-muted focus:ring-2 focus:ring-inset focus:ring-accent disabled:bg-canvas-subtle disabled:text-muted";
+  "block w-full rounded-[var(--radius-field)] border-0 bg-canvas-subtle px-3.5 py-2 text-sm text-content ring-1 ring-inset ring-line-soft transition-shadow placeholder:text-muted focus:bg-surface focus:ring-2 focus:ring-inset focus:ring-accent disabled:bg-canvas-subtle disabled:text-muted";
 
 export function Input({
   className,
@@ -217,7 +243,7 @@ export function Input({
     <input
       {...props}
       aria-invalid={invalid || undefined}
-      className={cn(CONTROL, "h-9", invalid && "ring-bad focus:ring-bad", className)}
+      className={cn(CONTROL, "h-10", invalid && "ring-bad focus:ring-bad", className)}
     />
   );
 }
@@ -277,7 +303,7 @@ export function PasswordInput({
         {...props}
         type={visible ? "text" : "password"}
         aria-invalid={invalid || undefined}
-        className={cn(CONTROL, "h-9 pr-10", invalid && "ring-bad focus:ring-bad", className)}
+        className={cn(CONTROL, "h-10 pr-10", invalid && "ring-bad focus:ring-bad", className)}
       />
       <button
         type="button"
@@ -411,6 +437,134 @@ export function Notice({
   );
 }
 
+/* ----------------------------------------------------------------- InfoTip */
+
+/**
+ * The standard "what are the rules on this screen?" affordance.
+ *
+ * Screen-level guidance used to sit in a permanent info banner above every
+ * table — a paragraph that pushed the data down the page and that nobody read
+ * twice. It lives here instead: one glyph beside the title, on hover, focus or
+ * tap. The rule is still one keystroke away for the person who needs it, and
+ * costs nothing for the person who already knows it.
+ *
+ * Transient messages — a save error, a validation failure — stay in `Notice`.
+ * A tooltip you have to go looking for is the wrong place for something that
+ * just happened.
+ */
+export function InfoTip({
+  children,
+  label = "About this screen",
+  align = "left",
+  className,
+}: {
+  children: ReactNode;
+  /** Accessible name for the trigger — say what the help is about. */
+  label?: string;
+  /** Which edge the panel hangs from; use `right` near the edge of a screen. */
+  align?: "left" | "right" | "center";
+  className?: string;
+}) {
+  const id = useId();
+  const wrapper = useRef<HTMLSpanElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLSpanElement>(null);
+
+  // Hover, keyboard focus and a tap that pins it open are three separate ways
+  // in, tracked separately — moving the mouse away must not close a panel the
+  // keyboard is holding open, and vice versa.
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const open = hovered || focused || pinned;
+
+  // The panel hangs off the glyph, which on a phone can sit anywhere along a
+  // wrapped title — so once it is up, pull it back inside the viewport rather
+  // than letting it push the page sideways.
+  const [shift, setShift] = useState(0);
+
+  useEffect(() => {
+    if (!open) {
+      setShift(0);
+      return;
+    }
+    const rect = panel.current?.getBoundingClientRect();
+    if (!rect) return;
+    const gutter = 12;
+    const overflowRight = rect.right - (window.innerWidth - gutter);
+    const overflowLeft = gutter - rect.left;
+    setShift(overflowRight > 0 ? -overflowRight : overflowLeft > 0 ? overflowLeft : 0);
+  }, [open]);
+
+  useEffect(() => {
+    if (!pinned) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setPinned(false);
+      trigger.current?.blur();
+    };
+    const onPointerDown = (event: MouseEvent) => {
+      if (!wrapper.current?.contains(event.target as Node)) setPinned(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("mousedown", onPointerDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("mousedown", onPointerDown);
+    };
+  }, [pinned]);
+
+  return (
+    <span
+      ref={wrapper}
+      className={cn("relative inline-flex shrink-0 align-middle", className)}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <button
+        ref={trigger}
+        type="button"
+        aria-label={label}
+        aria-expanded={open}
+        aria-describedby={open ? id : undefined}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        onClick={() => setPinned((value) => !value)}
+        className={cn(
+          "inline-flex h-5 w-5 items-center justify-center rounded-full transition-colors",
+          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+          open ? "bg-info-soft text-info" : "text-muted hover:bg-info-soft hover:text-info",
+        )}
+      >
+        <Info className="h-[0.9375rem] w-[0.9375rem]" aria-hidden />
+      </button>
+
+      {open ? (
+        <span
+          ref={panel}
+          id={id}
+          role="tooltip"
+          style={shift ? { marginLeft: shift } : undefined}
+          /* Typography is reset explicitly: the trigger often sits inside a
+             heading or an uppercase, wide-tracked label, and the help text has
+             to read as prose wherever it is dropped. */
+          className={cn(
+            "absolute top-full z-50 mt-2 block w-[min(24rem,calc(100vw-2.5rem))]",
+            "rounded-[var(--radius-card)] border border-line-soft bg-elevated p-3.5",
+            "text-[13px] font-normal normal-case leading-relaxed tracking-normal text-content-soft",
+            "shadow-[var(--a-shadow-pop)]",
+            align === "left" && "left-0",
+            align === "right" && "right-0",
+            align === "center" && "left-1/2 -translate-x-1/2",
+          )}
+        >
+          {children}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 /* ------------------------------------------------------------------- Modal */
 
 export function Modal({
@@ -465,23 +619,28 @@ export function Modal({
           width,
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-line-soft px-5 py-4">
+        {/* The one branded surface inside the working area: a dialog is a
+            deliberate interruption, and the band is what makes it read as one
+            rather than as another card that happened to appear. */}
+        <div className="admin-band flex items-start justify-between gap-4 rounded-t-[var(--radius-card)] px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-content">{title}</h2>
-            {description ? <p className="mt-0.5 text-xs text-muted">{description}</p> : null}
+            <h2 className="text-base font-bold tracking-tight">{title}</h2>
+            {description ? <p className="mt-0.5 text-xs text-white/70">{description}</p> : null}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-md p-1 text-muted transition-colors hover:bg-surface-hover hover:text-content"
+            className="-mr-1 rounded-md p-1 text-white/80 transition-colors hover:bg-white/15 hover:text-white"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
         </div>
-        <div className="admin-scroll max-h-[65vh] overflow-y-auto px-5 py-4">{children}</div>
+        <div className="admin-scroll max-h-[65vh] overflow-y-auto px-5 py-5">{children}</div>
         {footer ? (
-          <div className="flex justify-end gap-2 border-t border-line-soft px-5 py-3">{footer}</div>
+          <div className="flex justify-end gap-2 rounded-b-[var(--radius-card)] border-t border-line-soft bg-canvas-subtle px-5 py-3.5">
+            {footer}
+          </div>
         ) : null}
       </div>
     </div>
@@ -676,7 +835,7 @@ export function Stars({ value }: { value: unknown }) {
   const rating = Number(value);
   if (!Number.isFinite(rating) || rating <= 0) return <span className="text-muted">—</span>;
   return (
-    <span className="whitespace-nowrap text-warn" aria-label={`${rating} out of 5`}>
+    <span className="whitespace-nowrap text-warn" role="img" aria-label={`${rating} out of 5`}>
       {"★".repeat(Math.round(rating))}
       <span className="text-line-strong">{"★".repeat(5 - Math.round(rating))}</span>
     </span>

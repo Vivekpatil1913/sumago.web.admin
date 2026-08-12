@@ -88,12 +88,10 @@ function VisualHero({
           {/* Dissolve into the page colour — no edge, no frame. */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#0a0708_0%,#0a0708_22%,rgba(10,7,8,0.55)_55%,rgba(10,7,8,0.25)_100%)] lg:bg-[linear-gradient(to_right,#0a0708_0%,#0a0708_18%,rgba(10,7,8,0.4)_65%,rgba(10,7,8,0.12)_100%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(to_top,#0a0708_0%,rgba(10,7,8,0.5)_35%,transparent_70%)]" />
-          {/* Brand tint so the photo belongs to the brand surface. */}
-          <div className="absolute inset-0 bg-brand/10 mix-blend-overlay" />
         </div>
       ) : null}
 
-      <HeroEffect variant="circuit" redOpacity={0.35} particles={false} />
+      <HeroEffect variant="circuit" particles={false} />
       <HeroStars formation="pulse" />
 
       <div className="container-page relative z-10 flex min-h-[100svh] flex-col justify-center py-24 pt-[clamp(6rem,12vh,9rem)]">
@@ -275,7 +273,10 @@ function WhoFor({
               className="group border-b border-line py-6 transition-colors hover:bg-paper sm:py-7"
             >
               <div className="flex items-baseline gap-5">
-                <span className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl">
+                <span
+              aria-hidden
+              className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl"
+            >
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className="min-w-0">
@@ -322,7 +323,10 @@ function Deliverables({ service }: { service: ServiceWithSlug }) {
             data-aos-delay={(i % 3) * 60}
             className="group flex items-baseline gap-6 border-b border-line py-7 first:border-t"
           >
-            <span className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl">
+            <span
+              aria-hidden
+              className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl"
+            >
               {String(i + 1).padStart(2, "0")}
             </span>
             <span className="text-lg font-medium leading-snug text-ink md:text-xl">
@@ -433,7 +437,7 @@ function Stack({ service }: { service: ServiceWithSlug }) {
       />
       <div data-aos="fade-up" className="mx-auto mt-12 max-w-4xl">
         {service.technologies?.length ? (
-          <p className="text-sm font-medium uppercase tracking-[0.1em] text-ink/40">
+          <p className="text-sm font-medium uppercase tracking-[0.1em] text-ink/65">
             {service.technologies.join("  ·  ")}
           </p>
         ) : null}

@@ -32,6 +32,11 @@ build/
 .DS_Store
 *.pem
 
+# Master photography. The originals (hundreds of MB of raw camera/WhatsApp
+# files) live here and are never served: `npm run build:images` derives the
+# optimised webp the site actually ships into public/images/.
+/assets-source/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -47,3 +52,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Output of scripts/responsive-audit.mjs --shots (local review artefacts).
+screenshots/

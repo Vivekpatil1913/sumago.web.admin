@@ -266,7 +266,11 @@ export function Field({ field, value, error, onChange, disabled }: FieldProps) {
       return <MultiSelectField field={field} value={value} error={error} onChange={onChange} disabled={readOnly} />;
 
     case "listOfText":
-      return <ListOfTextField field={field} value={value} error={error} onChange={onChange} disabled={readOnly} />;
+      return field.widget === "lines" ? (
+        <LinesField field={field} value={value} error={error} onChange={onChange} disabled={readOnly} />
+      ) : (
+        <ListOfTextField field={field} value={value} error={error} onChange={onChange} disabled={readOnly} />
+      );
 
     case "listOfObjects":
       return <ListOfObjectsField field={field} value={value} error={error} onChange={onChange} disabled={readOnly} />;
@@ -362,6 +366,66 @@ function MultiSelectField({ field, value, error, onChange, disabled }: FieldProp
           ))}
         </div>
       )}
+    </FieldShell>
+  );
+}
+
+/* ------------------------------------------------------ Lines (one box) */
+
+/**
+ * A `listOfText` written as one description box — one entry per line.
+ *
+ * The repeater below is right for short, fiddly lists you reorder. It is wrong
+ * for the body of a job advert, where the editor is writing prose and wants to
+ * type, not to press "Add item" eight times. The stored value is identical, so
+ * the public page still gets its array.
+ *
+ * The textarea owns its own text while it is being typed in: a blank line the
+ * editor has just opened with Enter, or a trailing space mid-word, would not
+ * survive a round trip through the filtered array and the caret would jump.
+ * Only a change from outside — the record loading, or a save replacing it —
+ * overwrites what is on screen.
+ */
+function LinesField({ field, value, error, onChange, disabled }: FieldProps) {
+  const items = Array.isArray(value) ? value.map(String) : [];
+  const external = items.join("\n");
+
+  const [text, setText] = useState(external);
+  const [pushed, setPushed] = useState(external);
+  if (external !== pushed) {
+    setPushed(external);
+    setText(external);
+  }
+
+  function handle(next: string) {
+    const lines = next
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    setText(next);
+    setPushed(lines.join("\n"));
+    onChange(lines);
+  }
+
+  return (
+    <FieldShell
+      field={field}
+      error={error}
+      counter={
+        <span className="text-xs text-muted">
+          {items.length} point{items.length === 1 ? "" : "s"}
+        </span>
+      }
+    >
+      <Textarea
+        id={field.name}
+        value={text}
+        invalid={Boolean(error)}
+        disabled={disabled}
+        required={field.required}
+        rows={7}
+        onChange={(event) => handle(event.target.value)}
+      />
     </FieldShell>
   );
 }

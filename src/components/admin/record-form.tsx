@@ -192,7 +192,10 @@ export function RecordForm({ module, recordId, onSaved, returnHref }: RecordForm
           void save();
         }}
         noValidate
-        className="mx-auto max-w-3xl space-y-5 pb-24"
+        // No bottom padding: the save bar below is sticky, not fixed, so it
+        // takes its own space in the flow. The padding it used to reserve only
+        // ever showed as blank canvas under the buttons.
+        className="mx-auto max-w-3xl space-y-5"
       >
         {formError ? <Notice tone="danger" title="This could not be saved">{formError}</Notice> : null}
 
@@ -200,6 +203,26 @@ export function RecordForm({ module, recordId, onSaved, returnHref }: RecordForm
           <Notice tone="info">
             Your role has read-only access to {module.label}. Changes cannot be saved.
           </Notice>
+        ) : null}
+
+        {/* System-set values, above the form and open: they are the record's
+            provenance — who last touched it, when it went live, what state it
+            is in — and that is context you want before you start editing, not
+            a footnote you have to go and unfold afterwards. */}
+        {resolvedId && readOnlyFields.length > 0 ? (
+          <details open className="admin-card">
+            <summary className="cursor-pointer px-5 py-3.5 text-sm font-semibold text-content">
+              Record details
+            </summary>
+            <dl className="grid gap-x-6 gap-y-2 border-t border-line-soft px-5 py-4 text-sm sm:grid-cols-2">
+              {readOnlyFields.map((field) => (
+                <div key={field.name}>
+                  <dt className="text-xs uppercase tracking-wide text-muted">{field.label}</dt>
+                  <dd className="text-content-soft">{displayValue(values[field.name])}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
         ) : null}
 
         <div className="space-y-5 admin-card p-5">
@@ -251,26 +274,9 @@ export function RecordForm({ module, recordId, onSaved, returnHref }: RecordForm
           </div>
         ) : null}
 
-        {/* Read-only, system-set values shown for reference */}
-        {resolvedId && readOnlyFields.length > 0 ? (
-          <details className="admin-card">
-            <summary className="cursor-pointer px-5 py-3.5 text-sm font-semibold text-content">
-              Record details
-            </summary>
-            <dl className="grid gap-x-6 gap-y-2 border-t border-line-soft px-5 py-4 text-sm sm:grid-cols-2">
-              {readOnlyFields.map((field) => (
-                <div key={field.name}>
-                  <dt className="text-xs uppercase tracking-wide text-muted">{field.label}</dt>
-                  <dd className="text-content-soft">{displayValue(values[field.name])}</dd>
-                </div>
-              ))}
-            </dl>
-          </details>
-        ) : null}
-
         {/* --------------------------------------------- Save bar */}
         {module.canWrite ? (
-          <div className="sticky bottom-0 z-30 -mx-4 mt-6 border-t border-line-soft sm:-mx-6 lg:-mx-8 bg-[color-mix(in_srgb,var(--a-surface)_92%,transparent)] px-4 py-3 backdrop-blur-md">
+          <div className="sticky bottom-0 z-30 -mx-4 mt-4 border-t border-line-soft sm:-mx-6 lg:-mx-8 bg-[color-mix(in_srgb,var(--a-surface)_92%,transparent)] px-4 py-3 backdrop-blur-md">
             <div className="mx-auto flex max-w-3xl items-center justify-end gap-2">
               {dirty ? (
                 <span className="mr-auto text-xs text-warn">Unsaved changes</span>

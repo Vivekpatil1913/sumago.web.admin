@@ -1,22 +1,25 @@
 import Image from "next/image";
 import {
+  ArrowUpRight,
   Award,
   BadgeCheck,
   Building2,
-  Landmark,
-  Rocket,
-  Sparkles,
-  ShieldCheck,
+  Newspaper,
   Trophy,
-  type LucideIcon,
 } from "lucide-react";
 
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Stat } from "@/components/molecules/stat";
-import { awards, trustedBy } from "@/lib/content";
-import { getMetrics } from "@/lib/cms";
-import { metricValue } from "@/lib/cms/format";
+import {
+  getAwardCertifications,
+  getClientsBySegment,
+  getMediaMentions,
+  getMetrics,
+  getRecognitions,
+} from "@/lib/cms";
+import { CmsIcon } from "@/lib/icon-registry";
+import { formatDate, metricValue } from "@/lib/cms/format";
 import type { Metric } from "@/lib/cms/types";
 import { cn } from "@/lib/utils";
 
@@ -44,23 +47,6 @@ import { cn } from "@/lib/utils";
  * lift and take a light sweep on hover *and* keyboard focus. All of it is
  * `motion-safe` and collapses under the global reduced-motion rules.
  */
-
-const ICONS: Record<string, LucideIcon> = {
-  ShieldCheck,
-  BadgeCheck,
-  Trophy,
-  Sparkles,
-  Award,
-  Landmark,
-  Building2,
-  Rocket,
-};
-
-const certifications = awards.filter((a) => a.kind === "certification");
-/** Chronological rail: dated recognitions first, any undated one last. */
-const recognitions = awards
-  .filter((a) => a.kind === "award")
-  .sort((a, b) => (Number(a.year) || Infinity) - (Number(b.year) || Infinity));
 
 /* ── Counters ──────────────────────────────────────────────────────────────
    Read off General Settings rather than re-typed, so these can never drift
@@ -134,7 +120,20 @@ function SealWatermark() {
 }
 
 export async function Recognition() {
-  const counters = buildCounters(await getMetrics());
+  /*
+   * Five reads, issued together. `cache()` on each accessor dedupes them
+   * against the rest of the render, and `getAwardCertifications` /
+   * `getRecognitions` are two views of one cached Awards fetch rather than two
+   * requests — so this band costs three round trips, not five.
+   */
+  const [metrics, certifications, recognitions, segments, mentions] = await Promise.all([
+    getMetrics(),
+    getAwardCertifications(),
+    getRecognitions(),
+    getClientsBySegment(),
+    getMediaMentions(),
+  ]);
+  const counters = buildCounters(metrics);
 
   return (
     /* Tighter than the site's default `py-16 md:py-22`: this section carries
@@ -142,14 +141,8 @@ export async function Recognition() {
        block rhythm left the opening reading as a gap rather than a frame. */
     <Section
       id="recognition"
-      className="relative isolate overflow-hidden bg-drafting py-12 md:py-16"
+      className="relative isolate overflow-hidden bg-drafting-neutral py-12 md:py-16"
     >
-      {/* Ambient brand bloom — one soft light source, top-centre. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-80 w-[52rem] -translate-x-1/2 rounded-full bg-brand/[0.07] blur-3xl"
-      />
-
       <div className="relative z-10">
         <SectionHeading
           eyebrow="Our credibility"
@@ -192,7 +185,6 @@ export async function Recognition() {
 
           <div className="mt-7 grid gap-6 lg:grid-cols-2">
             {certifications.map((cert, i) => {
-              const Icon = ICONS[cert.icon] ?? Award;
               return (
                 <article
                   key={cert.title}
@@ -221,7 +213,7 @@ export async function Recognition() {
                         className="absolute inset-[0.45rem] rounded-full bg-brand/[0.07]"
                       />
                       <span className="relative grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-brand to-brand-strong text-white shadow-[0_10px_24px_-8px_rgba(215,52,56,0.9)] transition-transform duration-300 motion-safe:group-hover:scale-105">
-                        <Icon size={26} strokeWidth={2} aria-hidden />
+                        <CmsIcon name={cert.icon} fallback={Award} size={26} strokeWidth={2} aria-hidden />
                       </span>
                     </span>
                   </div>
@@ -231,24 +223,32 @@ export async function Recognition() {
                   <h3 className="relative mt-6 font-display text-2xl font-bold uppercase leading-tight tracking-[0.02em] text-ink sm:text-[1.75rem]">
                     {cert.title}
                   </h3>
-                  <p className="relative mt-1.5 text-base font-semibold text-ink/80">
-                    {cert.tagline}
-                  </p>
+                  {cert.tagline ? (
+                    <p className="relative mt-1.5 text-base font-semibold text-ink/80">
+                      {cert.tagline}
+                    </p>
+                  ) : null}
                   <p className="relative mt-2.5 max-w-md text-sm leading-relaxed text-ink/65">
                     {cert.detail}
                   </p>
 
-                  <span className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-success">
-                    <BadgeCheck size={13} aria-hidden />
-                    {cert.org} · verified standard
-                  </span>
+                  {cert.org ? (
+                    <span className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-success">
+                      <BadgeCheck size={13} aria-hidden />
+                      {cert.org} · verified standard
+                    </span>
+                  ) : null}
 
                   {/* The procurement read: what it covers, where it stands. */}
                   <dl className="relative mt-5 grid w-full gap-px overflow-hidden rounded-xl border border-line bg-line text-left sm:grid-cols-2">
+                    {/* A row with nothing to say is dropped, not printed as a
+                        label over an empty cell. */}
                     {[
                       { term: "Scope", value: cert.scope },
                       { term: "Standing", value: cert.standing },
-                    ].map((row) => (
+                    ]
+                      .filter((row) => Boolean(row.value))
+                      .map((row) => (
                       <div key={row.term} className="bg-mist/70 px-4 py-3.5">
                         {/* Micro-labels stay at ≥60% ink: below that, 11px
                             uppercase drops under 4.5:1 on this ground. */}
@@ -283,7 +283,6 @@ export async function Recognition() {
             />
 
             {recognitions.map((item, i) => {
-              const Icon = ICONS[item.icon] ?? Trophy;
               const dated = Number.isFinite(Number(item.year));
               return (
                 <li
@@ -320,11 +319,13 @@ export async function Recognition() {
                     <LightSweep />
                     <div className="relative flex items-center justify-between gap-3">
                       <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand/10 text-brand transition-colors duration-300 group-hover:bg-brand group-hover:text-white">
-                        <Icon size={19} strokeWidth={2} aria-hidden />
+                        <CmsIcon name={item.icon} fallback={Trophy} size={19} strokeWidth={2} aria-hidden />
                       </span>
-                      <span className="text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/60">
-                        {item.org}
-                      </span>
+                      {item.org ? (
+                        <span className="text-right text-[11px] font-semibold uppercase tracking-[0.12em] text-ink/60">
+                          {item.org}
+                        </span>
+                      ) : null}
                     </div>
                     <h3 className="relative mt-5 font-display text-base font-bold leading-snug text-ink">
                       {item.title}
@@ -354,20 +355,19 @@ export async function Recognition() {
           <BlockLabel>Trusted by</BlockLabel>
 
           <div className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-line bg-line lg:grid-cols-3">
-            {trustedBy.map((group, i) => {
-              const Icon = ICONS[group.icon] ?? Building2;
+            {segments.map((group, i) => {
               return (
                 <div
-                  key={group.segment}
+                  key={group.key}
                   data-aos="fade-up"
                   data-aos-delay={i * 80}
                   className="bg-paper/80 p-6 backdrop-blur-sm sm:p-7"
                 >
                   <p className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-[0.16em] text-ink/60">
                     <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand/10 text-brand">
-                      <Icon size={14} strokeWidth={2} aria-hidden />
+                      <CmsIcon name={group.icon} fallback={Building2} size={14} strokeWidth={2} aria-hidden />
                     </span>
-                    {group.segment}
+                    {group.label}
                   </p>
                   <ul className="mt-4 flex flex-wrap gap-2">
                     {group.clients.map((client) => (
@@ -399,6 +399,78 @@ export async function Recognition() {
             })}
           </div>
         </div>
+
+        {/* ── 5 · In the press ─────────────────────────────────────────────
+            Media Mentions had a module, a table and a public endpoint, and
+            nothing on the site had ever rendered it. It appears only when
+            something is published: an empty press list is the honest answer
+            for a company that has not been written about yet, and a heading
+            over nothing reads as a section that failed to load.
+
+            An outlet with no URL still prints — the mention is the proof, the
+            link is a convenience — but it prints as text, never as a dead
+            anchor. */}
+        {mentions.length > 0 ? (
+          <div className="mt-12">
+            <BlockLabel>In the press</BlockLabel>
+
+            <ul className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+              {mentions.map((mention, i) => {
+                const body = (
+                  <>
+                    <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-brand-ink">
+                      <Newspaper size={13} strokeWidth={2} aria-hidden />
+                      {mention.outlet}
+                    </p>
+                    {mention.title ? (
+                      <p className="mt-3 font-display text-base font-bold leading-snug text-ink">
+                        {mention.title}
+                      </p>
+                    ) : null}
+                    {mention.date ? (
+                      <time
+                        dateTime={mention.date}
+                        className="mt-2 block text-xs font-medium text-ink/65"
+                      >
+                        {formatDate(mention.date)}
+                      </time>
+                    ) : null}
+                  </>
+                );
+
+                return (
+                  <li
+                    key={mention.id}
+                    data-aos="fade-up"
+                    data-aos-delay={(i % 3) * 80}
+                    className="bg-paper/80 backdrop-blur-sm"
+                  >
+                    {mention.url ? (
+                      <a
+                        href={mention.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex h-full flex-col p-6 transition-colors hover:bg-mist/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand sm:p-7"
+                      >
+                        {body}
+                        <span className="mt-auto inline-flex items-center gap-1 pt-4 text-sm font-semibold text-brand-ink">
+                          Read the piece
+                          <ArrowUpRight
+                            size={15}
+                            className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                            aria-hidden
+                          />
+                        </span>
+                      </a>
+                    ) : (
+                      <div className="flex h-full flex-col p-6 sm:p-7">{body}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ) : null}
 
       </div>
     </Section>

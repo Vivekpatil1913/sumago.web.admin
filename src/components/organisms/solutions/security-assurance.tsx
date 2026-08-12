@@ -216,7 +216,7 @@ export function SecurityAssurance() {
                       <h3 className="mt-2 text-balance font-display text-sm font-bold leading-tight text-ink sm:text-lg">
                         {pillar.stage}
                       </h3>
-                      <p className="mx-auto mt-1.5 hidden max-w-[15rem] text-sm leading-snug text-ink/55 sm:block">
+                      <p className="mx-auto mt-1.5 hidden max-w-[15rem] text-sm leading-snug text-ink/65 sm:block">
                         {pillar.when}
                       </p>
                     </motion.div>
@@ -253,7 +253,7 @@ export function SecurityAssurance() {
                       read as a broken six-step sequence rather than as two
                       cards sharing one stage. The stage name repeats happily —
                       it is a category label, which is what this is. */}
-                    <span className="mt-1.5 text-right text-[0.625rem] font-bold uppercase leading-tight tracking-[0.16em] text-ink/40">
+                    <span className="mt-1.5 text-right text-[0.625rem] font-bold uppercase leading-tight tracking-[0.16em] text-ink/65">
                       {stage}
                     </span>
                   </div>

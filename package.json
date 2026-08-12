@@ -6,6 +6,7 @@
     "dev": "concurrently --names \"api,web\" --prefix-colors \"magenta,cyan\" --kill-others-on-fail \"npm:dev:api\" \"npm:dev:web\"",
     "dev:web": "next dev -p 3100",
     "dev:api": "npm --prefix ../sumago-website-backend run dev",
+    "build:images": "node scripts/build-image-assets.mjs",
     "build": "next build",
     "build:all": "npm --prefix ../sumago-website-backend run build && next build",
     "start": "concurrently --names \"api,web\" --prefix-colors \"magenta,cyan\" \"npm:start:api\" \"npm:start:web\"",
@@ -35,6 +36,8 @@
     "three": "^0.185.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/aos": "^3.0.8",
     "@types/node": "^20",

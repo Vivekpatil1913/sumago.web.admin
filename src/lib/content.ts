@@ -798,173 +798,121 @@ export const capabilityMeta: Record<string, { icon: string; blurb: string }> = O
   services.map((s) => [s.slug, { icon: s.icon, blurb: s.blurb }]),
 );
 
-/** Sample testimonials — [DUMMY], replace with real attributed quotes + consent. */
+/**
+ * Client testimonials — real, attributed, and consented.
+ *
+ * These replace the twenty invented quotes this file used to carry (names like
+ * "Rajesh Menon" and "Sarah Whitman", flagged `[DUMMY]`). Every entry below was
+ * submitted by the client themselves through Sumago's feedback form in August
+ * 2026, and every one answered "Yes, I give permission" to the question asking
+ * whether the testimonial may be used on the website and in marketing material.
+ *
+ * ## The name is deliberately not rendered
+ *
+ * `name` is kept because consent is personal — the record has to say who gave
+ * it — but no surface on the site prints it. The attribution a visitor sees is
+ * the **company and the designation** ("CEO · Shreerag Engineering & Auto Pvt
+ * Ltd"), which is the part that carries the trust anyway. If that changes, it
+ * changes in one place: `TestimonialCard` in `organisms/home/more-sections.tsx`.
+ * The About page's trust wall never showed a name to begin with.
+ *
+ * ## What was edited, and what was not
+ *
+ * The quotes are verbatim. The only changes made: a trailing hand-typed
+ * signature block was removed from one (it repeated the sender's own name,
+ * which this site does not publish), and the ordering is editorial — the first
+ * three carry `featured` and are what the home page shows.
+ *
+ * Ratings are the client's own 1–5 answer, not an average or an interpretation.
+ */
 export const testimonials: {
   quote: string;
+  /** Who consented. Stored for the record; never rendered on the site. */
   name: string;
+  /** The designation alone — the company is its own field. */
   role: string;
+  company: string;
   rating: number;
   accent: string;
 }[] = [
   {
     quote:
-      "Sumago took the time to understand our business before writing a single line of code. That upfront clarity shaped every decision that followed — and it showed in the final product.",
-    name: "Rajesh Menon",
-    role: "CTO, Enterprise client",
+      "I wanted to share some feedback on the custom ERP system you developed. It has been an exceptional addition to our operations, significantly simplifying our daily workflows. Furthermore, the platform successfully establishes clear accountability across the board, providing robust transparency for individual staff members as well as comprehensive oversight for me as the owner. Thank you for your hard work and dedication to this project.",
+    name: "Shreerag V Pillai",
+    role: "CEO",
+    company: "Shreerag Engineering & Auto Pvt Ltd",
     rating: 5,
     accent: "#5B8DEF",
   },
   {
     quote:
-      "What stood out was the transparency. They stayed with us long after go-live, refining and supporting the platform exactly the way a real transformation partner should.",
-    name: "Anita Deshpande",
-    role: "Operations Head, Manufacturing",
+      "Good Team. Down to earth. Very good experience with them all during our project execution. Sumago is having a wonderful team. The Director Mr. Sudhir sir is very cooperative, most experienced and humble person.",
+    name: "Kiran Kulkarni",
+    role: "AGM — IT",
+    company: "ALF Engineering Pvt Ltd",
     rating: 5,
-    accent: "#E8833A",
+    accent: "#22A06B",
   },
   {
     quote:
-      "They turned a complex, largely manual operation into a clean, scalable platform in a matter of months — without ever losing sight of how our team actually works day to day.",
-    name: "Michael Carter",
-    role: "Founder, Logistics startup",
+      "We had a great experience working with Sumago Infotech Pvt. Ltd. Their team demonstrated excellent technical expertise, professionalism, and timely delivery throughout the project. Communication was clear, requirements were well understood, and the mobile application met our expectations in terms of quality and performance. We appreciate their dedication and support, and we look forward to working with them again.",
+    name: "Deepak Kumar",
+    role: "Production and Quality Incharge",
+    company: "Autocop India Pvt. Ltd.",
     rating: 5,
-    accent: "#2BB3A3",
+    accent: "#E2725B",
   },
   {
     quote:
-      "The discovery phase alone reshaped how we thought about the product. The engineering that followed was just as sharp — well-architected, thoroughly tested, and delivered on time.",
-    name: "Priya Nair",
-    role: "VP Engineering, Fintech",
+      "We are extremely satisfied with the website developed by Sumago Infotech for our organization, www.snfindia.org. The team delivered the project on time with excellent quality and a professional design that truly reflects our work.\n\nWhat impressed us the most is their outstanding after-sales service. Whenever we need any updates, modifications, or technical support, the Sumago team responds promptly and is always ready to help. Their commitment to customer satisfaction is truly commendable.\n\nWe highly recommend Sumago Infotech to anyone looking for a reliable and professional web development company.",
+    name: "Pramod Gopalrao Gaikwad",
+    role: "Founder",
+    company: "Social Networking Forum",
     rating: 5,
-    accent: "#7C5CE6",
+    accent: "#7C5CFF",
   },
   {
     quote:
-      "Reliable, communicative, and genuinely invested in our outcomes rather than just shipping features. It felt far less like hiring a vendor and more like adding to our own team.",
-    name: "Sarah Whitman",
-    role: "Product Director, Healthcare",
+      "Sumago Infotech delivered a professional, user-friendly website that perfectly met our requirements. Their team was responsive, cooperative, and committed to providing excellent support throughout the development process. We are pleased with their service and highly recommend them.",
+    name: "Gopal Wadnere",
+    role: "Principal",
+    company: "NIT's Late Annasaheb Patil Polytechnic, Nashik",
     rating: 5,
-    accent: "#E85A8A",
+    accent: "#0E7C86",
   },
   {
     quote:
-      "We scaled from a small pilot to a national rollout without ever re-platforming. The architecture they built simply held up as our traffic, features, and team all grew.",
-    name: "Vikram Shah",
-    role: "CIO, Retail chain",
+      "Having witnessed the growth journey of Sumago Infotech from its inception, I can confidently state that the team is highly enthusiastic, prompt in communication, and efficient in everything they do.\n\nThe founder, Sudhir, has been a dear friend since before he started the company. He is a remarkably calm, composed, innovative, and focused individual, and it is clear he has successfully instilled this exact culture across his entire organization.\n\nI highly recommend Sumago Infotech and wish Sudhir and the team continued success.",
+    name: "Swapnil Mashalkar",
+    role: "Founder & CEO",
+    company: "Byte Elephants Technologies Pvt Ltd",
+    rating: 5,
+    accent: "#B45309",
+  },
+  {
+    quote:
+      "Good resources provided by the team. The organization's resources are polite, professional, and good to work with.",
+    name: "Rahul Varpe",
+    role: "Manager",
+    company: "Mahindra & Mahindra",
     rating: 4,
-    accent: "#3AA0E8",
+    accent: "#334155",
   },
   {
-    quote:
-      "Their team felt like a natural extension of ours. Deadlines were met, surprises were rare, and the quality bar stayed high from the very first sprint to the final handover.",
-    name: "Neha Kulkarni",
-    role: "Head of Digital, Education",
+    quote: "Great working with Sumago Infotech.",
+    name: "Sudarshan Shetty",
+    role: "Founder",
+    company: "GADILO Bharat",
     rating: 5,
-    accent: "#E8A33A",
+    accent: "#C2410C",
   },
   {
-    quote:
-      "Our field staff adopted the new system in a week. That only happened because the workflows were designed around how they already work, not around a database diagram.",
-    name: "Suresh Patankar",
-    role: "GM Operations, Infrastructure",
+    quote: "Nice work with the Sumago team.",
+    name: "Arti Patil",
+    role: "Partner",
+    company: "Avigo Hub LLP",
     rating: 5,
-    accent: "#4F9D69",
-  },
-  {
-    quote:
-      "The audit trail and access controls cleared our compliance review on the first pass — something none of our previous vendors managed.",
-    name: "Farida Qureshi",
-    role: "Compliance Lead, Financial services",
-    rating: 5,
-    accent: "#6C7BE8",
-  },
-  {
-    quote:
-      "They pushed back on a feature we asked for, showed us the data, and proposed something simpler. It shipped faster and got used more.",
-    name: "Daniel Ortega",
-    role: "Founder, SaaS platform",
-    rating: 5,
-    accent: "#E86A4F",
-  },
-  {
-    quote:
-      "Migrating fifteen years of records was the part we dreaded most. It happened over a weekend, with reconciliation reports waiting for us on Monday morning.",
-    name: "Meenakshi Raman",
-    role: "Director, Public sector programme",
-    rating: 5,
-    accent: "#3AA0E8",
-  },
-  {
-    quote:
-      "Every sprint ended with something we could actually click through. No status decks, no guessing where the project stood.",
-    name: "Arjun Sethi",
-    role: "Head of Product, Mobility",
-    rating: 5,
-    accent: "#7C5CE6",
-  },
-  {
-    quote:
-      "Support response times have never been the problem people warned us about with offshore partners. Issues get acknowledged quickly and closed properly.",
-    name: "Claire Bennett",
-    role: "IT Manager, Distribution",
-    rating: 4,
-    accent: "#2BB3A3",
-  },
-  {
-    quote:
-      "The mobile experience was rethought entirely rather than squeezed down from the desktop build, and our field usage numbers reflect that.",
-    name: "Rohit Bhandari",
-    role: "COO, Field services",
-    rating: 5,
-    accent: "#E85A8A",
-  },
-  {
-    quote:
-      "They documented everything — architecture, decisions, runbooks. When we brought part of the work in-house, our own engineers were productive immediately.",
-    name: "Kavita Iyer",
-    role: "Engineering Manager, Enterprise SaaS",
-    rating: 5,
-    accent: "#5B8DEF",
-  },
-  {
-    quote:
-      "Peak-season traffic used to mean a war room. This year it meant watching a dashboard stay green.",
-    name: "Amit Chourasia",
-    role: "CTO, E-commerce",
-    rating: 5,
-    accent: "#E8833A",
-  },
-  {
-    quote:
-      "The integration work touched four legacy systems nobody wanted to open. It was handled carefully, tested hard, and rolled out without downtime.",
-    name: "Laura Vasquez",
-    role: "Programme Director, Manufacturing",
-    rating: 5,
-    accent: "#4F9D69",
-  },
-  {
-    quote:
-      "Costs stayed where the estimate said they would. When scope did move, we heard about it before the work started, not after.",
-    name: "Sandeep Jadhav",
-    role: "Managing Director, Industrial group",
-    rating: 5,
-    accent: "#6C7BE8",
-  },
-  {
-    quote:
-      "Our reporting used to take three days a month to assemble by hand. It now arrives automatically, and the finance team trusts the numbers.",
-    name: "Preeti Malhotra",
-    role: "Finance Controller, Healthcare group",
-    rating: 5,
-    accent: "#3AA0E8",
-  },
-  {
-    quote:
-      "Accessibility was treated as a requirement from day one rather than a retrofit, which mattered enormously for a public-facing service.",
-    name: "Thomas Reid",
-    role: "Digital Lead, Non-profit",
-    rating: 5,
-    accent: "#2BB3A3",
+    accent: "#4F46E5",
   },
 ];
 
@@ -1115,49 +1063,73 @@ export const deliveryCentres: {
 ];
 
 /**
- * What every centre is provisioned with. Grouped so the grid reads as three
- * arguments — can they build, will it stay up, is it secure — rather than
- * twelve unranked amenities.
+ * What every centre is provisioned with, as three infrastructure pillars —
+ * can they build, will it stay up, is it secure — rather than twelve unranked
+ * amenities.
+ *
+ * Two fields exist purely so the band can render itself without a `switch` in
+ * the component: `motif` names the contextual micro-animation an item gets
+ * (see `infrastructure/motifs.tsx`), and `status` is the optional readout pip.
+ * Both are presentation keys, not facts — an item with no `motif` match simply
+ * renders without art, and the capability still reads.
  *
  * [VERIFY] The inventory is unconfirmed against COMPANY-PROFILE.md.
  */
 export const facilityGroups: {
   key: string;
+  /** Pillar number, rendered as the editorial index. */
+  index: string;
+  /** One-word system name — the pillar's spine label. */
+  code: string;
   label: string;
   note: string;
-  items: { name: string; icon: string }[];
+  /** Long-form line under the pillar's visual panel. */
+  detail: string;
+  items: { name: string; icon: string; motif: string; status?: string }[];
 }[] = [
   {
     key: "engineering",
-    label: "Built to engineer",
+    index: "01",
+    code: "Engineer",
+    label: "Development infrastructure",
     note: "The floor itself — where the work gets done.",
+    detail:
+      "Dedicated build environments, provisioned hardware and rooms designed for the kind of collaboration that engineering actually needs.",
     items: [
-      { name: "Development labs", icon: "Cpu" },
-      { name: "Workstations & laptops", icon: "Monitor" },
-      { name: "Conference rooms", icon: "Users" },
-      { name: "Seminar hall", icon: "Mic" },
+      { name: "Development labs", icon: "Cpu", motif: "devlabs", status: "Build OK" },
+      { name: "Workstations & laptops", icon: "Monitor", motif: "workstations" },
+      { name: "Conference rooms", icon: "Users", motif: "conference" },
+      { name: "Seminar hall", icon: "Mic", motif: "seminar" },
     ],
   },
   {
     key: "continuity",
-    label: "Built to stay up",
+    index: "02",
+    code: "Connect",
+    label: "Always-on infrastructure",
     note: "Why a deadline survives a power cut.",
+    detail:
+      "Connectivity, coverage and backup power provisioned so that an outage is an inconvenience for us and invisible to you.",
     items: [
-      { name: "High-speed internet", icon: "Wifi" },
-      { name: "Full Wi-Fi coverage", icon: "Radio" },
-      { name: "Power backup", icon: "BatteryCharging" },
-      { name: "ERP systems", icon: "LayoutGrid" },
+      { name: "High-speed internet", icon: "Wifi", motif: "internet", status: "Live" },
+      { name: "Full Wi-Fi coverage", icon: "Radio", motif: "coverage" },
+      { name: "Power backup", icon: "BatteryCharging", motif: "power", status: "Standby" },
+      { name: "ERP systems", icon: "LayoutGrid", motif: "erp" },
     ],
   },
   {
     key: "security",
-    label: "Built to be secure",
+    index: "03",
+    code: "Protect",
+    label: "Security infrastructure",
     note: "Physical controls behind the data commitments.",
+    detail:
+      "Layered physical access control around the machines that hold client data — the half of security that a certificate alone never covers.",
     items: [
-      { name: "Biometric access", icon: "Fingerprint" },
-      { name: "CCTV surveillance", icon: "Video" },
-      { name: "Staffed reception", icon: "DoorOpen" },
-      { name: "On-site medical kit", icon: "HeartPulse" },
+      { name: "Biometric access", icon: "Fingerprint", motif: "biometric", status: "Verified" },
+      { name: "CCTV surveillance", icon: "Video", motif: "cctv", status: "Live" },
+      { name: "Staffed reception", icon: "DoorOpen", motif: "reception", status: "Active" },
+      { name: "On-site medical kit", icon: "HeartPulse", motif: "medkit" },
     ],
   },
 ];

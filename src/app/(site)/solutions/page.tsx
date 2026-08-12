@@ -8,21 +8,38 @@ import { ArchitectureBlueprint } from "@/components/organisms/solutions/architec
 import { SecurityAssurance } from "@/components/organisms/solutions/security-assurance";
 import { DeliveryModels } from "@/components/organisms/solutions/delivery-models";
 import { ProcessSection } from "@/components/organisms/home/process-trust";
+import { getProcessSteps, withSeoOverrides } from "@/lib/cms";
 
-export const metadata: Metadata = {
-  title: "What We Solve",
-  description:
-    "The full range of services across the technology lifecycle — from consulting and strategy to design, engineering, and long-term support.",
-};
+/**
+ * Metadata for /solutions, with the panel's SEO record layered on top.
+ *
+ * The base below is what the page ships with; anything published for this
+ * path in SEO Metadata overrides it field by field. No record means the
+ * base stands unchanged — never an empty title.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return withSeoOverrides("/solutions", {
+    title: "What We Solve",
+    description:
+      "The full range of services across the technology lifecycle — from consulting and strategy to design, engineering, and long-term support.",
+  });
+}
 
-export default function SolutionsPage() {
+export default async function SolutionsPage() {
+  const processSteps = await getProcessSteps();
+
   return (
     <>
       <PageHero
         variant="blueprint"
         formation="torus"
         eyebrow="All Services"
-        title={<>The problems <span className="text-metal-red">Sumago solves</span> for you.</>}
+        title={
+          <>
+            The problems{" "}
+            <span className="text-metal-red-shine">Sumago solves</span> for you.
+          </>
+        }
         description="From first consult to long-term support, Sumago's services span the full technology lifecycle — so nothing slips through the cracks between vendors."
       />
       <ServicesSection />
@@ -38,7 +55,7 @@ export default function SolutionsPage() {
           blueprint used to list in a rail beside the stack. */}
       <SecurityAssurance />
       <WhyPartner />
-      <ProcessSection />
+      <ProcessSection steps={processSteps} />
       {/* Methodology qualifies the journey above rather than repeating it: that
           section gives the six-step path, this gives the cadence it runs in.
           Deepest reader, most operational detail — and the answer to the

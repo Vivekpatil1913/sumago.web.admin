@@ -137,7 +137,7 @@ export function IntakeForm() {
           a time that suits you — no queue, no script, and nothing to prepare. Bring the
           problem; the conversation will take care of itself.
         </p>
-        <p className="mt-4 text-xs leading-relaxed text-ink/45">
+        <p className="mt-4 text-xs leading-relaxed text-ink/65">
           Prefer email? Reach the team directly at{" "}
           <a
             href="mailto:info@sumagoinfotech.com"
@@ -293,7 +293,7 @@ export function IntakeForm() {
                   />
                 ))}
               </div>
-              <p className="mt-4 text-xs text-ink/50">
+              <p className="mt-4 text-xs text-ink/65">
                 Not sure yet? Pick the closest — we&apos;ll figure out the rest together.
               </p>
             </fieldset>

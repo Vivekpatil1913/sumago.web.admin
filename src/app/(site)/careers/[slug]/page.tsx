@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, Check, MapPin, Briefcase, Clock } from "lucide-r
 import { Section } from "@/components/atoms/section";
 import { Reveal } from "@/components/motion/reveal";
 import { ApplyPanel } from "@/components/organisms/apply-panel";
-import { getJob, getJobs, getOffices, getSettings } from "@/lib/cms";
+import { canonicalFor, getJob, getJobs, getOffices, getSettings } from "@/lib/cms";
 import { breadcrumbSchema, jobPostingSchema } from "@/lib/cms/schema-org";
 import { JsonLd } from "@/components/atoms/json-ld";
 
@@ -28,6 +28,9 @@ export async function generateMetadata({
   return {
     title: position ? `${position.title} — Careers` : "Careers",
     description: position?.summary,
+    // Derived from the route: Jobs carry no SEO group, and a role reached with
+    // a tracking parameter should not index as a second vacancy.
+    alternates: canonicalFor(`/careers/${slug}`),
   };
 }
 
@@ -50,7 +53,6 @@ export default async function JobDetailPage({
     overview,
     responsibilities,
     requirements,
-    tags,
   } = position;
 
   const facts = [
@@ -82,8 +84,8 @@ export default async function JobDetailPage({
       {/* Hero — compact dark band (matches the site's article/hero language). */}
       <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(60%_70%_at_50%_0%,rgba(215,52,56,0.18),transparent_70%)]" />
-          <div className="fx-red-aurora absolute inset-0" />
+          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_35%,rgba(255,255,255,0.05),transparent_70%)]" />
+          <div className="fx-hero-aurora absolute inset-0" />
           <div className="fx-dots absolute inset-0" />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0a0708] to-transparent" />
         </div>
@@ -98,9 +100,9 @@ export default async function JobDetailPage({
           <div className="mt-8 max-w-3xl">
             <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-brand-bright">
               <span>{department}</span>
-              <span className="text-white/30">·</span>
+              <span className="text-white/70">·</span>
               <span className="text-white/50">{location}</span>
-              <span className="text-white/30">·</span>
+              <span className="text-white/70">·</span>
               <span className="text-white/50">{type}</span>
             </div>
             <h1 className="mt-3 text-4xl font-bold leading-tight tracking-[-0.02em] md:text-5xl">
@@ -166,22 +168,6 @@ export default async function JobDetailPage({
               </p>
               <div className="mt-5">
                 <ApplyPanel jobTitle={title} jobSlug={slug} />
-              </div>
-
-              <div className="my-6 h-px bg-line" />
-
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-ink/60">
-                Key skills
-              </h3>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {tags.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded-md border border-line bg-paper px-3 py-1.5 text-sm text-ink/75"
-                  >
-                    {t}
-                  </span>
-                ))}
               </div>
             </div>
           </aside>

@@ -87,6 +87,8 @@ export interface FieldDef {
   aspect?: string;
   readOnly?: boolean;
   hidden?: boolean;
+  /** Alternative control: `lines` renders a listOfText as one box, one per line. */
+  widget?: "lines";
 }
 
 export interface ColumnDef {
@@ -145,11 +147,14 @@ export interface ModuleSchema {
   readRoles: string[];
   writeRoles: string[];
   noDelete?: boolean;
-  archivable?: boolean;
   noDuplicate?: boolean;
   maxFeatured?: number;
-  publishRequires?: string;
   expectedRecords?: number;
+  /**
+   * Reachable, but with no sidebar entry of its own — it is reached from
+   * another module's screen. Applications sit inside Jobs this way.
+   */
+  hideInNav?: boolean;
   /** Resolved server-side for the caller's role. */
   endpoint: string;
   canWrite: boolean;

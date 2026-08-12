@@ -39,17 +39,32 @@ function ModuleIcon({ name, className }: { name: string; className?: string }) {
 
 /** Modules with a dedicated screen live outside the generic /m/[module] route. */
 const DEDICATED_ROUTES: Record<string, string> = {
+  jobs: "/admin/jobs",
   applications: "/admin/applications",
   enquiries: "/admin/enquiries",
   media: "/admin/media",
   users: "/admin/users",
   roles: "/admin/roles",
   "activity-log": "/admin/activity",
-  settings: "/admin/settings",
+};
+
+/**
+ * Paths that belong to a module without sitting under its href. Jobs are listed
+ * on their own screen but still edited through the generic record form, and the
+ * rail would otherwise unlight itself the moment someone opened a job.
+ */
+const ALSO_ACTIVE_UNDER: Record<string, string[]> = {
+  jobs: ["/admin/m/jobs"],
 };
 
 export function moduleHref(module: ModuleSchema): string {
   return DEDICATED_ROUTES[module.key] ?? `/admin/m/${module.key}`;
+}
+
+/** Whether `pathname` is inside the given module's screens. */
+function isModuleActive(module: ModuleSchema, pathname: string): boolean {
+  const candidates = [moduleHref(module), ...(ALSO_ACTIVE_UNDER[module.key] ?? [])];
+  return candidates.some((href) => pathname === href || pathname.startsWith(`${href}/`));
 }
 
 export function Sidebar({
@@ -73,13 +88,17 @@ export function Sidebar({
    * six matches, not six headings each holding one item.
    */
   const grouped = useMemo(() => {
+    // A module reached from inside another one (Applications, from Jobs) has no
+    // entry here — including under Jump-to, where a second route to the same
+    // screen would only raise the question of how the two differ.
+    const listed = modules.filter((entry) => !entry.hideInNav);
     const matches = query
-      ? modules.filter(
+      ? listed.filter(
           (entry) =>
             entry.label.toLowerCase().includes(query) ||
             entry.key.toLowerCase().includes(query),
         )
-      : modules;
+      : listed;
 
     return GROUP_ORDER.map((group) => {
       const items = matches.filter((entry) => entry.group === group);
@@ -113,6 +132,16 @@ export function Sidebar({
   const dashboardActive = pathname === "/admin";
   const noMatches = query !== "" && grouped.length === 0;
 
+  /**
+   * Which group holds the screen that is open. The rail marks that heading, so
+   * the current location is readable one level up from the highlighted link —
+   * useful once the list is long enough that the active item has scrolled out.
+   */
+  const currentGroup = useMemo(() => {
+    const match = modules.find((entry) => isModuleActive(entry, pathname));
+    return match?.group ?? null;
+  }, [modules, pathname]);
+
   return (
     <>
       {/* Mobile scrim */}
@@ -127,7 +156,7 @@ export function Sidebar({
       <aside
         aria-label="Modules"
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col border-r border-line-soft bg-surface",
+          "admin-sidebar fixed inset-y-0 left-0 z-50 flex flex-col",
           "transition-[width,transform] duration-300 ease-[var(--ease-admin)] lg:translate-x-0",
           collapsed ? "w-[var(--spacing-rail-tight)]" : "w-[var(--spacing-rail)]",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
@@ -136,18 +165,20 @@ export function Sidebar({
         {/* Brand */}
         <div
           className={cn(
-            "flex h-[var(--spacing-topbar)] shrink-0 items-center border-b border-line-soft",
-            collapsed ? "justify-center px-2" : "justify-between px-4",
+            "relative flex shrink-0 items-center border-b border-[var(--a-nav-line)]",
+            collapsed
+              ? "h-[var(--spacing-topbar)] justify-center px-2"
+              : "h-[var(--spacing-rail-brand)] justify-center px-4",
           )}
         >
           <Link href="/admin" onClick={onCloseMobile} className="min-w-0">
-            <SumagoWordmark compact={collapsed} />
+            <SumagoWordmark compact={collapsed} tone="light" stacked={!collapsed} />
           </Link>
           <button
             type="button"
             onClick={onCloseMobile}
             aria-label="Close menu"
-            className="rounded-md p-1 text-muted hover:bg-surface-hover hover:text-content lg:hidden"
+            className="absolute right-3 top-3 rounded-md p-1 text-white/60 hover:bg-white/10 hover:text-white lg:hidden"
           >
             <X className="h-4 w-4" aria-hidden />
           </button>
@@ -161,7 +192,7 @@ export function Sidebar({
           {!collapsed ? (
             <div className="relative mb-3">
               <Search
-                className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted"
+                className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/45"
                 aria-hidden
               />
               <input
@@ -170,7 +201,7 @@ export function Sidebar({
                 onChange={(event) => setFilter(event.target.value)}
                 placeholder="Jump to…"
                 aria-label="Filter modules"
-                className="w-full rounded-[var(--radius-field)] border border-line-soft bg-surface-hover py-1.5 pl-8 pr-2.5 text-[13px] text-content placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+                className="w-full rounded-[var(--radius-pill)] border border-white/12 bg-white/8 py-2 pl-9 pr-3 text-[13px] text-white placeholder:text-white/45 focus:border-white/30 focus:bg-white/12 focus:outline-none"
               />
             </div>
           ) : null}
@@ -185,7 +216,7 @@ export function Sidebar({
           />
 
           {noMatches ? (
-            <p className="px-2.5 py-6 text-center text-[13px] text-muted">
+            <p className="px-2.5 py-6 text-center text-[13px] text-white/50">
               No module matches “{filter.trim()}”.
             </p>
           ) : null}
@@ -193,9 +224,17 @@ export function Sidebar({
           {grouped.map((entry) => (
             <div key={entry.group} className="mt-4">
               {collapsed ? (
-                <div className="mx-2 mb-2 h-px bg-line-soft" aria-hidden />
+                <div className="mx-2 mb-2 h-px bg-[var(--a-nav-line)]" aria-hidden />
               ) : (
-                <p className="px-2.5 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted">
+                <p
+                  className={cn(
+                    "admin-nav-group mb-1.5 flex items-center gap-2 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.12em]",
+                    entry.group === currentGroup && "admin-nav-group-current",
+                  )}
+                >
+                  {entry.group === currentGroup ? (
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/90" aria-hidden />
+                  ) : null}
                   {entry.label}
                 </p>
               )}
@@ -210,7 +249,7 @@ export function Sidebar({
               {entry.sections.map(([heading, items]) => (
                 <div key={heading} className="mt-2.5">
                   {!collapsed ? (
-                    <p className="px-2.5 pb-1 text-[11px] font-medium text-muted/80">{heading}</p>
+                    <p className="px-3 pb-1 text-[11px] font-medium text-white/40">{heading}</p>
                   ) : null}
                   <ModuleList
                     modules={items}
@@ -225,24 +264,24 @@ export function Sidebar({
         </nav>
 
         {/* Account */}
-        <div className="shrink-0 border-t border-line-soft p-2">
+        <div className="shrink-0 border-t border-[var(--a-nav-line)] p-2">
           {user ? (
             <Link
               href="/admin/account"
               onClick={onCloseMobile}
               title={collapsed ? user.name : undefined}
               className={cn(
-                "flex items-center gap-2.5 rounded-[var(--radius-field)] p-2 transition-colors hover:bg-surface-hover",
+                "flex items-center gap-2.5 rounded-[var(--radius-field)] p-2 transition-colors hover:bg-[var(--a-nav-hover)]",
                 collapsed && "justify-center",
               )}
             >
-              <Avatar name={user.name} size={28} />
+              <Avatar name={user.name} size={30} tone="light" />
               {!collapsed ? (
                 <span className="min-w-0 leading-tight">
-                  <span className="block truncate text-[13px] font-medium text-content">
+                  <span className="block truncate text-[13px] font-semibold text-white">
                     {user.name}
                   </span>
-                  <span className="block truncate text-[11px] text-muted">{user.roleName}</span>
+                  <span className="block truncate text-[11px] text-white/50">{user.roleName}</span>
                 </span>
               ) : null}
             </Link>
@@ -253,7 +292,7 @@ export function Sidebar({
             onClick={() => void signOut()}
             title={collapsed ? "Sign out" : undefined}
             className={cn(
-              "mt-0.5 flex w-full items-center gap-2.5 rounded-[var(--radius-field)] px-2 py-2 text-[13px] text-muted transition-colors hover:bg-surface-hover hover:text-bad",
+              "mt-0.5 flex w-full items-center gap-2.5 rounded-[var(--radius-field)] px-2 py-2 text-[13px] text-white/55 transition-colors hover:bg-[var(--a-nav-hover)] hover:text-[var(--a-nav-mark)]",
               collapsed && "justify-center",
             )}
           >
@@ -284,7 +323,7 @@ function ModuleList({
     <ul className="space-y-0.5">
       {modules.map((module) => {
         const href = moduleHref(module);
-        const active = pathname === href || pathname.startsWith(`${href}/`);
+        const active = isModuleActive(module, pathname);
         return (
           <li key={module.key}>
             <NavLink
@@ -324,21 +363,23 @@ function NavLink({
       aria-current={active ? "page" : undefined}
       title={collapsed ? label : undefined}
       className={cn(
-        "group relative flex items-center gap-2.5 rounded-[var(--radius-field)] px-2.5 py-2 text-[13px] font-medium transition-colors",
+        "group relative flex items-center gap-3 overflow-hidden rounded-[var(--radius-field)] px-3 py-2.5 text-[13px] font-medium transition-colors",
         collapsed && "justify-center",
         active
-          ? "bg-accent-soft text-accent"
-          : "text-content-soft hover:bg-surface-hover hover:text-content",
+          ? "bg-[var(--a-nav-active)] font-semibold text-white"
+          : "text-white/72 hover:bg-[var(--a-nav-hover)] hover:text-white",
       )}
     >
       {/* Active marker — a short brand bar rather than a full-width fill. */}
       {active ? (
         <span
-          className="absolute left-0 top-1/2 h-4 w-[3px] -translate-y-1/2 rounded-r bg-accent"
+          className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r bg-[var(--a-nav-mark)]"
           aria-hidden
         />
       ) : null}
-      {icon}
+      <span className={cn("shrink-0", active ? "text-[var(--a-nav-mark)]" : "text-white/55")}>
+        {icon}
+      </span>
       {!collapsed ? <span className="truncate">{label}</span> : null}
     </Link>
   );

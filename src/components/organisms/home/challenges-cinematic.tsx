@@ -66,7 +66,7 @@ const CLOUD: CloudItem[] = [
 const TONE: Record<CloudItem["tone"], string> = {
   red: "text-metal-red",
   ink: "text-ink",
-  muted: "text-ink/40",
+  muted: "text-ink/65",
 };
 
 /**

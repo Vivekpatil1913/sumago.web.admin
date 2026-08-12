@@ -1,10 +1,10 @@
 import { SectionHeading } from "@/components/atoms/section-heading";
-import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
+import { Media } from "@/components/molecules/media-placeholder";
 import { IntakeForm } from "@/components/organisms/contact/intake-form";
-import { previewImages } from "@/lib/preview-assets";
+import { officePhotos } from "@/lib/real-assets";
 
 /**
- * Primary conversion — the four-step intake the hero's "Schedule a meeting"
+ * Primary conversion — the four-step intake the hero's "Schedule a free consultation"
  * CTA jumps to. Photography sits behind a heavy black scrim so the room the
  * meeting would happen in is present but never competes with the form; the
  * white card floating over it is the only thing with contrast to spare.
@@ -12,8 +12,9 @@ import { previewImages } from "@/lib/preview-assets";
  * Owns its own <section> rather than using <Section> because the image has to
  * bleed past `.container-page` to the viewport edge.
  *
- * [REAL ASSET NEEDED] The backdrop is preview stock (see docs/17) — the `alt`
- * is the brief for the real photograph that replaces it.
+ * The backdrop is Sumago's own conference room — the room the meeting would
+ * actually happen in, which is the only reason a photograph earns the slot.
+ * It sits under a 75% scrim, so its 1280px native width is ample here.
  */
 export function ScheduleMeeting() {
   return (
@@ -23,10 +24,10 @@ export function ScheduleMeeting() {
     >
       {/* Backdrop + scrim. Both are decorative; the form owns the contrast. */}
       <div aria-hidden className="absolute inset-0 -z-10">
-        <MediaPlaceholder
+        <Media
           fill
-          src={previewImages.teamMeeting}
-          alt="Sumago's team in conversation with a client around the table at the Nashik office"
+          src={officePhotos.conferenceRoom.src}
+          alt=""
           sizes="100vw"
           imageClassName="object-cover scale-105"
         />
@@ -37,7 +38,7 @@ export function ScheduleMeeting() {
       <div className="container-page relative z-10">
         <SectionHeading
           tone="dark"
-          eyebrow="Schedule a meeting"
+          eyebrow="Schedule a free consultation"
           title={
             <>
               Help us <span className="text-metal-red-shine">understand you</span> quickly.

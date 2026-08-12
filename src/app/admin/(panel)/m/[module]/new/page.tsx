@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { useApp } from "@/lib/admin/app-context";
 import { RecordForm } from "@/components/admin/record-form";
-import { ErrorState, Spinner } from "@/components/admin/ui";
+import { ErrorState, InfoTip, Spinner } from "@/components/admin/ui";
 
 export default function CreateRecordPage({ params }: { params: Promise<{ module: string }> }) {
   const { module: moduleKey } = use(params);
@@ -28,9 +28,18 @@ export default function CreateRecordPage({ params }: { params: Promise<{ module:
         {module.label}
       </Link>
 
-      <h1 className="mb-5 text-xl font-semibold text-content">
-        New {module.singular.toLowerCase()}
-      </h1>
+      <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h1 className="text-xl font-semibold text-content">
+          New {module.singular.toLowerCase()}
+        </h1>
+        <InfoTip label={`About creating a ${module.singular.toLowerCase()}`}>
+          Nothing is created until you save, and leaving this screen discards what you have typed.
+          Fields marked with a red asterisk are required.{" "}
+          {module.hasStatus
+            ? "A new record is saved as a draft — it stays out of the website until you publish it."
+            : null}
+        </InfoTip>
+      </div>
 
       <RecordForm module={module} returnHref={`/admin/m/${module.key}`} />
     </div>

@@ -2,13 +2,6 @@
 
 import Image from "next/image";
 import {
-  Award,
-  Landmark,
-  ShieldCheck,
-  Workflow,
-  type LucideIcon,
-} from "lucide-react";
-import {
   motion,
   useMotionValue,
   useReducedMotion,
@@ -17,54 +10,13 @@ import {
 } from "framer-motion";
 
 import { Eyebrow } from "@/components/atoms/eyebrow";
-import { Stat } from "@/components/molecules/stat";
 import { WhyChooseBackdrop } from "@/components/organisms/home/why-choose-backdrop";
-import {
-  sumagoPromise,
-  whyChooseBadges,
-  whyChooseHeadline,
-  whyChooseReasons,
-} from "@/lib/content";
-import type { Metric } from "@/lib/cms/types";
+import { sumagoPromise, whyChooseHeadline } from "@/lib/content";
 import { cn } from "@/lib/utils";
-
-const ICONS: Record<string, LucideIcon> = {
-  Landmark,
-  Workflow,
-  ShieldCheck,
-  Award,
-};
 
 /** Standard entrance curve (docs/06) — decelerating, no overshoot. */
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
-/**
- * The four KPIs this band shows, picked out of whatever General Settings
- * holds. A metric that has been renamed or removed is skipped rather than
- * crashing the home page — the previous code asserted non-null on a `.find()`
- * against a hardcoded label list, which was safe only while that list was a
- * compile-time constant.
- */
-const KPI_LABELS = ["Years", "Projects delivered", "Government clients", "Team members"];
-
-function pickKpis(metrics: Metric[]): Metric[] {
-  return KPI_LABELS.map((label) => metrics.find((m) => m.label === label)).filter(
-    (m): m is Metric => m !== undefined,
-  );
-}
-
-/**
- * The KPI row. Every figure comes from General Settings rather than being
- * retyped here.
- *
- * [VERIFY] Two figures from the design brief are deliberately not here:
- * **"200+ projects"** contradicts the verified 700+ (which `TrustIndicators`
- * already prints further down this same page — the two would disagree on one
- * screen), and **"95% client retention"** appears nowhere in COMPANY-PROFILE.md.
- * Retention is exactly the number a procurement evaluator asks you to evidence.
- * If Sumago can evidence it, add it under General Settings > Metrics and it
- * will appear here automatically.
- */
 /**
  * "Trusted by Government. Chosen by Enterprises. Built for India's Digital
  * Future." — the homepage's enterprise band, between `IndustriesSection` and
@@ -88,17 +40,15 @@ function pickKpis(metrics: Metric[]): Metric[] {
  * | Discovery → AMC path | `ProcessSection` — the very next section           |
  * | Industry ribbon      | `IndustriesSection` — the section directly above   |
  * | Client-logo proof    | `TrustIndicators` — further down `/`               |
+ * | KPI figures          | `TrustIndicators` — same General Settings metrics  |
  *
- * The KPI row *is* here, because a claim band with no numbers is adjectives;
- * it reads the same General Settings metrics `TrustIndicators` does, so the two
- * can never disagree.
+ * The band is now headline → promise: the argument stated, then signed. The
+ * numbers it used to repeat are printed once, further down the page.
  *
  * **Motion budget (docs/06 + the docs/14 release gate).** This page already
  * carries a Three.js hero and an 800vh pinned track, so the band buys nothing
  * that costs layout or paint. Every looping animation is transform/opacity
- * only: two light beams, a drifting dot field, ten particles. The pointer
- * spotlight writes CSS custom properties directly on the node — no React state,
- * so moving the mouse across a card triggers zero re-renders. Scroll-triggered
+ * only: two light beams, a drifting dot field, ten particles. Scroll-triggered
  * work is one-shot (`once: true`). `useReducedMotion` drops the entrance
  * transforms and `motion-safe:` gates every ambient loop at the class level.
  *
@@ -107,9 +57,7 @@ function pickKpis(metrics: Metric[]): Metric[] {
  * `WhyChooseBackdrop`, which owns the whole nine-layer canvas so this file can
  * stay about the argument rather than the atmosphere.
  */
-export function WhyChoose({ metrics }: { metrics: Metric[] }) {
-  const KPIS = pickKpis(metrics);
-
+export function WhyChoose() {
   const reduce = useReducedMotion();
 
   /* Pointer parallax. Raw values are written only from `trackPointer` below,
@@ -168,11 +116,6 @@ export function WhyChoose({ metrics }: { metrics: Metric[] }) {
     },
   };
 
-  const grid: Variants = {
-    hidden: {},
-    show: { transition: { staggerChildren: reduce ? 0 : 0.09 } },
-  };
-
   return (
     <section
       aria-labelledby="why-choose-heading"
@@ -221,154 +164,12 @@ export function WhyChoose({ metrics }: { metrics: Metric[] }) {
           ))}
         </h2>
 
-        {/* ── KPI dashboard ────────────────────────────────────────────────── */}
-        <motion.div
-          variants={item}
-          className="mx-auto mt-12 max-w-4xl rounded-3xl border border-white/10 bg-white/[0.04] px-4 py-8 shadow-[0_24px_70px_-30px_rgba(0,0,0,0.9)] backdrop-blur-xl sm:px-8 lg:mt-14"
-        >
-          <dl className="grid grid-cols-2 gap-y-8 md:grid-cols-4">
-            {KPIS.map((kpi, i) => (
-              <div
-                key={kpi.label}
-                className={cn(
-                  "px-2",
-                  /* Hairlines only between items sharing a row, recomputed per
-                     breakpoint because the column count changes 2 → 4. */
-                  i % 2 !== 0 && "border-l border-white/10",
-                  i % 4 === 0
-                    ? "md:border-l-0"
-                    : "md:border-l md:border-white/10",
-                )}
-              >
-                {/* `Stat` already counts up on scroll and prints the final
-                    value under reduced motion — no second implementation. */}
-                <Stat value={kpi.value} label={kpi.label} tone="silver" dark />
-              </div>
-            ))}
-          </dl>
-        </motion.div>
-
-        {/* ── Capability cards ─────────────────────────────────────────────── */}
-        <motion.ul
-          variants={grid}
-          className="mt-8 grid gap-5 sm:grid-cols-2 lg:mt-10 lg:gap-6"
-        >
-          {whyChooseReasons.map((reason) => (
-            <CapabilityCard
-              key={reason.title}
-              reason={reason}
-              variants={item}
-              reduce={!!reduce}
-            />
-          ))}
-        </motion.ul>
-
-        {/* ── Assurance chips ──────────────────────────────────────────────── */}
-        <motion.ul
-          variants={item}
-          className="mt-8 flex flex-wrap items-center justify-center gap-2.5 lg:mt-10"
-        >
-          {whyChooseBadges.map((badge) => (
-            <li
-              key={badge}
-              className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white/85 backdrop-blur transition-[transform,border-color,background-color] duration-300 ease-standard hover:-translate-y-0.5 hover:border-brand-bright/45 hover:bg-white/[0.1]"
-            >
-              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-bright" />
-              {badge}
-            </li>
-          ))}
-        </motion.ul>
-
         {/* ── Why clients stay ─────────────────────────────────────────────── */}
         <motion.div variants={item} className="mt-12 lg:mt-16">
           <StayPanel reduce={!!reduce} />
         </motion.div>
       </motion.div>
     </section>
-  );
-}
-
-/* ══ Capability card ═══════════════════════════════════════════════════════ */
-
-type CapabilityCardProps = {
-  reason: (typeof whyChooseReasons)[number];
-  variants: Variants;
-  reduce: boolean;
-};
-
-/**
- * One capability claim: glass panel, gradient hairline, pointer spotlight and a
- * light sweep on hover.
- *
- * The spotlight is written straight onto the node as CSS custom properties in
- * the pointermove handler. Routing it through React state would re-render the
- * card on every mouse sample — dozens per second, per card — which is exactly
- * the kind of cost the docs/14 frame budget forbids. With no pointer at all
- * (touch, keyboard) the CSS fallback centres the highlight, so the card never
- * depends on hover to look finished.
- */
-function CapabilityCard({ reason, variants, reduce }: CapabilityCardProps) {
-  const Icon = ICONS[reason.icon] ?? ShieldCheck;
-
-  function trackPointer(event: React.PointerEvent<HTMLDivElement>) {
-    if (reduce) return;
-    const box = event.currentTarget.getBoundingClientRect();
-    event.currentTarget.style.setProperty(
-      "--wc-mx",
-      `${event.clientX - box.left}px`,
-    );
-    event.currentTarget.style.setProperty(
-      "--wc-my",
-      `${event.clientY - box.top}px`,
-    );
-  }
-
-  return (
-    <motion.li variants={variants} className="group relative">
-      {/* Gradient hairline — always faintly present so the card has an edge on
-          a dark ground, and resolving to brand on hover. */}
-      <span
-        aria-hidden
-        className="absolute -inset-px rounded-[27px] bg-[linear-gradient(140deg,rgba(255,255,255,0.16),rgba(255,255,255,0.02)_38%,transparent_70%)] transition-opacity duration-500 ease-standard group-hover:opacity-0"
-      />
-      <span
-        aria-hidden
-        className="absolute -inset-px rounded-[27px] bg-[linear-gradient(140deg,rgba(255,90,93,0.75),rgba(215,52,56,0.18)_40%,rgba(30,131,240,0.28))] opacity-0 transition-opacity duration-500 ease-standard group-hover:opacity-100"
-      />
-
-      <div
-        onPointerMove={trackPointer}
-        className="relative h-full overflow-hidden rounded-[26px] bg-[linear-gradient(160deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-6 backdrop-blur-xl transition-[transform,box-shadow] duration-[420ms] ease-standard group-hover:-translate-y-2 group-hover:shadow-[0_30px_60px_-28px_rgba(215,52,56,0.55)] sm:p-8"
-      >
-        {/* Pointer spotlight. */}
-        <span
-          aria-hidden
-          className="wc-spotlight pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-400 ease-standard group-hover:opacity-100"
-        />
-        {/* Light sweep — a skewed highlight crossing the card once per hover.
-            Transform-only, so it costs a composite and nothing else. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.13),transparent)] transition-transform duration-[900ms] ease-standard group-hover:translate-x-[400%] motion-reduce:hidden"
-        />
-
-        <div className="relative">
-          <span
-            aria-hidden
-            className="grid h-14 w-14 place-items-center rounded-2xl bg-[linear-gradient(140deg,#ff5a5d,#b82a2e)] text-white shadow-[0_14px_32px_-12px_rgba(215,52,56,0.9)] ring-1 ring-inset ring-white/20 transition-transform duration-[420ms] ease-standard group-hover:-rotate-6 group-hover:scale-110"
-          >
-            <Icon size={26} strokeWidth={1.9} />
-          </span>
-
-          <h3 className="mt-6 font-display text-xl font-bold leading-snug tracking-tight text-white sm:text-[1.375rem]">
-            {reason.title}
-          </h3>
-          <p className="mt-3 text-base leading-[1.7] text-white/65">
-            {reason.description}
-          </p>
-        </div>
-      </div>
-    </motion.li>
   );
 }
 

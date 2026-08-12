@@ -354,7 +354,7 @@ function Milestone({
             isActive &&
               "border-brand bg-[linear-gradient(140deg,#e0474b,#b82a2e)] text-white shadow-[0_12px_32px_-10px_rgba(215,52,56,0.8)]",
             isPast && "border-brand/35 bg-brand/10 text-brand-ink",
-            !isActive && !isPast && "border-line bg-white text-ink/35",
+            !isActive && !isPast && "border-line bg-white text-ink/65",
           )}
         >
           {/* Pulse — only on the milestone the reader is level with, and never
@@ -406,7 +406,7 @@ function Milestone({
             "inline-flex items-center rounded-full border px-3 py-1 text-[0.6875rem] font-bold uppercase leading-none tracking-[0.14em] transition-colors duration-500 ease-standard",
             isActive
               ? "border-brand/30 bg-brand/[0.07] text-brand-ink"
-              : "border-line bg-mist text-ink/55",
+              : "border-line bg-mist text-ink/65",
           )}
         >
           {step.week}

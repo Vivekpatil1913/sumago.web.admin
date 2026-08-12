@@ -47,7 +47,7 @@ export function VisionMission() {
             </p>
 
             {panel.support ? (
-              <p className="mt-5 text-[0.9375rem] leading-relaxed text-ink/55">
+              <p className="mt-5 text-[0.9375rem] leading-relaxed text-ink/65">
                 {panel.support}
               </p>
             ) : null}

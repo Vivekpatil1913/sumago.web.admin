@@ -196,8 +196,8 @@ export function PinnedSequence({
                           isActive
                             ? "text-brand-ink"
                             : isDone
-                              ? "text-ink/45"
-                              : "text-ink/30",
+                              ? "text-ink/65"
+                              : "text-ink/65",
                         )}
                       >
                         {String(i + 1).padStart(2, "0")}
@@ -205,7 +205,7 @@ export function PinnedSequence({
                       <span
                         className={cn(
                           "mt-1 truncate text-sm font-semibold transition-colors duration-300",
-                          isActive ? "text-ink" : "text-ink/45",
+                          isActive ? "text-ink" : "text-ink/65",
                         )}
                       >
                         {entry.label}
@@ -214,7 +214,7 @@ export function PinnedSequence({
                         <span
                           className={cn(
                             "truncate text-xs transition-colors duration-300",
-                            isActive ? "text-ink/60" : "text-ink/30",
+                            isActive ? "text-ink/60" : "text-ink/65",
                           )}
                         >
                           {entry.sublabel}

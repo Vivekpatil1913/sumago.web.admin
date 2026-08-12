@@ -27,7 +27,7 @@ export function JobCard({ position }: { position: JobRecord }) {
         {title}
       </h3>
 
-      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-ink/55">
+      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-ink/65">
         {summary}
       </p>
 

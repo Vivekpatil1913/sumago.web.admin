@@ -7,50 +7,85 @@
  * and delete. The module list comes from the API's catalogue endpoint, so it can
  * never drift from the registry — a new module appears here automatically.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, ShieldCheck } from "lucide-react";
-import { api } from "@/lib/admin/api";
+import { Plus, Search, ShieldCheck, X } from "lucide-react";
+import { api, queryString } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatDate } from "@/lib/admin/format";
+import { ExportMenu } from "@/components/admin/export-menu";
+import { Pager } from "@/components/admin/pager";
 import {
   Badge,
   Button,
   EmptyState,
   ErrorState,
+  InfoTip,
+  Input,
   Modal,
   Notice,
+  Select,
   Spinner,
 } from "@/components/admin/ui";
 import type { RoleRecord } from "@/lib/admin/types";
+
+const PAGE_SIZE = 25;
 
 export default function RolesPage() {
   const { user, loading } = useApp();
   const { notify } = useToast();
 
   const [roles, setRoles] = useState<RoleRecord[]>([]);
+  const [total, setTotal] = useState(0);
   const [loadingRoles, setLoadingRoles] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingDelete, setPendingDelete] = useState<RoleRecord | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Search, filter and paging are all resolved by SQL — see /platform/roles.
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [access, setAccess] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const params = useMemo(() => {
+    const query: Record<string, string> = {
+      page: String(page),
+      pageSize: String(PAGE_SIZE),
+    };
+    if (debouncedSearch) query["search"] = debouncedSearch;
+    if (access) query["isAdmin"] = access;
+    return query;
+  }, [page, debouncedSearch, access]);
+
   const load = useCallback(async () => {
     setLoadingRoles(true);
     setError(null);
     try {
-      const response = await api.get<RoleRecord[]>("/platform/roles?pageSize=100");
+      const response = await api.get<RoleRecord[]>(`/platform/roles${queryString(params)}`);
       setRoles(response.data ?? []);
+      setTotal(response.meta?.total ?? 0);
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
       setLoadingRoles(false);
     }
-  }, []);
+  }, [params]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const hasFilters = Boolean(debouncedSearch || access);
 
   if (loading) return <Spinner />;
   if (!user?.isAdmin) {
@@ -77,8 +112,14 @@ export default function RolesPage() {
     <div className="mx-auto max-w-5xl">
       <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h1 className="text-xl font-semibold text-content">Roles &amp; Permissions</h1>
+            <InfoTip label="About Roles and Permissions">
+              Changes take effect on the holder&rsquo;s next action — nobody has to sign out and back
+              in. A role with <strong className="font-semibold text-content">full administrator
+              access</strong> ignores the checkboxes and can manage users and roles, so grant it
+              sparingly.
+            </InfoTip>
             <span className="text-xs text-muted">PRD Module 22</span>
           </div>
           <p className="mt-0.5 text-sm text-muted">
@@ -94,12 +135,56 @@ export default function RolesPage() {
         </Link>
       </header>
 
-      <div className="mb-4">
-        <Notice tone="info">
-          Changes take effect on the holder&rsquo;s next action — nobody has to sign out and back in.
-          A role with <strong>full administrator access</strong> ignores the checkboxes and can manage
-          users and roles, so grant it sparingly.
-        </Notice>
+      {/* --------------------------------------------------------- Toolbar */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-56 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search roles…"
+            aria-label="Search roles"
+            className="pl-9"
+          />
+        </div>
+
+        <Select
+          value={access}
+          onChange={(event) => {
+            setAccess(event.target.value);
+            setPage(1);
+          }}
+          aria-label="Filter by access"
+        >
+          <option value="">Access: all</option>
+          <option value="true">Full administrator</option>
+          <option value="false">Module permissions</option>
+        </Select>
+
+        {hasFilters ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<X className="h-3.5 w-3.5" />}
+            onClick={() => {
+              setSearch("");
+              setAccess("");
+              setPage(1);
+            }}
+          >
+            Clear
+          </Button>
+        ) : null}
+
+        <div className="ml-auto">
+          <ExportMenu
+            endpoint="/platform/roles"
+            params={params}
+            fileBase="roles"
+            label="Roles"
+            total={total}
+          />
+        </div>
       </div>
 
       <div className="overflow-hidden admin-card">
@@ -108,7 +193,11 @@ export default function RolesPage() {
         ) : error ? (
           <ErrorState message={error} onRetry={() => void load()} />
         ) : roles.length === 0 ? (
-          <EmptyState title="No roles yet" description="Add your first role to get started." />
+          hasFilters ? (
+            <EmptyState title="No roles match these filters" />
+          ) : (
+            <EmptyState title="No roles yet" description="Add your first role to get started." />
+          )
         ) : (
           <div className="table-scroll">
             <table className="w-full text-sm">
@@ -187,6 +276,10 @@ export default function RolesPage() {
           </div>
         )}
       </div>
+
+      {!loadingRoles && !error ? (
+        <Pager page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} noun="roles" />
+      ) : null}
 
       <Modal
         open={Boolean(pendingDelete)}

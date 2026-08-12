@@ -10,11 +10,13 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Download, Plus, Search, X, type LucideIcon } from "lucide-react";
-import { ApiError, api, downloadFile, queryString } from "@/lib/admin/api";
+import { Plus, Search, X, type LucideIcon } from "lucide-react";
+import { ApiError, api, queryString } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatDate, formatDateTime, humanise, statusTone, truncate } from "@/lib/admin/format";
 import type { ColumnDef, ModuleSchema, RecordValue, SelectOption } from "@/lib/admin/types";
+import { ExportMenu } from "@/components/admin/export-menu";
+import { Pager } from "@/components/admin/pager";
 import {
   Badge,
   Button,
@@ -51,6 +53,12 @@ interface DataTableProps {
   /** Extra filters merged into every request (e.g. a fixed job id). */
   baseParams?: Record<string, string>;
   rowHref?: (row: RecordValue) => string;
+  /**
+   * Replace how one column draws its cell, keyed by column name. The column
+   * still comes from the registry — this only changes what is rendered in it,
+   * which is how the Jobs table turns its application count into a way in.
+   */
+  cellOverrides?: Record<string, (row: RecordValue) => React.ReactNode>;
   rowActions?: RowAction[];
   bulkActions?: { label: string; action: string; status?: string; tone?: "default" | "danger" }[];
   toolbarExtra?: React.ReactNode;
@@ -80,6 +88,7 @@ export function DataTable({
   module,
   baseParams,
   rowHref,
+  cellOverrides,
   rowActions = [],
   bulkActions,
   toolbarExtra,
@@ -216,21 +225,6 @@ export function DataTable({
     setPage(1);
   }
 
-  async function onExport() {
-    try {
-      const exportParams = { ...params };
-      delete exportParams["page"];
-      delete exportParams["pageSize"];
-      await downloadFile(
-        `/api${module.endpoint}/export${queryString(exportParams)}`,
-        `${module.key}.csv`,
-      );
-      notify(`Exported ${total} row${total === 1 ? "" : "s"} of ${module.label}.`);
-    } catch (caught) {
-      notify(errorMessage(caught), "danger");
-    }
-  }
-
   async function runBulk(action: string, status?: string) {
     if (selected.size === 0) return;
     setBusy(true);
@@ -261,10 +255,10 @@ export function DataTable({
   return (
     <div>
       {/* ------------------------------------------------------ Toolbar */}
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative min-w-48 flex-1">
           <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
             aria-hidden
           />
           <Input
@@ -273,7 +267,7 @@ export function DataTable({
             onChange={(event) => setSearch(event.target.value)}
             placeholder={`Search ${module.label.toLowerCase()}…`}
             aria-label={`Search ${module.label}`}
-            className="pl-8"
+            className="rounded-[var(--radius-pill)] pl-10"
           />
         </div>
 
@@ -339,9 +333,13 @@ export function DataTable({
 
         <div className="ml-auto flex items-center gap-2">
           {toolbarExtra}
-          <Button variant="secondary" size="sm" icon={<Download className="h-3.5 w-3.5" />} onClick={() => void onExport()}>
-            Export
-          </Button>
+          <ExportMenu
+            endpoint={module.endpoint}
+            params={params}
+            fileBase={module.key}
+            label={module.label}
+            total={total}
+          />
           {module.canWrite && onCreate ? (
             <Button variant="primary" size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={onCreate}>
               Add new
@@ -405,11 +403,20 @@ export function DataTable({
           />
         ) : (
           <div className="table-scroll">
+            {/* Row count, stated once above the head. Pagination at the foot
+                says which slice you are looking at; this says how big the
+                thing you are slicing is. */}
+            <div className="flex items-center gap-2 px-4 pb-1 pt-4">
+              <span className="rounded-[var(--radius-pill)] bg-canvas-subtle px-3 py-1 text-xs font-bold text-content-soft tabular-nums">
+                {total} total
+              </span>
+            </div>
+
             <table className="w-full text-sm">
-              <thead className="border-b border-line-soft bg-canvas-subtle/60 text-left">
+              <thead className="text-left">
                 <tr>
                   {bulkActions ? (
-                    <th scope="col" className="w-10 px-3 py-2.5">
+                    <th scope="col" className="w-10 border-b border-line-soft px-4 py-3">
                       <input
                         type="checkbox"
                         aria-label="Select all rows on this page"
@@ -430,7 +437,7 @@ export function DataTable({
                     <th
                       key={column.name}
                       scope="col"
-                      className="px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-muted"
+                      className="border-b border-line-soft px-4 py-3 text-[11px] font-bold uppercase tracking-[0.07em] text-muted"
                       aria-sort={
                         sort?.column === column.name
                           ? sort.direction === "asc"
@@ -457,7 +464,10 @@ export function DataTable({
                   ))}
 
                   {showActionsColumn ? (
-                    <th scope="col" className="px-3 py-2.5 text-right text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
+                    <th
+                      scope="col"
+                      className="border-b border-line-soft px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.07em] text-muted"
+                    >
                       Actions
                     </th>
                   ) : null}
@@ -468,9 +478,9 @@ export function DataTable({
                 {rows.map((row) => {
                   const id = String(row["id"]);
                   return (
-                    <tr key={id} className="hover:bg-canvas-subtle">
+                    <tr key={id} className="transition-colors hover:bg-canvas-subtle">
                       {bulkActions ? (
-                        <td className="px-3 py-2.5">
+                        <td className="px-4 py-3.5">
                           <input
                             type="checkbox"
                             aria-label={`Select ${String(row[module.identity] ?? id)}`}
@@ -488,23 +498,31 @@ export function DataTable({
                         </td>
                       ) : null}
 
-                      {module.columns.map((column, index) => (
-                        <td key={column.name} className="px-3 py-2.5 align-middle">
-                          {index === 0 && rowHref ? (
-                            <Link
-                              href={rowHref(row)}
-                              className="font-medium text-content underline-offset-2 transition-colors hover:text-accent hover:underline"
-                            >
-                              {renderCell(column, row)}
-                            </Link>
-                          ) : (
-                            renderCell(column, row)
-                          )}
-                        </td>
-                      ))}
+                      {module.columns.map((column, index) => {
+                        const override = cellOverrides?.[column.name];
+                        return (
+                          <td key={column.name} className="px-4 py-3.5 align-middle">
+                            {override ? (
+                              // An overridden cell is never wrapped in the row
+                              // link: it carries its own control, and a link
+                              // inside a link is not valid markup.
+                              override(row)
+                            ) : index === 0 && rowHref ? (
+                              <Link
+                                href={rowHref(row)}
+                                className="font-semibold text-content underline-offset-2 transition-colors hover:text-accent hover:underline"
+                              >
+                                {renderCell(column, row)}
+                              </Link>
+                            ) : (
+                              renderCell(column, row)
+                            )}
+                          </td>
+                        );
+                      })}
 
                       {showActionsColumn ? (
-                        <td className="whitespace-nowrap px-3 py-2.5 text-right">
+                        <td className="whitespace-nowrap px-4 py-3.5 text-right">
                           <div className="inline-flex items-center gap-0.5">
                             {/* The Active switch sits at the head of the action
                                 group rather than in a column of its own: it is
@@ -547,9 +565,14 @@ export function DataTable({
                                       // 32px square keeps the tap target usable
                                       // on touch without widening the column.
                                       Icon ? "h-8 w-8" : "px-1.5 py-1 text-xs",
+                                      /* Colour, not grey: down a long list the
+                                         glyph *is* the label, and a row of
+                                         identical grey icons forces a hover on
+                                         each one to tell them apart. Red stays
+                                         reserved for the destructive one. */
                                       action.tone === "danger"
-                                        ? "text-bad hover:bg-bad/10"
-                                        : "text-muted hover:bg-canvas-subtle hover:text-content",
+                                        ? "text-bad hover:bg-bad-soft"
+                                        : "text-accent hover:bg-accent-soft",
                                     )}
                                   >
                                     {Icon ? (
@@ -573,32 +596,8 @@ export function DataTable({
       </div>
 
       {/* -------------------------------------------------- Pagination */}
-      {!loading && !error && total > 0 ? (
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
-          <p>
-            Showing{" "}
-            <span className="font-medium text-content">
-              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)}
-            </span>{" "}
-            of <span className="font-medium text-content">{total}</span>
-          </p>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="secondary" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-              Previous
-            </Button>
-            <span className="tabular-nums">
-              Page {page} of {totalPages}
-            </span>
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={page >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
+      {!loading && !error ? (
+        <Pager page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} />
       ) : null}
     </div>
   );

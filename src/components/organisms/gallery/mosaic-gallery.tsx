@@ -1,6 +1,6 @@
 "use client";
 
-import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
+import { Media } from "@/components/molecules/media-placeholder";
 import { cn } from "@/lib/utils";
 
 export type GalleryImage = { src: string; alt: string };
@@ -61,7 +61,13 @@ function tileHeight(span: number): number {
  * Auto-scrolling collage. Images sit in a multi-row mosaic of varied shapes and
  * sizes and drift horizontally on a seamless loop (duplicated track), pausing on
  * hover. Reduced-motion is neutralized globally (globals.css), so the strip is
- * simply static for those users. Tiles keep the MediaPlaceholder launch gate.
+ * simply static for those users.
+ *
+ * Tiles render through `Media`, not `MediaPlaceholder`: every strip on the site
+ * now carries Sumago's own photography, and anything arriving from the panel is
+ * an editor's upload tracked by `media_assets.is_stock` there. Flagging these as
+ * stock would put a "Preview" badge on 20 real photographs and make the launch
+ * gate cry wolf.
  */
 export function MosaicGallery({
   images,
@@ -98,7 +104,7 @@ export function MosaicGallery({
           >
             {col.tiles.map((t, j) => (
               <div key={`${i}-${j}`} style={{ height: tileHeight(t.span) }}>
-                <MediaPlaceholder
+                <Media
                   src={t.img.src}
                   alt={t.img.alt}
                   sizes="(max-width: 768px) 60vw, 320px"

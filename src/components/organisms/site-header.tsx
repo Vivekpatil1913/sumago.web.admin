@@ -22,11 +22,9 @@ import {
 } from "lucide-react";
 import { Logo } from "@/components/atoms/logo";
 import { Button } from "@/components/atoms/button";
-import { nav, navCta, industries } from "@/lib/site";
-import { services, PHASES } from "@/lib/services";
-import { cn, slugify } from "@/lib/utils";
+import type { NavGroup } from "@/lib/cms";
+import { cn } from "@/lib/utils";
 
-type NavGroup = (typeof nav)[number];
 
 /** Icon per destination — keyed by href so nav data stays presentation-free. */
 const ITEM_ICONS: Record<string, LucideIcon> = {
@@ -44,12 +42,12 @@ const ITEM_ICONS: Record<string, LucideIcon> = {
 
 /** A block inside a pane. A `label` turns it into a titled group that stays in
  *  one column; without one, the links flow freely across the columns. */
-type PaneGroup = {
+export type PaneGroup = {
   label?: string;
   links: { label: string; href: string }[];
 };
 
-type PaneEntry = {
+export type PaneEntry = {
   key: string;
   label: string;
   title: string;
@@ -59,39 +57,6 @@ type PaneEntry = {
   groups: PaneGroup[];
 };
 
-/** The two rails of the Services menu — the full catalogue, and the industries. */
-const SERVICE_PANES: PaneEntry[] = [
-  {
-    key: "services",
-    label: "Services",
-    title: "All Services",
-    description: "The full suite of capabilities, end to end.",
-    href: "/solutions",
-    // Grouped by lifecycle stage (Consulting → Support).
-    groups: PHASES.map((p) => ({
-      label: p.label,
-      links: services
-        .filter((s) => s.phase === p.key)
-        .map((s) => ({ label: s.name, href: `/solutions/${s.slug}` })),
-    })).filter((g) => g.links.length > 0),
-  },
-  {
-    key: "industries",
-    label: "Industries",
-    title: "Industries",
-    description: "Deep domain expertise across every sector we build for.",
-    href: "/industries",
-    groups: [
-      {
-        links: industries.map((i) => ({
-          label: i,
-          href: `/industries/${slugify(i)}`,
-        })),
-      },
-    ],
-  },
-];
-
 /**
  * Two-pane "Our Services" mega-menu: Services / Industries on the left rail,
  * and hovering (or focusing) either reveals the whole list on the right — so the
@@ -99,15 +64,17 @@ const SERVICE_PANES: PaneEntry[] = [
  * Only this group uses the two-pane layout; the rest keep the icon-card grid.
  */
 function ServicesMegaPanel({
+  panes,
   pathname,
   onNavigate,
 }: {
+  panes: PaneEntry[];
   pathname: string;
   onNavigate: () => void;
 }) {
-  const [activeKey, setActiveKey] = useState(SERVICE_PANES[0].key);
-  const current =
-    SERVICE_PANES.find((p) => p.key === activeKey) ?? SERVICE_PANES[0];
+  const [activeKey, setActiveKey] = useState(panes[0]?.key ?? "");
+  const current = panes.find((p) => p.key === activeKey) ?? panes[0];
+  if (!current) return null;
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
@@ -116,7 +83,7 @@ function ServicesMegaPanel({
     <div className="grid overflow-hidden rounded-3xl border border-line bg-paper shadow-2xl shadow-ink/10 lg:grid-cols-[300px_1fr]">
       {/* Rail — icon + title + description cards; hover/focus swaps the pane */}
       <ul className="flex flex-col gap-2 bg-mist p-3">
-        {SERVICE_PANES.map((p) => {
+        {panes.map((p) => {
           const RailIcon = ITEM_ICONS[p.href] ?? LayoutGrid;
           const on = p.key === current.key;
           return (
@@ -145,7 +112,7 @@ function ServicesMegaPanel({
                 >
                   {p.title}
                 </span>
-                <span className="mt-1 block text-xs leading-relaxed text-ink/55">
+                <span className="mt-1 block text-xs leading-relaxed text-ink/65">
                   {p.description}
                 </span>
               </button>
@@ -171,7 +138,7 @@ function ServicesMegaPanel({
               <ul className="space-y-1">
                 {g.links.map((l) => (
                   <li key={l.href}>
-                    <Link
+                    <NavLink
                       href={l.href}
                       onClick={onNavigate}
                       className={cn(
@@ -180,7 +147,7 @@ function ServicesMegaPanel({
                       )}
                     >
                       {l.label}
-                    </Link>
+                    </NavLink>
                   </li>
                 ))}
               </ul>
@@ -210,7 +177,56 @@ function useGroupActive() {
     );
 }
 
-export function SiteHeader() {
+/**
+ * An internal route renders as a `Link` and an external URL as a plain anchor
+ * that opens away from the site. The panel accepts either, and handing an
+ * absolute URL to `Link` would try to route to it inside the app.
+ */
+function isExternal(href: string): boolean {
+  return /^https?:\/\//i.test(href);
+}
+
+/**
+ * A navigation destination, routed correctly for what it is.
+ *
+ * Menu items come from the admin panel, where an editor may enter either an
+ * internal route or a full URL. `Link` prefetches and routes client-side, which
+ * is right for the former and wrong for the latter, so an absolute URL renders
+ * as a plain anchor that opens in a new tab with `noopener`.
+ */
+function NavLink({
+  href,
+  children,
+  ...props
+}: {
+  href: string;
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+}) {
+  if (isExternal(href)) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
+        {children}
+      </a>
+    );
+  }
+  return (
+    <Link href={href} {...props}>
+      {children}
+    </Link>
+  );
+}
+
+export function SiteHeader({
+  navigation,
+  servicePanes,
+}: {
+  /** The published mega-menu: groups, their items, and the header CTA. */
+  navigation: { groups: NavGroup[]; ctaLabel: string; ctaHref: string };
+  servicePanes: PaneEntry[];
+}) {
+  const { groups: nav, ctaLabel, ctaHref } = navigation;
   const [open, setOpen] = useState(false); // mobile menu
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null); // desktop
@@ -324,6 +340,7 @@ export function SiteHeader() {
                   group.label === "Our Services" ? (
                     <ServicesMegaPanel
                       key={group.label}
+                      panes={servicePanes}
                       pathname={pathname}
                       onNavigate={() => setOpenDropdown(null)}
                     />
@@ -339,7 +356,7 @@ export function SiteHeader() {
                           pathname.startsWith(`${item.href}/`);
                         return (
                           <li key={item.href}>
-                            <Link
+                            <NavLink
                               href={item.href}
                               onClick={() => setOpenDropdown(null)}
                               className="group/mi block"
@@ -364,7 +381,7 @@ export function SiteHeader() {
                               <p className="mt-2 text-sm leading-relaxed text-ink/60">
                                 {item.description}
                               </p>
-                            </Link>
+                            </NavLink>
                           </li>
                         );
                       })}
@@ -376,8 +393,8 @@ export function SiteHeader() {
         </div>
 
         <div className="hidden lg:block">
-          <Button href={navCta.href} size="sm">
-            {navCta.label}
+          <Button href={ctaHref} size="sm">
+            {ctaLabel}
           </Button>
         </div>
 
@@ -396,8 +413,19 @@ export function SiteHeader() {
         </button>
       </div>
 
-      {/* Mobile menu — accordion groups */}
+      {/*
+        Mobile menu — accordion groups.
+
+        `inert` while closed, and that is not decoration. The panel collapses
+        with `max-h-0` + `overflow-hidden`, which hides it from sight but leaves
+        every link inside it at full size in the accessibility tree — twelve
+        destinations a keyboard user tabbed into one by one, invisibly, before
+        reaching the page. `inert` takes the whole subtree out of the tab order
+        and out of the a11y tree while it is shut, which `max-h-0` alone cannot
+        do.
+      */}
       <div
+        inert={!open}
         className={cn(
           "overflow-hidden border-t border-line bg-paper lg:hidden",
           open ? "max-h-[85vh] overflow-y-auto" : "max-h-0 border-t-0",
@@ -423,7 +451,7 @@ export function SiteHeader() {
                     size={16}
                     aria-hidden
                     className={cn(
-                      "text-ink/50 transition-transform duration-200 motion-reduce:transition-none",
+                      "text-ink/65 transition-transform duration-200 motion-reduce:transition-none",
                       groupOpen && "rotate-180",
                     )}
                   />
@@ -441,7 +469,7 @@ export function SiteHeader() {
                       pathname === item.href || pathname.startsWith(`${item.href}/`);
                     return (
                       <li key={item.href}>
-                        <Link
+                        <NavLink
                           href={item.href}
                           onClick={() => setOpen(false)}
                           className="flex items-start gap-3 rounded-md px-3 py-2.5 hover:bg-mist"
@@ -464,11 +492,11 @@ export function SiteHeader() {
                             >
                               {item.label}
                             </span>
-                            <span className="block text-xs leading-relaxed text-ink/55">
+                            <span className="block text-xs leading-relaxed text-ink/65">
                               {item.description}
                             </span>
                           </span>
-                        </Link>
+                        </NavLink>
                       </li>
                     );
                   })}
@@ -477,11 +505,11 @@ export function SiteHeader() {
             );
           })}
           <Button
-            href={navCta.href}
+            href={ctaHref}
             className="mt-3 w-full"
             onClick={() => setOpen(false)}
           >
-            {navCta.label}
+            {ctaLabel}
           </Button>
         </nav>
       </div>

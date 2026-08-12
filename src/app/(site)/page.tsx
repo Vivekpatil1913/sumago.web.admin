@@ -11,34 +11,60 @@ import { AiSdlc } from "@/components/organisms/home/ai-sdlc";
 import {
   BlogAndCareers,
   CultureGallery,
+  FaqSection,
   Testimonials,
 } from "@/components/organisms/home/more-sections";
 import { WhatWeDo } from "@/components/organisms/home/what-we-do";
 import { WhyChoose } from "@/components/organisms/home/why-choose";
 import { BrandGateway } from "@/components/organisms/brand-gateway";
+import type { Metadata } from "next";
+
 import {
   getCertifications,
-  getMetrics,
+  getClients,
+  getExpertLine,
+  getProcessSteps,
   getSettings,
   getSite,
   getVisitableOffices,
+  withSeoOverrides,
 } from "@/lib/cms";
 import { organizationSchema } from "@/lib/cms/schema-org";
 import { JsonLd } from "@/components/atoms/json-ld";
 
+/**
+ * Home metadata.
+ *
+ * The base is the company identity the root layout already derives its own
+ * defaults from, so the two agree; the panel's `/` record overrides it. The
+ * title is spelled out rather than left to the layout's `%s` template, because
+ * the home page is the one page whose title is not "something — Sumago".
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+
+  return withSeoOverrides("/", {
+    title: `${settings.name} — ${settings.tagline}`,
+    description: settings.positioning,
+  });
+}
+
 export default async function HomePage() {
   /*
-   * `WhyChoose` and `TrustIndicators` are client components, so they cannot
-   * read the server-only CMS layer themselves. Fetched once here and passed
-   * down — both share the cached `/settings` response, so this is one request.
+   * `HomeHero` and `TrustIndicators` are client components, so they cannot read
+   * the server-only CMS layer themselves. Fetched once here and passed down —
+   * these share the cached `/settings` response, so this is one request.
    */
-  const [site, settings, metrics, certifications, offices] = await Promise.all([
-    getSite(),
-    getSettings(),
-    getMetrics(),
-    getCertifications(),
-    getVisitableOffices(),
-  ]);
+  const [site, settings, expertLine, certifications, offices, processSteps, clients] =
+    await Promise.all([
+      getSite(),
+      getSettings(),
+      getExpertLine(),
+      getCertifications(),
+      getVisitableOffices(),
+      getProcessSteps(),
+      getClients(),
+    ]);
 
   /*
    * The Organization block is emitted once, here, and referenced by @id from
@@ -60,7 +86,11 @@ export default async function HomePage() {
       {/* First-visit only, and layered over the homepage rather than replacing it —
           `/` still ships its full content to crawlers. See brand-gateway.tsx. */}
       <BrandGateway offices={offices} companyName={settings.name} />
-      <HomeHero tagline={settings.tagline} foundedYear={settings.foundedYear} />
+      <HomeHero
+        tagline={settings.tagline}
+        foundedYear={settings.foundedYear}
+        expertLine={expertLine}
+      />
       <AboutSection />
       {/* Scope before story: `ChallengesWeSolve` below is an 800vh pinned track,
           so a scanning first-time visitor would otherwise reach "what Sumago
@@ -72,13 +102,20 @@ export default async function HomePage() {
       {/* The hinge between audience and method: the grid above says who Sumago
           serves, `ProcessSection` below says how the work runs — this answers
           the question standing between them, "why this vendor?". */}
-      <WhyChoose metrics={metrics} />
-      <ProcessSection />
+      <WhyChoose />
+      <ProcessSection steps={processSteps} />
       <AiSdlc />
       <ImpactPreview />
-      <TrustIndicators certifications={certifications} />
+      <TrustIndicators certifications={certifications} clients={clients} />
       <CultureGallery />
       <Testimonials />
+      {/* The FAQ accordion existed, fully built, and was never placed on a page
+          — so the FAQs module had a table, a form and an endpoint that nothing
+          rendered. It sits after the testimonials because that is where the
+          remaining objections surface: social proof answers "can they?", this
+          answers "how would this actually work for me?". It disappears when
+          nothing is published. */}
+      <FaqSection />
       <BlogAndCareers />
     </>
   );

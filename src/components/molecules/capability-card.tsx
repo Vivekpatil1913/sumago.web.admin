@@ -1,26 +1,31 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CAPABILITY_ICONS, FALLBACK_CAPABILITY_ICON } from "@/lib/capability-icons";
-import { capabilityMeta } from "@/lib/content";
-import { cn, slugify } from "@/lib/utils";
+import type { ServiceRecord } from "@/lib/cms";
+import { cn } from "@/lib/utils";
 
 /**
  * A single capability card — name, blurb, "Learn more", and a large outline
  * watermark of the service's icon bleeding off the top-right corner.
- * Shared by the home capabilities grid and the Solutions index so both stay
- * visually identical and in sync. Copy comes from `capabilityMeta` (real).
+ * Shared by the home capabilities grid and the industry detail pages so both
+ * stay visually identical and in sync.
+ *
+ * Takes the service record rather than just its name. It used to take a name
+ * and look the rest up in a committed map keyed by slug — which meant a service
+ * published in the admin panel rendered a card with the right title, no blurb
+ * and a fallback icon, because the map had never heard of it.
+ *
  * `tone="dark"` adapts it for dark sections (silver title, translucent surface).
  */
 export function CapabilityCard({
-  name,
+  service,
   tone = "light",
 }: {
-  name: string;
+  service: Pick<ServiceRecord, "name" | "slug" | "icon" | "blurb">;
   tone?: "light" | "dark";
 }) {
-  const slug = slugify(name);
-  const meta = capabilityMeta[slug];
-  const Icon = CAPABILITY_ICONS[meta?.icon ?? ""] ?? FALLBACK_CAPABILITY_ICON;
+  const { name, slug, blurb } = service;
+  const Icon = CAPABILITY_ICONS[service.icon] ?? FALLBACK_CAPABILITY_ICON;
   const dark = tone === "dark";
 
   return (
@@ -69,7 +74,7 @@ export function CapabilityCard({
             dark ? "text-white/60" : "text-ink/60",
           )}
         >
-          {meta?.blurb}
+          {blurb}
         </p>
         <span
           className={cn(

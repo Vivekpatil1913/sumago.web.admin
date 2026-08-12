@@ -7,42 +7,58 @@ import { ChevronLeft, Download, Mail, Phone } from "lucide-react";
 import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatDateTime, humanise, statusTone } from "@/lib/admin/format";
-import { Badge, Button, ErrorState, Modal, Notice, Select, Spinner, Textarea } from "@/components/admin/ui";
-import type { RecordValue, SelectOption } from "@/lib/admin/types";
+import {
+  Badge,
+  Button,
+  ErrorState,
+  InfoTip,
+  Modal,
+  Notice,
+  Select,
+  Spinner,
+  Textarea,
+} from "@/components/admin/ui";
+import { HistoryTimeline, type HistoryEntry } from "@/components/admin/history-timeline";
+import type { RecordValue } from "@/lib/admin/types";
 
-interface HistoryEntry {
-  fromStatus: string | null;
-  toStatus: string;
-  changedAt: string;
-  changedByName: string | null;
+/**
+ * The hiring pipeline, in the order it is walked. An application moves forward
+ * through these: once it is at Interviewing, the stages behind it are closed,
+ * because "back to Reviewed" describes nothing that happens — the candidate was
+ * reviewed, and saying otherwise leaves a history that contradicts itself.
+ */
+const PIPELINE = ["new", "reviewed", "shortlisted", "interviewing", "offered", "hired"];
+
+/**
+ * Outcomes rather than stages. They can be reached from anywhere — a candidate
+ * may be rejected or paused at any point — and, because they sit outside the
+ * order, an application resting on one can be sent back to any stage. That is
+ * deliberate: On hold is the way to reopen something moved on too quickly.
+ */
+const OFF_PIPELINE = ["rejected", "on_hold"];
+
+const STATUSES = [...PIPELINE, ...OFF_PIPELINE];
+
+/** True when `status` sits behind `current` in the pipeline. */
+function isBehind(status: string, current: string): boolean {
+  const here = PIPELINE.indexOf(current);
+  if (here === -1) return false; // Rejected / On hold — reopening is allowed.
+  const target = PIPELINE.indexOf(status);
+  return target !== -1 && target < here;
 }
-
-const STATUSES = [
-  "new",
-  "reviewed",
-  "shortlisted",
-  "interviewing",
-  "offered",
-  "hired",
-  "rejected",
-  "on_hold",
-  "archived",
-];
 
 export default function ApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const { moduleByKey, loading, user, loadOptions } = useApp();
+  const { moduleByKey, loading } = useApp();
   const { notify } = useToast();
 
   const [record, setRecord] = useState<RecordValue | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [users, setUsers] = useState<SelectOption[]>([]);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [eraseOpen, setEraseOpen] = useState(false);
-  const [eraseConfirm, setEraseConfirm] = useState("");
-  const [eraseReason, setEraseReason] = useState("");
+  /** The stage picked in the dropdown, held until it is confirmed. */
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   const module = moduleByKey("applications");
 
@@ -51,7 +67,9 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
     try {
       const response = await api.get<RecordValue>(`${module.endpoint}/${id}`);
       setRecord(response.data);
-      setNotes(String(response.data["notes"] ?? ""));
+      // A composer, not a field — what was written already is on the timeline
+      // below, so the box starts empty and empties again after each save.
+      setNotes("");
 
       const historyResponse = await api.get<HistoryEntry[]>(`${module.endpoint}/${id}/history`);
       setHistory(historyResponse.data ?? []);
@@ -63,10 +81,6 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
   useEffect(() => {
     void load();
   }, [load]);
-
-  useEffect(() => {
-    void loadOptions("ref:users").then(setUsers);
-  }, [loadOptions]);
 
   if (loading) return <Spinner />;
   if (!module) return <ErrorState message="Your role does not have access to Applications." />;
@@ -86,6 +100,19 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
     }
   }
 
+  async function confirmStatus() {
+    if (!module || pendingStatus === null) return;
+    const next = pendingStatus;
+    setPendingStatus(null);
+    await act(
+      () => api.post(`${module.endpoint}/${id}/status`, { status: next }),
+      `Status changed to ${humanise(next)}.`,
+    );
+  }
+
+  const currentStatus = String(record["status"]);
+  const behindCount = STATUSES.filter((status) => isBehind(status, currentStatus)).length;
+
   async function downloadResume() {
     if (!module) return;
     try {
@@ -96,27 +123,10 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
     }
   }
 
-  async function erase() {
-    if (!module) return;
-    setBusy(true);
-    try {
-      await api.post(`${module.endpoint}/${id}/erase`, {
-        confirm: eraseConfirm,
-        reason: eraseReason,
-      });
-      notify("Record permanently erased and written to the Activity Log.");
-      window.location.href = "/admin/applications";
-    } catch (caught) {
-      notify(errorMessage(caught), "danger");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <div className="mx-auto max-w-5xl">
       <Link
-        href="/admin/applications"
+        href="/admin/jobs?tab=applications"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted hover:text-content"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -126,8 +136,12 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold text-content">{String(record["name"])}</h1>
+          <InfoTip label="About this application">
+            An application is a received record: it cannot be deleted, hidden or erased, and its
+            status is what moves as you work through it. The résumé is held in private storage —
+            every download is recorded in the Activity Log.
+          </InfoTip>
           <Badge tone={statusTone(record["status"])}>{humanise(record["status"])}</Badge>
-          {record["archived"] === true ? <Badge tone="neutral">Archived</Badge> : null}
         </div>
         <Button variant="primary" size="sm" icon={<Download className="h-3.5 w-3.5" />} onClick={() => void downloadResume()}>
           Download résumé
@@ -176,7 +190,9 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
               />
               <Detail label="Résumé file" value={String(record["resumeFilename"] ?? "—")} />
               <Detail label="Source" value={String(record["source"] ?? "—")} />
-              <Detail label="Consent given" value={record["consent"] ? "Yes" : "No"} />
+              {/* Consent is not shown in the panel any more. The apply form
+                  still requires it and still records it against the row — the
+                  legal record is intact, it is simply not displayed here. */}
             </dl>
 
             {record["coverNote"] ? (
@@ -187,52 +203,10 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
             ) : null}
           </section>
 
-          {/* --------------------------------------------- Internal notes */}
-          <section className="admin-card p-5">
-            <h2 className="mb-1 text-sm font-semibold text-content">Internal notes</h2>
-            <p className="mb-2 text-xs text-muted">Never shown to the applicant.</p>
-            <Textarea
-              rows={4}
-              value={notes}
-              disabled={!module.canWrite}
-              onChange={(event) => setNotes(event.target.value)}
-            />
-            {module.canWrite ? (
-              <Button
-                className="mt-2"
-                size="sm"
-                variant="secondary"
-                loading={busy}
-                onClick={() =>
-                  void act(() => api.patch(`${module.endpoint}/${id}`, { notes }), "Notes saved.")
-                }
-              >
-                Save notes
-              </Button>
-            ) : null}
-          </section>
-
           {/* ------------------------------------------------- Audit trail */}
           <section className="admin-card p-5">
             <h2 className="mb-3 text-sm font-semibold text-content">Status history</h2>
-            {history.length === 0 ? (
-              <p className="text-sm text-muted">No status changes recorded yet.</p>
-            ) : (
-              <ul className="space-y-2">
-                {history.map((entry, index) => (
-                  <li key={index} className="flex items-baseline gap-2 text-sm">
-                    <span className="text-content-soft">
-                      {entry.fromStatus ? `${humanise(entry.fromStatus)} → ` : ""}
-                      <span className="font-medium">{humanise(entry.toStatus)}</span>
-                    </span>
-                    <span className="text-xs text-muted">
-                      {formatDateTime(entry.changedAt)}
-                      {entry.changedByName ? ` · ${entry.changedByName}` : ""}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <HistoryTimeline entries={history} />
           </section>
         </div>
 
@@ -244,24 +218,59 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
             <label className="block text-xs font-medium text-content-soft" htmlFor="status">
               Status
             </label>
+            {/*
+              A status change is asked about before it is made. The select is
+              bound to the saved record, so choosing a stage only opens the
+              dialog — cancelling leaves the dropdown showing what the record
+              actually is, because nothing was written.
+            */}
             <Select
               id="status"
               className="mt-1"
-              value={String(record["status"])}
+              value={currentStatus}
               disabled={!module.canWrite || busy}
-              onChange={(event) =>
-                void act(
-                  () => api.post(`${module.endpoint}/${id}/status`, { status: event.target.value }),
-                  "Status updated.",
-                )
-              }
+              aria-describedby="status-help"
+              onChange={(event) => setPendingStatus(event.target.value)}
             >
-              {STATUSES.map((status) => (
-                <option key={status} value={status}>
-                  {humanise(status)}
-                </option>
-              ))}
+              {STATUSES.map((status) => {
+                const passed = isBehind(status, currentStatus);
+                return (
+                  <option
+                    key={status}
+                    value={status}
+                    disabled={passed}
+                    /*
+                     * Browsers vary on whether they show a tooltip over a
+                     * disabled option, so the reason is in the label as well —
+                     * the row has to explain itself even where the title never
+                     * appears.
+                     */
+                    title={
+                      passed
+                        ? `Already passed — this application is at ${humanise(currentStatus)} and only moves forward.`
+                        : undefined
+                    }
+                  >
+                    {humanise(status)}
+                    {passed ? " — passed" : ""}
+                  </option>
+                );
+              })}
             </Select>
+            <p id="status-help" className="mt-1.5 text-xs text-muted">
+              {behindCount > 0 ? (
+                <>
+                  An application only moves forward, so the {behindCount}{" "}
+                  {behindCount === 1 ? "stage" : "stages"} before{" "}
+                  <span className="font-medium text-content-soft">{humanise(currentStatus)}</span>{" "}
+                  cannot be chosen. Put it On hold to reopen the earlier ones.
+                </>
+              ) : PIPELINE.includes(currentStatus) ? (
+                "An application only moves forward — a stage cannot be chosen again once it is passed."
+              ) : (
+                `Every stage is open while an application is ${humanise(currentStatus)}.`
+              )}
+            </p>
 
             <label className="mt-4 block text-xs font-medium text-content-soft" htmlFor="rating">
               Rating
@@ -288,121 +297,68 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
                 </option>
               ))}
             </Select>
+          </section>
 
-            <label className="mt-4 block text-xs font-medium text-content-soft" htmlFor="assigned">
-              Assigned to
-            </label>
-            <Select
-              id="assigned"
-              className="mt-1"
-              value={String(record["assignedTo"] ?? "")}
-              disabled={!module.canWrite || busy}
-              onChange={(event) =>
-                void act(
-                  () =>
-                    api.post(`${module.endpoint}/${id}/assign`, {
-                      assignedTo: event.target.value || null,
-                    }),
-                  "Assignment updated.",
-                )
-              }
-            >
-              <option value="">Unassigned</option>
-              {users.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-
+          {/* --------------------------------------------- Internal notes */}
+          <section className="admin-card p-5">
+            <h2 className="mb-1 text-sm font-semibold text-content">Internal notes</h2>
+            <p className="mb-2 text-xs text-muted">
+              Never shown to the applicant. Each note is added to the history.
+            </p>
+            <Textarea
+              rows={4}
+              value={notes}
+              placeholder="Write a note…"
+              disabled={!module.canWrite}
+              onChange={(event) => setNotes(event.target.value)}
+            />
             {module.canWrite ? (
               <Button
-                className="mt-4 w-full"
-                variant="secondary"
+                className="mt-2"
                 size="sm"
+                variant="secondary"
                 loading={busy}
+                disabled={notes.trim() === ""}
                 onClick={() =>
                   void act(
-                    () =>
-                      api.post(
-                        `${module.endpoint}/${id}/${record["archived"] ? "restore" : "archive"}`,
-                      ),
-                    record["archived"] ? "Application restored." : "Application archived.",
+                    () => api.post(`${module.endpoint}/${id}/notes`, { note: notes }),
+                    "Notes saved.",
                   )
                 }
               >
-                {record["archived"] ? "Restore from archive" : "Archive"}
+                Save notes
               </Button>
             ) : null}
           </section>
-
-          {/* Admin-only erasure — PRD §4.6 */}
-          {user?.isAdmin ? (
-            <section className="rounded-lg bg-surface p-5 ring-1 ring-bad/30">
-              <h2 className="mb-1 text-sm font-semibold text-bad">Right to erasure</h2>
-              <p className="mb-3 text-xs text-muted">
-                Permanently destroys this record and the résumé file. Only for honouring a legal
-                deletion request. Written to the Activity Log.
-              </p>
-              <Button variant="danger" size="sm" className="w-full" onClick={() => setEraseOpen(true)}>
-                Erase permanently
-              </Button>
-            </section>
-          ) : null}
         </aside>
       </div>
 
       <Modal
-        open={eraseOpen}
-        onClose={() => setEraseOpen(false)}
-        title="Permanently erase this application?"
+        open={pendingStatus !== null}
+        onClose={() => setPendingStatus(null)}
+        title="Change this application's status?"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setEraseOpen(false)}>
+            <Button variant="ghost" onClick={() => setPendingStatus(null)}>
               Cancel
             </Button>
-            <Button
-              variant="danger"
-              loading={busy}
-              disabled={eraseConfirm !== String(record["name"]) || eraseReason.trim().length < 10}
-              onClick={() => void erase()}
-            >
-              Erase permanently
+            <Button variant="primary" loading={busy} onClick={() => void confirmStatus()}>
+              Change status
             </Button>
           </>
         }
       >
         <div className="space-y-3">
-          <Notice tone="danger">
-            This destroys the record and the résumé file. It cannot be undone or recovered from
-            backups after the retention window.
+          <p className="text-sm text-content-soft">
+            <span className="font-medium">{String(record["name"])}</span> moves from{" "}
+            <span className="font-semibold text-content">{humanise(record["status"])}</span> to{" "}
+            <span className="font-semibold text-content">{humanise(pendingStatus)}</span>.
+          </p>
+          <Notice tone="warn">
+            The change is written to the status history below and stamped with your name and the
+            time. Moving the application back afterwards does not remove that entry — the trail
+            keeps both steps.
           </Notice>
-
-          <div>
-            <label className="block text-sm font-medium text-content-soft" htmlFor="erase-confirm">
-              Type <span className="font-mono">{String(record["name"])}</span> to confirm
-            </label>
-            <input
-              id="erase-confirm"
-              value={eraseConfirm}
-              onChange={(event) => setEraseConfirm(event.target.value)}
-              className="mt-1 block w-full rounded-md border-0 px-3 py-2 text-sm ring-1 ring-inset ring-line-soft focus:ring-2 focus:ring-accent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-content-soft" htmlFor="erase-reason">
-              Reason (recorded in the Activity Log)
-            </label>
-            <Textarea
-              id="erase-reason"
-              rows={3}
-              value={eraseReason}
-              onChange={(event) => setEraseReason(event.target.value)}
-              placeholder="e.g. Applicant exercised their right to erasure on 30 July 2026."
-              className="mt-1"
-            />
-          </div>
         </div>
       </Modal>
     </div>

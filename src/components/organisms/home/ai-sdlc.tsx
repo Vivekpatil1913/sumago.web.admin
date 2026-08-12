@@ -12,22 +12,36 @@ const BOTTOM_ROW = toolIcons.slice(HALF);
 
 function Tile({ icon, hidden }: { icon: ToolIcon; hidden?: boolean }) {
   return (
+    /*
+      `role="img"` used to sit on this `<li>`, which replaced its listitem role
+      — and a `<ul>` whose children are not list items stops being a list to a
+      screen reader, which is what axe was reporting across the whole strip. The
+      element stays a list item; the accessible name moves onto the mark itself
+      below, where the picture actually is.
+    */
     <li
-      role={hidden ? undefined : "img"}
-      aria-label={hidden ? undefined : icon.title}
       aria-hidden={hidden || undefined}
       title={icon.title}
       className="grid h-[clamp(56px,6.2vw,84px)] w-[clamp(56px,6.2vw,84px)] shrink-0 place-items-center rounded-[24%] border border-white/12 bg-gradient-to-br from-white to-white/85 shadow-[0_18px_40px_-16px_rgba(0,0,0,0.7)] ring-1 ring-black/5 transition-transform duration-300 hover:scale-105"
     >
       {icon.path ? (
-        <svg viewBox="0 0 24 24" className="h-1/2 w-1/2" fill={`#${icon.hex}`} aria-hidden>
+        <svg
+          viewBox="0 0 24 24"
+          className="h-1/2 w-1/2"
+          fill={`#${icon.hex}`}
+          role={hidden ? undefined : "img"}
+          aria-label={hidden ? undefined : icon.title}
+          aria-hidden={hidden || undefined}
+        >
           <path d={icon.path} />
         </svg>
       ) : (
         <span
           className="text-xs sm:text-sm font-bold leading-none tracking-tight"
           style={{ color: `#${icon.hex}` }}
-          aria-hidden
+          role={hidden ? undefined : "img"}
+          aria-label={hidden ? undefined : icon.title}
+          aria-hidden={hidden || undefined}
         >
           {icon.text}
         </span>

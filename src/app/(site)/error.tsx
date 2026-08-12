@@ -66,7 +66,7 @@ export default function SiteError({
         </Link>
       </div>
 
-      <p className="mt-8 text-sm text-ink/55">
+      <p className="mt-8 text-sm text-ink/65">
         Need to reach someone?{" "}
         <Link
           href="/contact"
@@ -80,7 +80,7 @@ export default function SiteError({
       {/* The only identifier worth showing: it is what support would ask for,
           and it reveals nothing about the failure itself. */}
       {error.digest ? (
-        <p className="mt-6 font-mono text-xs text-ink/35">Reference: {error.digest}</p>
+        <p className="mt-6 font-mono text-xs text-ink/65">Reference: {error.digest}</p>
       ) : null}
     </section>
   );

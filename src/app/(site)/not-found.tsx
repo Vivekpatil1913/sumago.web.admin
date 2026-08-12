@@ -41,13 +41,13 @@ export default function NotFound() {
               className="flex h-full flex-col rounded-xl border border-line bg-paper p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/30"
             >
               <span className="text-sm font-semibold text-ink">{destination.label}</span>
-              <span className="mt-1 text-xs leading-relaxed text-ink/55">{destination.hint}</span>
+              <span className="mt-1 text-xs leading-relaxed text-ink/65">{destination.hint}</span>
             </Link>
           </li>
         ))}
       </ul>
 
-      <p className="mt-10 text-sm text-ink/55">
+      <p className="mt-10 text-sm text-ink/65">
         Still stuck?{" "}
         <Link
           href="/contact"

@@ -2,7 +2,9 @@ import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Eyebrow } from "@/components/atoms/eyebrow";
 import { CareersGrowth } from "@/components/organisms/careers-growth";
-import { cultureValues, type IconItem } from "@/lib/careers-content";
+import type { IconItem } from "@/lib/careers-content";
+import { getCultureValues, getGrowthOpportunities } from "@/lib/cms";
+import { CmsIcon } from "@/lib/icon-registry";
 
 /** Two-digit index used as the ghost numeral on both card styles. */
 const num = (i: number) => String(i + 1).padStart(2, "0");
@@ -12,7 +14,8 @@ const num = (i: number) => String(i + 1).padStart(2, "0");
  * hover, so the six values read as a deliberate list rather than a flat grid.
  */
 function PrincipleCard({ item, index }: { item: IconItem; index: number }) {
-  const { icon: Icon, title, description } = item;
+  // The icon arrives as a name — from the committed list or from the CMS.
+  const { title, description } = item;
   return (
     <article
       data-aos="fade-up"
@@ -33,7 +36,7 @@ function PrincipleCard({ item, index }: { item: IconItem; index: number }) {
       </span>
 
       <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand to-[#7a1519] text-white shadow-sm shadow-brand/25 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110">
-        <Icon size={20} aria-hidden />
+        <CmsIcon name={item.icon} size={20} aria-hidden />
       </span>
       <h3 className="mt-4 text-base font-bold leading-snug text-ink transition-colors group-hover:text-brand-ink">
         {title}
@@ -48,7 +51,17 @@ function PrincipleCard({ item, index }: { item: IconItem; index: number }) {
  * values, and growth opportunities — the latter as the interactive climb.
  * Sits between the hero and the open-roles board.
  */
-export function CareersCulture() {
+export async function CareersCulture() {
+  /*
+   * Both lists are CMS-driven. `CareersGrowth` below is a client component,
+   * so its opportunities are fetched here and handed down; the values render
+   * in place.
+   */
+  const [cultureValues, growthOpportunities] = await Promise.all([
+    getCultureValues(),
+    getGrowthOpportunities(),
+  ]);
+
   return (
     <>
       {/* Mission statement */}
@@ -92,7 +105,7 @@ export function CareersCulture() {
           }
           description="Real pathways, rewards, and support to grow — and step into leadership."
         />
-        <CareersGrowth />
+        <CareersGrowth opportunities={growthOpportunities} />
       </Section>
     </>
   );

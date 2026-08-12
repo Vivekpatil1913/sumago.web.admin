@@ -16,8 +16,6 @@ type PageHeroProps = {
   variant?: HeroVariant;
   /** Optional 3D star formation layered over the backdrop (one per main page). */
   formation?: StarFormation;
-  /** Scale the brand-red backdrop (1 = full; lower = subtler, near-neutral). */
-  redOpacity?: number;
   /** Ambient drifting specks in the backdrop. Set false for a clean, dot-free hero. */
   particles?: boolean;
   /** Override the headline's width/size (tailwind-merge wins over the defaults) —
@@ -33,7 +31,7 @@ type PageHeroProps = {
  * scroll cue) while each page supplies a different animated effect via
  * `variant`. Covers the viewport; the page content scrolls up beneath it.
  */
-export function PageHero({ eyebrow, title, description, variant = "aurora", formation, redOpacity = 1, particles = true, titleClassName, children }: PageHeroProps) {
+export function PageHero({ eyebrow, title, description, variant = "aurora", formation, particles = true, titleClassName, children }: PageHeroProps) {
   const reduce = useReducedMotion();
 
   const container: Variants = {
@@ -52,7 +50,7 @@ export function PageHero({ eyebrow, title, description, variant = "aurora", form
 
   return (
     <section className="relative isolate overflow-hidden bg-[#0a0708] text-white">
-      <HeroEffect variant={variant} redOpacity={redOpacity} particles={particles} />
+      <HeroEffect variant={variant} particles={particles} />
       {formation ? <HeroStars formation={formation} /> : null}
 
       <motion.div

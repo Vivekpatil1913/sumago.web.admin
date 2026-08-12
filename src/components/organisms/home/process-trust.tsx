@@ -23,7 +23,7 @@ import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Reveal } from "@/components/motion/reveal";
 
-import { processSteps, clientNames, clientLogos } from "@/lib/content";
+import type { ClientRecord, ProcessStepRecord } from "@/lib/cms";
 
 const PROCESS_ICONS: Record<string, LucideIcon> = {
   Search, Route, Blocks, PenTool, Code2, ShieldCheck, Rocket, GraduationCap, TrendingUp,
@@ -72,7 +72,7 @@ function rgba(hex: string, a: number) {
 
 type Stop =
   | { kind: "start" | "end"; label: string; Icon: LucideIcon }
-  | { kind: "step"; step: (typeof processSteps)[number]; num: number };
+  | { kind: "step"; step: ProcessStepRecord; num: number };
 
 /** Fill of a lit node — the brushed metallic red, shared by both layouts. */
 const NODE_FILL =
@@ -372,10 +372,16 @@ function RoadTimeline({ stops }: { stops: Stop[] }) {
  * The transparent engagement path — every stop on one straight road, in a
  * single static frame. A progress front lights the stages one-by-one, on loop.
  */
-export function ProcessSection() {
+/**
+ * The transparent engagement path.
+ *
+ * A client component, so the published steps arrive as a prop rather than
+ * being read here — the server page that renders it does the fetching.
+ */
+export function ProcessSection({ steps }: { steps: ProcessStepRecord[] }) {
   const stops: Stop[] = [
     { kind: "start", label: "Your journey starts here", Icon: Flag },
-    ...processSteps.map((step, i) => ({ kind: "step" as const, step, num: i + 1 })),
+    ...steps.map((step, i) => ({ kind: "step" as const, step, num: i + 1 })),
     { kind: "end", label: "Live, supported & evolving", Icon: Sparkles },
   ];
 
@@ -404,13 +410,12 @@ export function ProcessSection() {
 const CLIENT_STRIP_MASK =
   "relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]";
 
-/** Split the roster into two strips so they can scroll in opposite directions. */
-const clientRowA = clientLogos.filter((_, i) => i % 2 === 0);
-const clientRowB = clientLogos.filter((_, i) => i % 2 === 1);
 
 /**
- * One client mark on the marquee. The marks are full-colour on a dark band, so
- * each sits on a light plate rather than fighting the blueprint background.
+ * One client mark on the marquee — set directly on the band, no plate. Marks
+ * are normalised on height rather than boxed, so a wide wordmark and a square
+ * crest read at the same optical weight; `max-w` stops the widest wordmarks
+ * from running away with the row.
  *
  * Alt text is empty by design: the strip duplicates itself for the seamless
  * scroll, so announcing every mark would read the roster twice. The complete
@@ -418,17 +423,14 @@ const clientRowB = clientLogos.filter((_, i) => i % 2 === 1);
  */
 function ClientLogo({ name, logo }: { name: string; logo: string }) {
   return (
-    <span
-      title={name}
-      className="mx-2 flex h-16 w-32 shrink-0 items-center justify-center rounded-xl border border-white/12 bg-white/92 p-1.5 backdrop-blur-sm sm:h-[4.5rem] sm:w-36 sm:p-2"
-    >
+    <span title={name} className="mx-5 flex h-14 shrink-0 items-center sm:mx-7 sm:h-16">
       <Image
         src={logo}
         alt=""
-        width={144}
-        height={72}
-        sizes="144px"
-        className="max-h-full w-auto max-w-full object-contain"
+        width={176}
+        height={64}
+        sizes="176px"
+        className="h-full w-auto max-w-[8.5rem] object-contain sm:max-w-[11rem]"
       />
     </span>
   );
@@ -440,7 +442,20 @@ function ClientLogo({ name, logo }: { name: string; logo: string }) {
  * client component, and the CMS layer is server-only. The page fetches them
  * once and passes them down.
  */
-export function TrustIndicators({ certifications }: { certifications: string[] }) {
+export function TrustIndicators({
+  certifications,
+  clients,
+}: {
+  certifications: string[];
+  /** Every published client; those with a mark drive the marquee. */
+  clients: ClientRecord[];
+}) {
+  /* Split the roster into two strips so they scroll in opposite directions.
+     Only clients with a mark can appear on a logo band — a name without one
+     would be an empty slot in the scroll. */
+  const withLogos = clients.filter((client) => client.logo);
+  const clientRowA = withLogos.filter((_, i) => i % 2 === 0);
+  const clientRowB = withLogos.filter((_, i) => i % 2 === 1);
   return (
     <section className="relative overflow-hidden bg-blueprint text-white">
       <div className="container-page py-16 md:py-22">
@@ -476,12 +491,12 @@ export function TrustIndicators({ certifications }: { certifications: string[] }
           <p className="text-sm font-medium uppercase tracking-wider text-white/45">
             Trusted by 50+ government, 500+ domestic &amp; 60+ international clients
           </p>
-          <div className="mt-8 flex flex-col gap-4" aria-hidden>
+          <div className="mt-8 flex flex-col gap-14 sm:gap-20" aria-hidden>
             {/* Row 1 → scrolls left */}
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite]">
                 {[...clientRowA, ...clientRowA].map((c, i) => (
-                  <ClientLogo key={`a-${c.name}-${i}`} name={c.name} logo={c.logo} />
+                  <ClientLogo key={`a-${c.id}-${i}`} name={c.name} logo={c.logo!} />
                 ))}
               </div>
             </div>
@@ -489,13 +504,15 @@ export function TrustIndicators({ certifications }: { certifications: string[] }
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite_reverse]">
                 {[...clientRowB, ...clientRowB].map((c, i) => (
-                  <ClientLogo key={`b-${c.name}-${i}`} name={c.name} logo={c.logo} />
+                  <ClientLogo key={`b-${c.id}-${i}`} name={c.name} logo={c.logo!} />
                 ))}
               </div>
             </div>
           </div>
           {/* The roster once, in text, for anyone who can't read the marks. */}
-          <p className="sr-only">Clients include {clientNames.join(", ")}.</p>
+          <p className="sr-only">
+            Clients include {clients.map((client) => client.name).join(", ")}.
+          </p>
         </Reveal>
       </div>
     </section>

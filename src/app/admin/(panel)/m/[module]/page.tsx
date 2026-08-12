@@ -7,7 +7,8 @@ import { Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { DataTable, type RowAction } from "@/components/admin/data-table";
-import { Button, ErrorState, Modal, Notice, Spinner } from "@/components/admin/ui";
+import { moduleHref } from "@/components/admin/sidebar";
+import { Button, ErrorState, InfoTip, Modal, Notice, Spinner } from "@/components/admin/ui";
 import type { RecordValue } from "@/lib/admin/types";
 
 export default function ModuleListPage({ params }: { params: Promise<{ module: string }> }) {
@@ -34,6 +35,18 @@ export default function ModuleListPage({ params }: { params: Promise<{ module: s
   // Singletons (General Settings, Navigation) go straight to their editor.
   if (module.singleton) {
     router.replace(`/admin/m/${module.key}/edit`);
+    return <Spinner />;
+  }
+
+  /*
+   * A module with a screen of its own is served by that screen, never by this
+   * one — Jobs reached through /m/jobs would otherwise be a second, plainer
+   * Jobs list with no Applications tab. Record forms are unaffected: they live
+   * at /m/<key>/<id> and are shared by every module.
+   */
+  const dedicated = moduleHref(module);
+  if (dedicated !== `/admin/m/${module.key}`) {
+    router.replace(dedicated);
     return <Spinner />;
   }
 
@@ -96,23 +109,30 @@ export default function ModuleListPage({ params }: { params: Promise<{ module: s
     });
   }
 
-  const bulkActions = module.canWrite && !showTrash
-    ? [
-        ...(module.hasStatus
-          ? [
-              { label: "Publish", action: "status", status: "published" },
-              { label: "Move to draft", action: "status", status: "draft" },
-            ]
-          : []),
-        ...(module.canDelete ? [{ label: "Delete", action: "delete", tone: "danger" as const }] : []),
-      ]
+  // No bulk Publish / Move to draft: saving publishes, and the Active switch
+  // in each row is the one control that decides what the website shows.
+  const bulkActions = module.canWrite && !showTrash && module.canDelete
+    ? [{ label: "Delete", action: "delete", tone: "danger" as const }]
     : undefined;
 
   return (
     <div className="mx-auto max-w-7xl">
       <header className="mb-5">
-        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <h1 className="text-xl font-semibold text-content">{module.label}</h1>
+          <InfoTip label={`About ${module.label}`}>
+            {module.hasStatus ? (
+              <>
+                Saving publishes: a new {module.singular.toLowerCase()} is on the website as soon as
+                you save it. The switch in each row is what takes one back off — there is no
+                separate publish step to remember.{" "}
+              </>
+            ) : null}
+            Deleting is never destructive: a deleted {module.singular.toLowerCase()} moves to the
+            Trash tab, where restoring it brings it back exactly as it was, with its links and
+            history intact. A record still in use elsewhere cannot be deleted until those links are
+            removed.
+          </InfoTip>
           <span className="text-xs text-muted">PRD Module {module.prdModule}</span>
         </div>
         {module.description ? (
@@ -140,15 +160,6 @@ export default function ModuleListPage({ params }: { params: Promise<{ module: s
           ))}
         </div>
       </header>
-
-      {showTrash ? (
-        <div className="mb-4">
-          <Notice tone="info">
-            Deleted records are kept, not destroyed. Restore one to bring it back exactly as it was,
-            with its links and history intact.
-          </Notice>
-        </div>
-      ) : null}
 
       <DataTable
         key={showTrash ? "trash" : "live"}

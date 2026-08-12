@@ -3,14 +3,25 @@
 Implementation of [`Admin Sumago Website PRD.pdf`](Admin%20Sumago%20Website%20PRD.pdf) v1.1 — all 25 modules,
 plus the contact-and-presence split described below.
 
-**Module 13 is five screens, not one.** Phone numbers, email addresses, office
-addresses and social links were `jsonb` and `text[]` columns inside General
-Settings; each is now its own table and module. The reason is that a blob has no
-per-row state: an editor could not take one number off the site, order the
-offices, see who changed a link, or stop a placeholder URL being published. The
-tables give each entry its own Draft/Published status, active switch, sort
-order, audit trail and validation — and the database enforces one headquarters,
-one primary number, one primary address, and no `#` social links.
+**Module 13 is four screens, and General Settings is not one of them.** Phone
+numbers, email addresses, office addresses and social links were `jsonb` and
+`text[]` columns inside General Settings; each is now its own table and module.
+The reason is that a blob has no per-row state: an editor could not take one
+number off the site, order the offices, see who changed a link, or stop a
+placeholder URL being published. The tables give each entry its own
+Draft/Published status, active switch, sort order, audit trail and validation —
+and the database enforces one headquarters, one primary number, one primary
+address, and no `#` social links.
+
+**General Settings itself was removed at the client's request.** Company
+identity — registered name, short name, tagline, positioning, founding year,
+logo, the verified metrics and the certifications — is now static on the
+website, in [`src/lib/site.ts`](src/lib/site.ts) via `SITE_SETTINGS` in
+[`src/lib/cms/index.ts`](src/lib/cms/index.ts), which defers to
+[`COMPANY-PROFILE.md`](COMPANY-PROFILE.md). Changing "700+ projects" is a
+repository change with a review behind it rather than a form anyone can edit.
+The `settings` table still exists and still holds its last row; nothing reads
+it, and `/api/public/settings` no longer serves it.
 
 `npm run migrate` moves any existing blob contents into the new tables and then
 drops the columns, so the two copies can never drift.
@@ -129,18 +140,31 @@ Nothing here assumes local disk or a local database beyond `.env` in the backend
 
 ```bash
 cd ../sumago-website-backend
-TEST_DATABASE_URL=... npm test     # or set DATABASE_URL to a throwaway database
+npm test
 ```
 
-The suite drops and rebuilds the schema, so point it at a database you are happy
-to destroy — never your development or production one.
+The suite drops and rebuilds the schema, so it runs against `TEST_DATABASE_URL`
+— **never** `DATABASE_URL`. Two guards enforce that, because getting it wrong
+destroys your development data:
+
+- `TEST_DATABASE_URL` unset is an error, not a fall back to `DATABASE_URL`
+  ([`env.ts`](../sumago-website-backend/src/config/env.ts)).
+- The harness re-checks `current_database()` before the first `DROP` and refuses
+  any name not ending in `_test`
+  ([`helpers.ts`](../sumago-website-backend/tests/helpers.ts)).
+
+`.env` already points it at `sumago_admin_test`. Create that database once:
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -U postgres sumago_admin_test
+```
 
 It covers, per PRD section: authentication and lockout (Module 23), role-based
 access for all five roles (§2), full CRUD + search + filter + sort + pagination +
 export + duplicate + publish + version-restore + delete for every content module
-(§4.2), field validation (§6), the featured cap (Module 1), consent gates
+(§4.2), field validation (§6), the featured cap (Module 1), publish-on-save
 (Modules 3 & 5), delete guards (Modules 14, 18, 20), both public forms and both
-inboxes including archive/erase (Modules 19 & 21), media upload rules (§4.4),
+inboxes (Modules 19 & 21), media upload rules (§4.4),
 user-management rules (Module 22), the activity log (Module 25) and the
 role-scoped dashboard (§5).
 
@@ -154,7 +178,7 @@ write them. From that single declaration comes:
 
 - the **server-side validation** on every write,
 - the **generic CRUD routes** ([`resource.routes.ts`](../sumago-website-backend/src/routes/resource.routes.ts)) mounted once per module,
-- **CSV export**, bulk actions, duplicate and version history,
+- **Excel and PDF export** of the currently filtered set, bulk actions, duplicate and version history,
 - and the **entire admin UI** — the panel fetches the registry from `GET /api/schema`
   and renders every table and form from it, which is why 25 modules need only
   three page files ([`src/app/admin/(panel)/m/[module]/`](src/app/admin/)).
@@ -184,12 +208,13 @@ failures are logged in full server-side and replaced with a generic message.
 
 | Rule | PRD | Where |
 | --- | --- | --- |
-| Received records can never be deleted — archive instead | §4.6 | [`inbox.routes.ts`](../sumago-website-backend/src/routes/inbox.routes.ts) |
-| Admin-only erasure needs a typed confirmation + reason | §4.6 | same |
+| Received records can never be deleted, hidden or erased — the status closes one, and it stays on the list and in reporting. Assignment, archive/restore and the right-to-erasure control were all removed at the client's request, panel and API alike | §4.6 | [`inbox.routes.ts`](../sumago-website-backend/src/routes/inbox.routes.ts) |
 | Résumés live in private storage behind 15-minute signed links | M19 | [`storage.ts`](../sumago-website-backend/src/lib/storage.ts) |
 | Retention purge deletes old applications (Hired exempt) | M19 | [`scheduler.ts`](../sumago-website-backend/src/jobs/scheduler.ts) |
 | Max 6 featured services | M1 | [`rules.ts`](../sumago-website-backend/src/services/rules.ts) |
-| Publishing blocked without client/testimonial consent | M3, M5 | [`validate.ts`](../sumago-website-backend/src/lib/validate.ts) |
+| Saving publishes: Status is set on the record, not asked on the form | M24 | [`registry.ts`](../sumago-website-backend/src/modules/registry.ts) |
+| Consent was removed from Success Stories and Testimonials — it stopped gating publishing when approval moved off-panel, so the field recorded an answer nothing acted on | M3, M5 | [`content.ts`](../sumago-website-backend/src/modules/content.ts) |
+| Client logo consent stays, and still decides it: without it the site shows the client's name as text, never the logo | M6 | [`content.ts`](../sumago-website-backend/src/modules/content.ts) |
 | Slug change on a published record warns first | M1 | [`rules.ts`](../sumago-website-backend/src/services/rules.ts) |
 | Deleting a job with applications is blocked — Close instead | M18 | [`rules.ts`](../sumago-website-backend/src/services/rules.ts) |
 | Deleting an in-use media asset is blocked, showing where | M14 | [`rules.ts`](../sumago-website-backend/src/services/rules.ts) |

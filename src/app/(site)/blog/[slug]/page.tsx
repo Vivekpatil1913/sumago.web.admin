@@ -6,8 +6,9 @@ import { Section } from "@/components/atoms/section";
 import { Eyebrow } from "@/components/atoms/eyebrow";
 import { Button } from "@/components/atoms/button";
 import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
-import { getBlogPost, getBlogPosts } from "@/lib/cms";
-import { formatDate, toParagraphs } from "@/lib/cms/format";
+import { canonicalFor, getBlogPost, getBlogPosts } from "@/lib/cms";
+import { formatDate } from "@/lib/cms/format";
+import { MarkdownBody } from "@/lib/markdown";
 import { articleSchema, breadcrumbSchema } from "@/lib/cms/schema-org";
 import { JsonLd } from "@/components/atoms/json-ld";
 
@@ -29,7 +30,7 @@ export async function generateMetadata({
   return {
     title: post.metaTitle ?? post.title,
     description: post.metaDescription ?? post.excerpt,
-    ...(post.canonicalUrl ? { alternates: { canonical: post.canonicalUrl } } : {}),
+    alternates: canonicalFor(`/blog/${slug}`, post.canonicalUrl),
     ...(post.noIndex ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       type: "article",
@@ -56,8 +57,6 @@ export default async function BlogPostPage({
   const post = await getBlogPost(slug);
   if (!post) notFound();
 
-  const paragraphs = toParagraphs(post.body);
-
   /*
    * "Keep reading" prefers posts sharing a tag, then falls back to the newest.
    * Related-by-topic beats related-by-recency for someone who has just read to
@@ -81,8 +80,8 @@ export default async function BlogPostPage({
       {/* Article header — compact dark band (matches the site's hero language). */}
       <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(60%_70%_at_50%_0%,rgba(215,52,56,0.18),transparent_70%)]" />
-          <div className="fx-red-aurora absolute inset-0" />
+          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_35%,rgba(255,255,255,0.05),transparent_70%)]" />
+          <div className="fx-hero-aurora absolute inset-0" />
           <div className="fx-dots absolute inset-0" />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0a0708] to-transparent" />
         </div>
@@ -97,11 +96,11 @@ export default async function BlogPostPage({
           <div className="mt-8 max-w-3xl">
             <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-brand-bright">
               <span>{post.category}</span>
-              <span className="text-white/30">·</span>
+              <span className="text-white/70">·</span>
               <span className="text-white/50">{formatDate(post.date)}</span>
               {post.readingTime && (
                 <>
-                  <span className="text-white/30">·</span>
+                  <span className="text-white/70">·</span>
                   <span className="text-white/50">{post.readingTime}</span>
                 </>
               )}
@@ -133,13 +132,9 @@ export default async function BlogPostPage({
 
       <Section>
         <div className="mx-auto max-w-3xl">
-          <MediaPlaceholder src={post.cover} alt={post.title} ratio="16/9" />
-          <div className="mt-10 space-y-6">
-            {paragraphs.map((para, i) => (
-              <p key={i} className="text-lg leading-relaxed text-ink/80">
-                {para}
-              </p>
-            ))}
+          <MediaPlaceholder src={post.cover} alt={post.title} ratio="16/9" priority />
+          <div className="mt-10">
+            <MarkdownBody body={post.body} />
           </div>
 
           <div className="mt-12 rounded-2xl border border-line bg-mist p-8 text-center">
@@ -192,7 +187,7 @@ export default async function BlogPostPage({
                   <h3 className="mt-2 text-lg font-semibold leading-snug text-ink transition-colors group-hover:text-brand-ink">
                     {p.title}
                   </h3>
-                  <span className="mt-auto pt-4 text-xs font-medium text-ink/45">
+                  <span className="mt-auto pt-4 text-xs font-medium text-ink/65">
                     {formatDate(p.date)}
                   </span>
                 </div>

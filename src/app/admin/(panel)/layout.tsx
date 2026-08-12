@@ -70,7 +70,13 @@ function Shell({ children }: { children: React.ReactNode }) {
           onOpenMobile={() => setMobileOpen(true)}
         />
 
-        <main id="main" className="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        {/*
+          `py-5`, not `py-7`: the topbar already separates the content from the
+          top of the window, so a tall gap under it was doubling a job that was
+          done. The horizontal padding stays — that one is holding the content
+          off the rail.
+        */}
+        <main id="main" className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-9">
           {children}
         </main>
       </div>

@@ -1,8 +1,9 @@
 "use client";
 
 /**
- * Generic edit screen, plus the Module 24 workflow controls: publish /
- * unpublish, preview, and version history with restore.
+ * Generic edit screen, plus the Module 24 controls that remain: preview and
+ * version history with restore. Publish and unpublish are gone — saving
+ * publishes, and the Active switch is what hides a record.
  */
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatDateTime } from "@/lib/admin/format";
 import { RecordForm } from "@/components/admin/record-form";
-import { Badge, Button, ErrorState, Modal, Spinner } from "@/components/admin/ui";
+import { Button, ErrorState, InfoTip, Modal, Spinner } from "@/components/admin/ui";
 import type { RecordValue } from "@/lib/admin/types";
 
 interface Version {
@@ -76,21 +77,6 @@ export default function EditRecordPage({
   if (!module) return <ErrorState message={`No module called "${moduleKey}".`} />;
 
   const listHref = `/admin/m/${module.key}`;
-  const status = record?.["status"];
-
-  async function setStatus(next: "publish" | "unpublish") {
-    if (!module) return;
-    setBusy(true);
-    try {
-      await api.post(`${module.endpoint}/${id}/${next}`);
-      notify(next === "publish" ? `${module.singular} published.` : `${module.singular} moved to draft.`);
-      setReloadKey((key) => key + 1);
-    } catch (caught) {
-      notify(errorMessage(caught), "danger");
-    } finally {
-      setBusy(false);
-    }
-  }
 
   async function openVersions() {
     if (!module) return;
@@ -135,22 +121,34 @@ export default function EditRecordPage({
       </Link>
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold text-content">
             {isSingleton
               ? module.label
               : String(record?.[module.identity] ?? `Edit ${module.singular.toLowerCase()}`)}
           </h1>
-          {status ? (
-            <Badge tone={status === "published" ? "ok" : "info"}>
-              {status === "published" ? "Published" : "Draft"}
-            </Badge>
-          ) : null}
+          <InfoTip label={`About editing this ${module.singular.toLowerCase()}`}>
+            Nothing leaves this screen until you save.{" "}
+            {module.hasStatus ? (
+              <>
+                Saving publishes: the record is on the website as soon as you save it. To take it
+                back off without deleting it, turn off the switch in its row on the list.{" "}
+              </>
+            ) : null}
+            {!isSingleton ? "Every save is versioned: History restores an earlier one. " : null}
+            Fields marked with a red asterisk are required.
+          </InfoTip>
+          {/*
+            No Draft/Published badge. Every saved record is published, so the
+            badge said the same word on every screen — and a label that never
+            varies is one more thing to read and nothing to learn from. Whether
+            a record is on the site is the Active switch, shown in its row.
+          */}
         </div>
 
         {!isSingleton ? (
           <div className="flex items-center gap-2">
-            {preview && status === "published" ? (
+            {preview ? (
               <a
                 href={preview}
                 target="_blank"
@@ -171,17 +169,11 @@ export default function EditRecordPage({
               History
             </Button>
 
-            {module.hasStatus && module.canWrite ? (
-              status === "published" ? (
-                <Button variant="secondary" size="sm" loading={busy} onClick={() => void setStatus("unpublish")}>
-                  Unpublish
-                </Button>
-              ) : (
-                <Button variant="primary" size="sm" loading={busy} onClick={() => void setStatus("publish")}>
-                  Publish
-                </Button>
-              )
-            ) : null}
+            {/*
+              No Publish or Unpublish button. Saving publishes, and the Active
+              switch on the list row is what takes a record off the site —
+              one visibility control instead of two that had to agree.
+            */}
           </div>
         ) : null}
       </div>

@@ -6,12 +6,24 @@ import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
 import { OpenPositions } from "@/components/organisms/open-positions";
 import { CareersCulture } from "@/components/organisms/careers-culture";
-import { getEmailFor, getJobs } from "@/lib/cms";
+import { getEmailFor, getJobs, withSeoOverrides } from "@/lib/cms";
 
-export const metadata: Metadata = { title: "Life at Sumago" };
+/**
+ * Metadata for /careers, with the panel's SEO record layered on top.
+ *
+ * The base below is what the page ships with; anything published for this
+ * path in SEO Metadata overrides it field by field. No record means the
+ * base stands unchanged — never an empty title.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return withSeoOverrides("/careers", { title: "Life at Sumago" });
+}
 
 export default async function CareersPage() {
-  const [jobs, careersEmail] = await Promise.all([getJobs(), getEmailFor("careers")]);
+  const [jobs, careersEmail] = await Promise.all([
+    getJobs(),
+    getEmailFor("careers"),
+  ]);
 
   return (
     <>
@@ -19,14 +31,23 @@ export default async function CareersPage() {
         variant="grid"
         formation="helix"
         eyebrow="Careers"
-        title={<>Build a standout career inside <span className="text-metal-red">Sumago</span>.</>}
+        title={
+          <>
+            Build a standout career inside{" "}
+            <span className="text-metal-red-shine">Sumago</span>.
+          </>
+        }
         description="Join Sumago's 70+ multidisciplinary team — learn constantly, take real ownership, and ship work that makes a measurable business difference."
       />
       <CareersCulture />
       <Section muted>
         <SectionHeading
           eyebrow="Open roles"
-          title={<>Find <span className="text-metal-red">where you fit</span>.</>}
+          title={
+            <>
+              Find <span className="text-metal-red">where you fit</span>.
+            </>
+          }
           description="Explore current openings across our teams. Filter by team, then apply in a click."
         />
         <div className="mt-12">

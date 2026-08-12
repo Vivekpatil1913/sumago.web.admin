@@ -161,10 +161,26 @@
      colour glows echoing the per-stage palette (indigo → cyan → emerald → amber). */
   .bg-journey {
     background:
-      radial-gradient(55% 42% at 12% 4%, rgba(99, 102, 241, 0.07), transparent 60%),
-      radial-gradient(50% 42% at 88% 8%, rgba(6, 182, 212, 0.07), transparent 60%),
-      radial-gradient(52% 48% at 78% 100%, rgba(16, 185, 129, 0.07), transparent 62%),
-      radial-gradient(46% 46% at 22% 100%, rgba(245, 158, 11, 0.06), transparent 62%),
+      radial-gradient(
+        55% 42% at 12% 4%,
+        rgba(99, 102, 241, 0.07),
+        transparent 60%
+      ),
+      radial-gradient(
+        50% 42% at 88% 8%,
+        rgba(6, 182, 212, 0.07),
+        transparent 60%
+      ),
+      radial-gradient(
+        52% 48% at 78% 100%,
+        rgba(16, 185, 129, 0.07),
+        transparent 62%
+      ),
+      radial-gradient(
+        46% 46% at 22% 100%,
+        rgba(245, 158, 11, 0.06),
+        transparent 62%
+      ),
       linear-gradient(180deg, #f8f9fc 0%, #eef1f6 100%);
   }
 
@@ -274,7 +290,13 @@
         rgba(255, 255, 255, 0.85) 59%,
         transparent 72%
       ),
-      linear-gradient(180deg, #f3f5f9 0%, #cdd2dc 40%, #9ca3b1 66%, #e4e7ee 100%);
+      linear-gradient(
+        180deg,
+        #f3f5f9 0%,
+        #cdd2dc 40%,
+        #9ca3b1 66%,
+        #e4e7ee 100%
+      );
     background-size:
       200% 100%,
       100% 100%;
@@ -326,7 +348,11 @@
         transparent 1px,
         transparent 11px
       ),
-      radial-gradient(circle at 1px 1px, rgba(26, 26, 26, 0.1) 1px, transparent 0);
+      radial-gradient(
+        circle at 1px 1px,
+        rgba(26, 26, 26, 0.1) 1px,
+        transparent 0
+      );
     background-size:
       auto,
       20px 20px;
@@ -346,9 +372,21 @@
      grid (reads as engineering rigor) over near-black, with soft brand glows. */
   .bg-blueprint {
     background:
-      radial-gradient(46% 60% at 50% -10%, rgba(215, 52, 56, 0.22), transparent 60%),
-      radial-gradient(40% 55% at 0% 100%, rgba(120, 20, 26, 0.18), transparent 62%),
-      radial-gradient(40% 55% at 100% 100%, rgba(30, 131, 240, 0.1), transparent 62%),
+      radial-gradient(
+        46% 60% at 50% -10%,
+        rgba(215, 52, 56, 0.22),
+        transparent 60%
+      ),
+      radial-gradient(
+        40% 55% at 0% 100%,
+        rgba(120, 20, 26, 0.18),
+        transparent 62%
+      ),
+      radial-gradient(
+        40% 55% at 100% 100%,
+        rgba(30, 131, 240, 0.1),
+        transparent 62%
+      ),
       linear-gradient(180deg, #0c0a0b 0%, #0a0708 100%);
   }
   .bg-blueprint::before {
@@ -360,8 +398,16 @@
       linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
     background-size: 56px 56px;
-    -webkit-mask-image: radial-gradient(ellipse 75% 70% at center, #000 30%, transparent 78%);
-    mask-image: radial-gradient(ellipse 75% 70% at center, #000 30%, transparent 78%);
+    -webkit-mask-image: radial-gradient(
+      ellipse 75% 70% at center,
+      #000 30%,
+      transparent 78%
+    );
+    mask-image: radial-gradient(
+      ellipse 75% 70% at center,
+      #000 30%,
+      transparent 78%
+    );
   }
 
   /* "Drafting paper" — the light counterpart to .bg-blueprint, for the
@@ -370,11 +416,26 @@
      on it never fight a line. Requires `relative`/`isolate` on the element. */
   .bg-drafting {
     background:
-      radial-gradient(48% 55% at 50% -8%, rgba(215, 52, 56, 0.08), transparent 62%),
-      radial-gradient(38% 45% at 100% 100%, rgba(30, 131, 240, 0.05), transparent 65%),
+      radial-gradient(
+        48% 55% at 50% -8%,
+        rgba(215, 52, 56, 0.08),
+        transparent 62%
+      ),
+      radial-gradient(
+        38% 45% at 100% 100%,
+        rgba(30, 131, 240, 0.05),
+        transparent 65%
+      ),
       linear-gradient(180deg, #fbfbfc 0%, #f1f1f4 100%);
   }
-  .bg-drafting::before {
+  /* Same paper and grid, minus the warm bloom at the top edge — for bands
+     whose own content already carries the brand colour, where the wash reads
+     as a pink tint behind the heading rather than as light. */
+  .bg-drafting-neutral {
+    background: linear-gradient(180deg, #fbfbfc 0%, #f1f1f4 100%);
+  }
+  .bg-drafting::before,
+  .bg-drafting-neutral::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -383,17 +444,41 @@
       linear-gradient(to right, rgba(26, 26, 26, 0.05) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(26, 26, 26, 0.05) 1px, transparent 1px);
     background-size: 44px 44px;
-    -webkit-mask-image: radial-gradient(ellipse 80% 75% at center, #000 22%, transparent 82%);
-    mask-image: radial-gradient(ellipse 80% 75% at center, #000 22%, transparent 82%);
+    -webkit-mask-image: radial-gradient(
+      ellipse 80% 75% at center,
+      #000 22%,
+      transparent 82%
+    );
+    mask-image: radial-gradient(
+      ellipse 80% 75% at center,
+      #000 22%,
+      transparent 82%
+    );
   }
 
   /* Cinematic dark gradient backdrop (hero, bands) */
   .bg-cinematic {
     background:
-      radial-gradient(42% 55% at 0% 0%, rgba(168, 27, 34, 0.3), transparent 60%),
-      radial-gradient(45% 55% at 100% 8%, rgba(215, 52, 56, 0.22), transparent 60%),
-      radial-gradient(48% 50% at 100% 100%, rgba(120, 20, 26, 0.18), transparent 65%),
-      radial-gradient(40% 50% at 0% 100%, rgba(120, 20, 26, 0.14), transparent 65%),
+      radial-gradient(
+        42% 55% at 0% 0%,
+        rgba(168, 27, 34, 0.3),
+        transparent 60%
+      ),
+      radial-gradient(
+        45% 55% at 100% 8%,
+        rgba(215, 52, 56, 0.22),
+        transparent 60%
+      ),
+      radial-gradient(
+        48% 50% at 100% 100%,
+        rgba(120, 20, 26, 0.18),
+        transparent 65%
+      ),
+      radial-gradient(
+        40% 50% at 0% 100%,
+        rgba(120, 20, 26, 0.14),
+        transparent 65%
+      ),
       #0a0708;
   }
 
@@ -417,8 +502,16 @@
      has to be strong enough to stop the section reading as a bare canvas. */
   .bg-stage-warm {
     background:
-      radial-gradient(66% 56% at 82% 0%, rgba(215, 52, 56, 0.07), transparent 62%),
-      radial-gradient(48% 46% at 6% 100%, rgba(215, 52, 56, 0.035), transparent 66%),
+      radial-gradient(
+        66% 56% at 82% 0%,
+        rgba(215, 52, 56, 0.07),
+        transparent 62%
+      ),
+      radial-gradient(
+        48% 46% at 6% 100%,
+        rgba(215, 52, 56, 0.035),
+        transparent 66%
+      ),
       linear-gradient(180deg, #ffffff 0%, #fcfbfb 55%, #f8f7f8 100%);
   }
 
@@ -428,17 +521,37 @@
      only, never as a second brand colour. */
   .bg-stage-cool {
     background:
-      radial-gradient(62% 54% at 14% 0%, rgba(30, 131, 240, 0.06), transparent 62%),
-      radial-gradient(54% 50% at 92% 96%, rgba(215, 52, 56, 0.045), transparent 66%),
+      radial-gradient(
+        62% 54% at 14% 0%,
+        rgba(30, 131, 240, 0.06),
+        transparent 62%
+      ),
+      radial-gradient(
+        54% 50% at 92% 96%,
+        rgba(215, 52, 56, 0.045),
+        transparent 66%
+      ),
       linear-gradient(180deg, #f8f9fa 0%, #f3f4f6 54%, #f7f7f9 100%);
   }
 
   /* Ember — the warmest wash, held back for the climax beat. */
   .bg-stage-ember {
     background:
-      radial-gradient(70% 60% at 50% -6%, rgba(215, 52, 56, 0.11), transparent 64%),
-      radial-gradient(50% 46% at 0% 100%, rgba(215, 52, 56, 0.05), transparent 66%),
-      radial-gradient(50% 46% at 100% 100%, rgba(215, 52, 56, 0.05), transparent 66%),
+      radial-gradient(
+        70% 60% at 50% -6%,
+        rgba(215, 52, 56, 0.11),
+        transparent 64%
+      ),
+      radial-gradient(
+        50% 46% at 0% 100%,
+        rgba(215, 52, 56, 0.05),
+        transparent 66%
+      ),
+      radial-gradient(
+        50% 46% at 100% 100%,
+        rgba(215, 52, 56, 0.05),
+        transparent 66%
+      ),
       linear-gradient(180deg, #fffdfd 0%, #fdf8f8 55%, #fbf4f4 100%);
   }
 
@@ -457,8 +570,16 @@
       linear-gradient(to right, rgba(26, 26, 26, 0.045) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(26, 26, 26, 0.045) 1px, transparent 1px);
     background-size: 64px 64px;
-    -webkit-mask-image: radial-gradient(ellipse 84% 80% at 50% 42%, #000 20%, transparent 82%);
-    mask-image: radial-gradient(ellipse 84% 80% at 50% 42%, #000 20%, transparent 82%);
+    -webkit-mask-image: radial-gradient(
+      ellipse 84% 80% at 50% 42%,
+      #000 20%,
+      transparent 82%
+    );
+    mask-image: radial-gradient(
+      ellipse 84% 80% at 50% 42%,
+      #000 20%,
+      transparent 82%
+    );
   }
 
   /* Subtle card hover lift */
@@ -699,47 +820,49 @@
    Reduced-motion is neutralized globally (see base layer above).
    ============================================================ */
 
-/* Engineering grid, scrolling upward (careers / grid-pan). */
-.fx-grid {
-  background-image:
-    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
-  background-size: 54px 54px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 42%, #000 28%, transparent 82%);
-  mask-image: radial-gradient(ellipse 80% 80% at 50% 42%, #000 28%, transparent 82%);
-  animation: hero-grid-pan 6s linear infinite;
-}
-/* Static precise grid (solutions / blueprint). */
+/* Static precise grid. Page heroes no longer use any grid layer — a square
+   lattice behind a full-screen headline reads as a spreadsheet, not as depth.
+   This remains for `brand-gateway.tsx`, whose per-brand panels are small,
+   deliberately distinct surfaces rather than heroes. */
 .fx-grid-static {
   background-image:
     linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 78% 74% at center, #000 30%, transparent 80%);
-  mask-image: radial-gradient(ellipse 78% 74% at center, #000 30%, transparent 80%);
-}
-/* Synthwave perspective floor (industries detail / floor). */
-.fx-floor {
-  top: 46%;
-  background-image:
-    linear-gradient(to right, rgba(215, 52, 56, 0.28) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(215, 52, 56, 0.24) 1px, transparent 1px);
-  background-size: 46px 46px;
-  transform: perspective(320px) rotateX(60deg);
-  transform-origin: top center;
-  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 78%);
-  mask-image: linear-gradient(to bottom, #000, transparent 78%);
-  animation: hero-grid-pan 3.5s linear infinite;
+  -webkit-mask-image: radial-gradient(
+    ellipse 78% 74% at center,
+    #000 30%,
+    transparent 80%
+  );
+  mask-image: radial-gradient(
+    ellipse 78% 74% at center,
+    #000 30%,
+    transparent 80%
+  );
 }
 /* Dot matrix, slow drift (blog / dots). */
 .fx-dots {
-  background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.20) 1.4px, transparent 0);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(255, 255, 255, 0.2) 1.4px,
+    transparent 0
+  );
   background-size: 30px 30px;
-  -webkit-mask-image: radial-gradient(ellipse 75% 74% at 50% 42%, #000 20%, transparent 80%);
-  mask-image: radial-gradient(ellipse 75% 74% at 50% 42%, #000 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(
+    ellipse 75% 74% at 50% 42%,
+    #000 20%,
+    transparent 80%
+  );
+  mask-image: radial-gradient(
+    ellipse 75% 74% at 50% 42%,
+    #000 20%,
+    transparent 80%
+  );
   animation: hero-dot-pan 8s linear infinite;
 }
-/* Diagonal light streaks (life-at-sumago / streaks). */
+/* Diagonal brand-red streaks — `brand-gateway.tsx` only. Page heroes use the
+   neutral `.fx-streaks-mono` below; the gateway keeps its colour because each
+   panel there is selling a distinct brand, not framing Sumago's own copy. */
 .fx-streaks {
   background-image: repeating-linear-gradient(
     115deg,
@@ -752,85 +875,223 @@
   );
   animation: streak-drift 16s ease-in-out infinite;
 }
-/* Animated multi-radial mesh gradient (industries / mesh). */
+/* Diagonal light streaks, neutral (life-at-sumago / streaks). */
+.fx-streaks-mono {
+  background-image: repeating-linear-gradient(
+    115deg,
+    transparent 0,
+    transparent 30px,
+    rgba(255, 255, 255, 0.07) 30px,
+    rgba(255, 255, 255, 0.07) 31px,
+    transparent 31px,
+    transparent 64px
+  );
+  animation: streak-drift 16s ease-in-out infinite;
+}
+/* Animated multi-radial mesh gradient (industries / mesh). Neutral greys —
+   the drifting *shape* is the effect; colour was doing nothing but tinting
+   the headline's background. */
 .fx-mesh {
   background:
-    radial-gradient(40% 50% at 20% 30%, rgba(215, 52, 56, 0.30), transparent 60%),
-    radial-gradient(40% 50% at 80% 20%, rgba(30, 131, 240, 0.20), transparent 60%),
-    radial-gradient(45% 55% at 72% 82%, rgba(255, 107, 74, 0.22), transparent 62%),
-    radial-gradient(42% 52% at 24% 86%, rgba(120, 20, 26, 0.30), transparent 62%);
+    radial-gradient(
+      40% 50% at 20% 30%,
+      rgba(255, 255, 255, 0.07),
+      transparent 60%
+    ),
+    radial-gradient(
+      40% 50% at 80% 20%,
+      rgba(255, 255, 255, 0.05),
+      transparent 60%
+    ),
+    radial-gradient(
+      45% 55% at 72% 82%,
+      rgba(255, 255, 255, 0.05),
+      transparent 62%
+    ),
+    radial-gradient(
+      42% 52% at 24% 86%,
+      rgba(255, 255, 255, 0.04),
+      transparent 62%
+    );
   background-size: 180% 180%;
   animation: hero-mesh-pan 18s ease-in-out infinite;
 }
 /* CSS starfield (impact detail / starfield). */
 .fx-starfield {
   background-image:
-    radial-gradient(1.4px 1.4px at 12% 22%, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1.2px 1.2px at 28% 68%, rgba(255, 107, 74, 0.9), transparent),
-    radial-gradient(1.6px 1.6px at 45% 32%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1.2px 1.2px at 62% 78%, rgba(215, 52, 56, 0.9), transparent),
-    radial-gradient(1.5px 1.5px at 74% 18%, rgba(255, 255, 255, 0.85), transparent),
-    radial-gradient(1.3px 1.3px at 86% 54%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1.2px 1.2px at 18% 88%, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1.4px 1.4px at 54% 92%, rgba(255, 107, 74, 0.8), transparent),
-    radial-gradient(1.2px 1.2px at 92% 82%, rgba(255, 255, 255, 0.75), transparent),
-    radial-gradient(1.3px 1.3px at 8% 48%, rgba(255, 255, 255, 0.7), transparent);
+    radial-gradient(
+      1.4px 1.4px at 12% 22%,
+      rgba(255, 255, 255, 0.9),
+      transparent
+    ),
+    radial-gradient(
+      1.2px 1.2px at 28% 68%,
+      rgba(255, 255, 255, 0.9),
+      transparent
+    ),
+    radial-gradient(
+      1.6px 1.6px at 45% 32%,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    ),
+    radial-gradient(
+      1.2px 1.2px at 62% 78%,
+      rgba(255, 255, 255, 0.9),
+      transparent
+    ),
+    radial-gradient(
+      1.5px 1.5px at 74% 18%,
+      rgba(255, 255, 255, 0.85),
+      transparent
+    ),
+    radial-gradient(
+      1.3px 1.3px at 86% 54%,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    ),
+    radial-gradient(
+      1.2px 1.2px at 18% 88%,
+      rgba(255, 255, 255, 0.7),
+      transparent
+    ),
+    radial-gradient(
+      1.4px 1.4px at 54% 92%,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    ),
+    radial-gradient(
+      1.2px 1.2px at 92% 82%,
+      rgba(255, 255, 255, 0.75),
+      transparent
+    ),
+    radial-gradient(
+      1.3px 1.3px at 8% 48%,
+      rgba(255, 255, 255, 0.7),
+      transparent
+    );
   background-repeat: no-repeat;
   animation: star-twinkle 6s ease-in-out infinite;
 }
 
-/* Animated red gradient wash shared by every hero — soft brand-red glows that
-   slowly drift and breathe over the near-black base, adding always-on colour
-   life without competing with the per-page effect. GPU-cheap: only
-   background-position + opacity animate. (reduced-motion neutralized in base.) */
-.fx-red-aurora {
+/* Animated drifting light wash shared by the article/detail heroes — soft white
+   glows that slowly breathe over the near-black base, adding always-on life
+   without tinting the page. GPU-cheap: only background-position + opacity
+   animate. (reduced-motion neutralized in base.) */
+.fx-hero-aurora {
   background:
-    radial-gradient(50% 60% at 18% 22%, rgba(215, 52, 56, 0.28), transparent 60%),
-    radial-gradient(46% 56% at 82% 30%, rgba(168, 27, 34, 0.24), transparent 62%),
-    radial-gradient(55% 60% at 60% 92%, rgba(255, 90, 93, 0.16), transparent 64%);
+    radial-gradient(
+      50% 60% at 18% 22%,
+      rgba(255, 255, 255, 0.06),
+      transparent 60%
+    ),
+    radial-gradient(
+      46% 56% at 82% 30%,
+      rgba(255, 255, 255, 0.05),
+      transparent 62%
+    ),
+    radial-gradient(
+      55% 60% at 60% 92%,
+      rgba(255, 255, 255, 0.04),
+      transparent 64%
+    );
   background-size: 160% 160%;
-  animation: red-aurora-pan 16s ease-in-out infinite;
+  animation: hero-aurora-pan 16s ease-in-out infinite;
 }
-@keyframes red-aurora-pan {
-  0%, 100% {
-    background-position: 0% 0%, 100% 0%, 50% 100%;
+@keyframes hero-aurora-pan {
+  0%,
+  100% {
+    background-position:
+      0% 0%,
+      100% 0%,
+      50% 100%;
     opacity: 0.85;
   }
   50% {
-    background-position: 30% 40%, 68% 18%, 42% 68%;
+    background-position:
+      30% 40%,
+      68% 18%,
+      42% 68%;
     opacity: 1;
   }
 }
 
-@keyframes hero-grid-pan { to { background-position: 0 54px; } }
-@keyframes hero-dot-pan { to { background-position: 26px 26px; } }
+@keyframes hero-dot-pan {
+  to {
+    background-position: 26px 26px;
+  }
+}
 @keyframes hero-mesh-pan {
-  0%, 100% { background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%; }
-  50% { background-position: 40% 30%, 60% 20%, 50% 70%, 30% 80%; }
+  0%,
+  100% {
+    background-position:
+      0% 0%,
+      100% 0%,
+      100% 100%,
+      0% 100%;
+  }
+  50% {
+    background-position:
+      40% 30%,
+      60% 20%,
+      50% 70%,
+      30% 80%;
+  }
 }
 /* Blurred spotlight sweeping side to side (impact / spotlight). Element is
    centered with negative margins; this animates X only. */
 @keyframes hero-sweep {
-  0%, 100% { transform: translateX(-32%); }
-  50% { transform: translateX(32%); }
+  0%,
+  100% {
+    transform: translateX(-32%);
+  }
+  50% {
+    transform: translateX(32%);
+  }
 }
 /* Steady rotation for orbit rings (innovation / orbit). */
-@keyframes hero-spin { to { transform: rotate(360deg); } }
-@keyframes hero-spin-rev { to { transform: rotate(-360deg); } }
+@keyframes hero-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes hero-spin-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
 /* Radar rings expanding outward (contact / rings). */
 @keyframes hero-ring {
-  0% { transform: scale(0.2); opacity: 0.5; }
-  80% { opacity: 0; }
-  100% { transform: scale(1.15); opacity: 0; }
+  0% {
+    transform: scale(0.2);
+    opacity: 0.5;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.15);
+    opacity: 0;
+  }
 }
 /* Flowing dash for circuit traces (service detail / circuit). */
-@keyframes hero-dash { to { stroke-dashoffset: -240; } }
+@keyframes hero-dash {
+  to {
+    stroke-dashoffset: -240;
+  }
+}
 
 /* Ambient particle — combined slow drift + gentle fade, so the motion reads
    clearly and professionally on every hero. Duration set per-particle. */
 @keyframes hero-particle {
-  0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.3; }
-  50% { transform: translate3d(12px, -14px, 0); opacity: 0.95; }
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate3d(12px, -14px, 0);
+    opacity: 0.95;
+  }
 }
 
 /* ============================================================
@@ -842,19 +1103,37 @@
 
 /* Signal travelling along a connector — problem → approach, and the
    spokes out to sibling services. */
-@keyframes svc-flow { to { stroke-dashoffset: -64; } }
+@keyframes svc-flow {
+  to {
+    stroke-dashoffset: -64;
+  }
+}
 
 /* Node breathing on the outcomes trajectory. */
 @keyframes svc-node-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.9; }
-  50% { transform: scale(1.35); opacity: 0.25; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.25;
+  }
 }
 
 /* Orbit ring carrying the stack marks (the tiles counter-rotate at the
    same duration so every logo stays upright). */
-@keyframes svc-orbit { to { transform: rotate(360deg); } }
-@keyframes svc-orbit-rev { to { transform: rotate(-360deg); } }
-
+@keyframes svc-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes svc-orbit-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
 
 /* ===========================================================================
    ADMIN PANEL DESIGN SYSTEM  (/admin)
@@ -874,10 +1153,14 @@
    =========================================================================== */
 
 @theme {
-  /* Accent — the Sumago red, reused rather than re-picked. */
-  --color-accent: #d73438;
-  --color-accent-hover: #b82a2e;
-  --color-accent-strong: #a81b22;
+  /* Accent — the panel's primary action colour. Deep blue: it is the colour of
+     every "do the thing" control (Save, Add, primary links, focus rings), so it
+     has to stay legible next to the red that now means *destructive* only.
+     The Sumago red survives as --color-brand below, used for identity (logo,
+     modal header, sidebar markers) rather than for actions. */
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1a44bd;
+  --color-accent-strong: #1e3a8a;
   --color-accent-soft: var(--a-accent-soft);
   --color-accent-ring: var(--a-accent-ring);
 
@@ -909,50 +1192,93 @@
   --color-info: var(--a-info);
   --color-info-soft: var(--a-info-soft);
 
-  /* Shape — slightly softer than the site, which suits dense UI */
-  --radius-field: 0.5rem;
-  --radius-card: 0.75rem;
+  /* Shape — generous corners: the surface reads as panels sitting on a page
+     rather than as a grid of boxes ruled off from each other. */
+  --radius-field: 0.625rem;
+  --radius-card: 1rem;
   --radius-pill: 9999px;
 
   /* Motion */
   --ease-admin: cubic-bezier(0.22, 1, 0.36, 1);
 
-  /* Shell dimensions */
-  --spacing-rail: 15.5rem;
-  --spacing-rail-tight: 4.5rem;
-  --spacing-topbar: 3.75rem;
+  /* Shell dimensions. The rail is wide enough for a two-line brand block and
+     a full module label without truncation; the topbar carries two lines
+     (workspace eyebrow + breadcrumb) and is sized for both. */
+  --spacing-rail: 17.5rem;
+  --spacing-rail-tight: 4.75rem;
+  --spacing-topbar: 4.5rem;
+  --spacing-rail-brand: 6.25rem;
 }
 
 /* ---------------------------- Light (default) --------------------------- */
 :root {
-  --a-canvas: #f6f6f7;
-  --a-canvas-subtle: #eeeef0;
+  --a-canvas: #ffffff;
+  --a-canvas-subtle: #f3f6fb;
   --a-surface: #ffffff;
-  --a-surface-hover: #f7f7f8;
+  --a-surface-hover: #f5f8fd;
   --a-elevated: #ffffff;
-  --a-inverse: #17171a;
+  --a-inverse: #16204d;
 
-  --a-content: #17171a;
-  --a-content-soft: #3f3f46;
-  --a-muted: #71717a;
+  --a-content: #16233d;
+  --a-content-soft: #44546f;
+  --a-muted: #7b8aa3;
 
-  --a-line: #e6e6e8;
-  --a-line-strong: #d3d3d7;
+  --a-line: #e6ecf5;
+  --a-line-strong: #cfd9e8;
 
-  --a-accent-soft: #fdeceD;
-  --a-accent-ring: rgba(215, 52, 56, 0.35);
+  --a-accent-soft: #e8f0fe;
+  --a-accent-ring: rgba(29, 78, 216, 0.35);
 
-  --a-ok: #15803d;
-  --a-ok-soft: #dcfce7;
+  --a-ok: #16a34a;
+  --a-ok-soft: #e2f7ea;
   --a-warn: #b45309;
-  --a-warn-soft: #fef3c7;
-  --a-bad: #c1282c;
-  --a-bad-soft: #fdecec;
-  --a-info: #1e5fb8;
-  --a-info-soft: #e3edfb;
+  --a-warn-soft: #fdf1dd;
+  --a-bad: #dc2626;
+  --a-bad-soft: #fdeaea;
+  --a-info: #2563eb;
+  --a-info-soft: #e5efff;
 
-  --a-shadow-card: 0 1px 2px rgba(23, 23, 26, 0.04), 0 1px 3px rgba(23, 23, 26, 0.06);
-  --a-shadow-pop: 0 10px 34px rgba(23, 23, 26, 0.14);
+  --a-shadow-card:
+    0 1px 2px rgba(22, 35, 61, 0.04), 0 2px 8px rgba(22, 35, 61, 0.05);
+  --a-shadow-pop: 0 12px 40px rgba(22, 35, 61, 0.16);
+
+  /* ---- Navigation rail. Its own scale, because it is a dark surface in both
+     themes and must not inherit the page's light one. ---- */
+  --a-nav: linear-gradient(180deg, #1f2c66 0%, #17214f 52%, #121b41 100%);
+  --a-nav-fg: #ffffff;
+  --a-nav-soft: rgba(255, 255, 255, 0.62);
+  --a-nav-line: rgba(255, 255, 255, 0.1);
+  --a-nav-hover: rgba(255, 255, 255, 0.07);
+  --a-nav-active: rgba(255, 255, 255, 0.12);
+  --a-nav-mark: #f05a5e;
+  --a-nav-group: linear-gradient(90deg, #6b1622 0%, #93202f 60%, #a52235 100%);
+
+  /* Header band shared by the modal and any other branded chrome: the brand
+     red meeting the action blue, which is the panel's whole colour story in
+     one strip. */
+  --a-band: linear-gradient(90deg, #1e3a8a 0%, #35408f 42%, #a3282f 100%);
+
+  /* Pastel tile palette — one hue per metric so a row of numbers is scannable
+     without reading a single label. */
+  --a-tile-1: #eef1fb;
+  --a-tile-1-fg: #3b4a8f;
+  --a-tile-2: #e3f2fd;
+  --a-tile-2-fg: #1668b5;
+  --a-tile-3: #fdeaea;
+  --a-tile-3-fg: #cc3f4c;
+  --a-tile-4: #e4f6ec;
+  --a-tile-4-fg: #16874f;
+  --a-tile-5: #fdf1dd;
+  --a-tile-5-fg: #b4761a;
+
+  /* Chart ink. Three hues, one per trend panel, each carrying the same meaning
+     it carries in the tile above it — blue for sales, red for the brand's own
+     traffic, green for hiring. Every one clears 3:1 against --a-surface so a
+     bar or a line is distinguishable without reading its label. */
+  --a-chart-1: #1d63c7; /* enquiries */
+  --a-chart-2: #a3282f; /* website traffic */
+  --a-chart-3: #16874f; /* open jobs */
+  --a-chart-grid: #eaeff7;
 }
 
 /* -------------------------------- Dark ---------------------------------- */
@@ -962,22 +1288,22 @@
  * brand red needs a slightly lifted ground to stay AA-legible.
  */
 .admin-dark {
-  --a-canvas: #131316;
-  --a-canvas-subtle: #0f0f11;
-  --a-surface: #1b1b1f;
-  --a-surface-hover: #232328;
-  --a-elevated: #212127;
+  --a-canvas: #0e1424;
+  --a-canvas-subtle: #131b2f;
+  --a-surface: #161e33;
+  --a-surface-hover: #1d2740;
+  --a-elevated: #1a2338;
   --a-inverse: #ffffff;
 
-  --a-content: #f4f4f5;
-  --a-content-soft: #c9c9ce;
-  --a-muted: #8e8e97;
+  --a-content: #eef2f9;
+  --a-content-soft: #c3ccdd;
+  --a-muted: #8695ae;
 
-  --a-line: #2c2c32;
-  --a-line-strong: #3a3a42;
+  --a-line: #26304a;
+  --a-line-strong: #35415f;
 
-  --a-accent-soft: rgba(215, 52, 56, 0.16);
-  --a-accent-ring: rgba(255, 90, 93, 0.45);
+  --a-accent-soft: rgba(96, 143, 250, 0.16);
+  --a-accent-ring: rgba(126, 163, 255, 0.45);
 
   --a-ok: #4ade80;
   --a-ok-soft: rgba(74, 222, 128, 0.14);
@@ -990,13 +1316,46 @@
 
   --a-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
   --a-shadow-pop: 0 10px 34px rgba(0, 0, 0, 0.6);
+
+  /* The rail is already dark; on a dark page it only needs to sit *deeper*
+     than the canvas so the two surfaces stay distinguishable. */
+  --a-nav: linear-gradient(180deg, #16204a 0%, #121a3c 55%, #0d1430 100%);
+  --a-nav-fg: #ffffff;
+  --a-nav-soft: rgba(255, 255, 255, 0.58);
+  --a-nav-line: rgba(255, 255, 255, 0.08);
+  --a-nav-hover: rgba(255, 255, 255, 0.06);
+  --a-nav-active: rgba(255, 255, 255, 0.11);
+  --a-nav-mark: #ff6b6e;
+  --a-nav-group: linear-gradient(90deg, #5c1220 0%, #85202d 60%, #9a2233 100%);
+
+  --a-band: linear-gradient(90deg, #1b3271 0%, #2f3a80 42%, #92242b 100%);
+
+  /* Tints re-derived as translucent washes — a pastel fill that works on white
+     turns into a glare on a dark canvas. */
+  --a-tile-1: rgba(120, 140, 235, 0.14);
+  --a-tile-1-fg: #a3b2f5;
+  --a-tile-2: rgba(96, 165, 250, 0.14);
+  --a-tile-2-fg: #8ec5f8;
+  --a-tile-3: rgba(248, 113, 113, 0.14);
+  --a-tile-3-fg: #f6a2a6;
+  --a-tile-4: rgba(74, 222, 128, 0.13);
+  --a-tile-4-fg: #86e5ac;
+  --a-tile-5: rgba(251, 191, 36, 0.14);
+  --a-tile-5-fg: #f3c775;
+
+  /* Lifted well past their light-mode values: the same blue that reads as
+     confident on white disappears into the navy canvas. */
+  --a-chart-1: #6ea6fb;
+  --a-chart-2: #f28489;
+  --a-chart-3: #6bd99b;
+  --a-chart-grid: #26304a;
 }
 
-/* On dark, the accent needs to brighten to stay readable on the near-black. */
+/* On dark, the action blue needs to brighten to stay readable on the navy. */
 .admin-dark {
-  --color-accent: #f04a4e;
-  --color-accent-hover: #ff6b6e;
-  --color-accent-strong: #ff8f91;
+  --color-accent: #608ffa;
+  --color-accent-hover: #7ea3ff;
+  --color-accent-strong: #a8c0ff;
 }
 
 @layer components {
@@ -1013,6 +1372,40 @@
     border: 1px solid var(--a-line);
     border-radius: var(--radius-card);
     box-shadow: var(--a-shadow-card);
+  }
+
+  /* ---- The navigation rail ------------------------------------------------
+     A single dark band running the full height of the window. Its contents
+     never reference the page tokens; they use the --a-nav-* scale, so the rail
+     looks identical whichever theme the page is in. */
+  .admin-sidebar {
+    background: var(--a-nav);
+    color: var(--a-nav-fg);
+  }
+  .admin-sidebar .admin-scroll {
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+  }
+  .admin-sidebar .admin-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  /* A section heading in the rail. It reads as a pill so the eye can group the
+     modules underneath it; it turns brand-red when the open screen is one of
+     them, which is the rail's "you are here, one level up" signal. */
+  .admin-nav-group {
+    border-radius: var(--radius-field);
+    color: var(--a-nav-soft);
+  }
+  .admin-nav-group-current {
+    background: var(--a-nav-group);
+    color: #ffffff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+  }
+
+  /* The branded header band (modal titles). */
+  .admin-band {
+    background: var(--a-band);
+    color: #ffffff;
   }
 
   /* Wide tables scroll inside their own box so the page never moves sideways. */
@@ -1037,6 +1430,90 @@
   .admin-scroll::-webkit-scrollbar-track {
     background: transparent;
   }
+
+  /* ---- Metric tiles -------------------------------------------------------
+     Each tile is a flat wash of one hue rather than a bordered white card:
+     five of them in a row read as five different measurements, which is the
+     point of the strip. `--tile-fg` carries the matching ink so the number,
+     the glyph and the underline all resolve from one class. */
+  .admin-tile {
+    border-radius: var(--radius-card);
+    background: var(--tile-bg);
+    color: var(--tile-fg);
+    border: 1px solid transparent;
+    transition:
+      box-shadow 200ms var(--ease-admin),
+      transform 200ms var(--ease-admin);
+  }
+  /* The glyph chip inside a tile. Derived from the tile's own ink rather than
+     set to white, so it stays a soft wash on the light palette and does not
+     turn into a glare on the dark one. */
+  .admin-tile-chip {
+    background: color-mix(in srgb, var(--tile-fg) 14%, transparent);
+    color: var(--tile-fg);
+  }
+  .admin-tile-1 {
+    --tile-bg: var(--a-tile-1);
+    --tile-fg: var(--a-tile-1-fg);
+  }
+  .admin-tile-2 {
+    --tile-bg: var(--a-tile-2);
+    --tile-fg: var(--a-tile-2-fg);
+  }
+  .admin-tile-3 {
+    --tile-bg: var(--a-tile-3);
+    --tile-fg: var(--a-tile-3-fg);
+  }
+  .admin-tile-4 {
+    --tile-bg: var(--a-tile-4);
+    --tile-fg: var(--a-tile-4-fg);
+  }
+  .admin-tile-5 {
+    --tile-bg: var(--a-tile-5);
+    --tile-fg: var(--a-tile-5-fg);
+  }
+
+  /* ---- Dashboard charts ---------------------------------------------------
+     One entry gesture, growing from the axis the data is measured against, so
+     the movement says "this is a quantity" rather than decorating the card.
+     Compositor-only (transform + opacity) and it plays once. */
+  .admin-chart-rise {
+    animation: a-chart-rise 420ms var(--ease-admin) both;
+    transform-origin: bottom;
+  }
+  .admin-chart-grow {
+    animation: a-chart-grow 480ms var(--ease-admin) both;
+    transform-origin: left;
+  }
+}
+
+@keyframes a-chart-rise {
+  from {
+    opacity: 0;
+    transform: scaleY(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes a-chart-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* The charts are data, not motion. Anyone who has asked for less of it gets the
+   finished state immediately. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-chart-rise,
+  .admin-chart-grow {
+    animation: none;
+  }
 }
 
 /* ============================================================
@@ -1046,18 +1523,6 @@
    section adds no layout or paint work to the scroll — see docs/14
    for the performance gate this has to clear.
    ============================================================ */
-
-/* Pointer-tracked spotlight inside a capability card. Lives in CSS rather than
-   a Tailwind arbitrary value because the gradient carries commas inside var()
-   fallbacks, which the class parser cannot hold. The card writes --wc-mx/--wc-my
-   on pointermove; with no pointer (touch, keyboard) the fallback centres it. */
-.wc-spotlight {
-  background: radial-gradient(
-    260px circle at var(--wc-mx, 50%) var(--wc-my, 0%),
-    rgba(215, 52, 56, 0.2),
-    transparent 68%
-  );
-}
 
 /* Slow light beams travelling across the band — the "glowing lines". Two
    elements at different durations so they never pulse in lockstep. */
@@ -1111,5 +1576,691 @@
   50% {
     opacity: 0.9;
     r: 3.2;
+  }
+}
+
+/* ── Infrastructure band (delivery) ─────────────────────────────────────
+   A shared motion vocabulary for the twelve capability motifs and the three
+   pillar panels. Deliberately a small set of primitives rather than twenty
+   bespoke keyframes: every motif composes these with its own delay, duration
+   and transform-origin, which is what keeps twelve different animations
+   feeling like one system.
+
+   Almost all of it is hover/focus-driven — at rest the band is still, and
+   nothing runs continuously except the three pillar panels and the two
+   readouts that claim to be live. Transform and opacity only (plus SVG
+   stroke-dashoffset, which Chromium and WebKit both handle off the main
+   thread), so the band holds 60fps. The global reduced-motion block above
+   stops every one of them; each motif's rest state is its meaningful state,
+   so nothing is lost when it does. */
+
+/* Draw in from the left — typing, charging, filling a meter. */
+@keyframes sys-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* A cell, node or presence dot registering. */
+@keyframes sys-pop {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.6);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Steady breath — live readouts, monitor glow, node activity. */
+@keyframes sys-blink {
+  0%,
+  100% {
+    opacity: 0.28;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Terminal caret: a hard on/off, because a fading caret reads as a bug. */
+@keyframes sys-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Current moving along a wire — ERP links, network spokes. */
+@keyframes sys-flow {
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+
+/* A packet crossing a track. `--travel` is set per motif so the distance
+   matches the artwork rather than the dot's own width. */
+@keyframes sys-packet {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  12%,
+  86% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(var(--travel, 70px));
+    opacity: 0;
+  }
+}
+
+/* Signal leaving a source — Wi-Fi coverage, a presence ring. */
+@keyframes sys-wave {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* A scan head crossing what it reads. `--scan` is the travel in user units. */
+@keyframes sys-scan {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  10%,
+  90% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(var(--scan, 22px));
+  }
+}
+
+/* A camera's field of view sweeping its arc. */
+@keyframes sys-cone {
+  0%,
+  100% {
+    transform: rotate(-26deg);
+  }
+  50% {
+    transform: rotate(26deg);
+  }
+}
+
+/* A pointer working across a screen — three stops, then home. */
+@keyframes sys-cursor {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  30% {
+    transform: translate(26px, -9px);
+  }
+  62% {
+    transform: translate(40px, 4px);
+  }
+}
+
+/* A trace being written. `--len` is the path length. */
+@keyframes sys-draw {
+  from {
+    stroke-dashoffset: var(--len, 120);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Throughput needle — never resting at a single value. */
+@keyframes sys-meter {
+  0%,
+  100% {
+    transform: scaleX(0.5);
+  }
+  40% {
+    transform: scaleX(0.95);
+  }
+  70% {
+    transform: scaleX(0.72);
+  }
+}
+
+/* Log/telemetry scrolling under its own mask. The content is duplicated, so
+   translating exactly half the group loops without a seam. */
+@keyframes sys-stream {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+/* One pulse travelling the spine that ties the three pillars together — the
+   "all three centres are provisioned identically" line, drawn. */
+@keyframes sys-spine {
+  0% {
+    transform: translate3d(-120%, 0, 0);
+  }
+  100% {
+    transform: translate3d(520%, 0, 0);
+  }
+}
+
+/**
+ * How a motif opts into a primitive.
+ *
+ * Every animated node carries `data-anim` and names its primitive in `--anim`,
+ * tuning it with `--dur`/`--ease`/`--delay`/`--iter`. Two rules then drive all
+ * sixty-odd animated nodes in the band: one sets the timing longhands, the
+ * other supplies `animation-name` — and *only* under hover, keyboard focus, or
+ * an explicit `data-run="always"`.
+ *
+ * The gate lives here rather than in a per-element class for three reasons:
+ * nothing animates at rest, so an idle band costs nothing; a motif can be
+ * retuned from its own markup without touching CSS; and it keeps sixty
+ * arbitrary Tailwind variants out of the generated stylesheet.
+ */
+[data-anim] {
+  animation-name: none;
+  animation-duration: var(--dur, 1s);
+  animation-timing-function: var(--ease, ease-out);
+  animation-delay: var(--delay, 0s);
+  animation-iteration-count: var(--iter, 1);
+  animation-fill-mode: both;
+}
+[data-anim][data-run="always"],
+.sys-cap:hover [data-anim],
+.sys-cap:focus-within [data-anim] {
+  animation-name: var(--anim);
+}
+
+/**
+ * Reduced motion needs its own rule here, not just the global duration clamp.
+ * Several primitives *end* on `opacity: 0` — a wave has left, a packet has
+ * arrived — so collapsing them to 0.001ms with `animation-fill-mode: both`
+ * would settle those nodes on their invisible final frame and quietly delete
+ * the Wi-Fi arcs, the packets and the presence rings. Removing the animation
+ * outright instead leaves every motif on its authored rest state, which is the
+ * one drawn to be readable standing still.
+ */
+@media (prefers-reduced-motion: reduce) {
+  [data-anim] {
+    animation-name: none !important;
+  }
+}
+
+/* Technical grid behind a pillar panel — the drafting surface, at panel
+   scale, masked so it never reaches the panel's own border. */
+.sys-grid {
+  background-image:
+    linear-gradient(to right, rgba(26, 26, 26, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(26, 26, 26, 0.055) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 78% 74% at 50% 45%,
+    #000 30%,
+    transparent 84%
+  );
+  mask-image: radial-gradient(
+    ellipse 78% 74% at 50% 45%,
+    #000 30%,
+    transparent 84%
+  );
+}
+
+/* ============================================================
+   Industry transformation band
+   (organisms/industries/transformation.tsx)
+   ============================================================ */
+
+/**
+ * The core's animation primitives, declared the same way the `[data-anim]`
+ * system above declares the infrastructure motifs — a node names its primitive
+ * in `--anim` and tunes it with `--dur`/`--delay`/`--ease`/`--iter` — with one
+ * difference: the gate is *visibility*, not hover.
+ *
+ * `.tx-live` is added by the band's IntersectionObserver, so a core that is
+ * off screen animates nothing and costs no frames; the whole band is inert
+ * until it is the thing being looked at. Every scene is authored to read
+ * complete standing still, which is what makes the reduced-motion rule below
+ * a removal rather than a loss of content.
+ */
+[data-tx-anim] {
+  animation-name: none;
+  animation-duration: var(--dur, 2s);
+  animation-timing-function: var(--ease, linear);
+  animation-delay: var(--delay, 0s);
+  animation-iteration-count: var(--iter, infinite);
+  animation-fill-mode: both;
+}
+.tx-live [data-tx-anim] {
+  animation-name: var(--anim);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-tx-anim] {
+    animation-name: none !important;
+  }
+}
+
+/* SVG nodes that scale must scale about their own centre, not the viewBox's. */
+.tx-fb {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* A pulse running along a route/edge. Paired with `pathLength="1"`, so one
+   dash length works for every path in the set regardless of its real length. */
+@keyframes tx-run {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+/* An edge drawing itself in, holding, then retracting — the expansion loop. */
+@keyframes tx-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  22%,
+  84% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 1;
+  }
+}
+/* A node arriving as the network reaches it. */
+@keyframes tx-grow {
+  0% {
+    opacity: 0.1;
+    transform: scale(0.35);
+  }
+  22%,
+  84% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.1;
+    transform: scale(0.35);
+  }
+}
+/* A presence ping leaving a tracked waypoint. */
+@keyframes tx-ring {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.35);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+/* A packet crossing a connector — `--travel` is the distance in its own axis. */
+@keyframes tx-travel-x {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  14%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(var(--travel, 24px));
+  }
+}
+@keyframes tx-travel-y {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  14%,
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--travel, 40px));
+  }
+}
+/* The monitoring sweep. */
+@keyframes tx-scan {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--travel, 172px));
+  }
+}
+/* A stage lighting as the work reaches it. `--lo` is its unlit opacity. */
+@keyframes tx-lit {
+  0%,
+  100% {
+    opacity: var(--lo, 0.28);
+  }
+  50% {
+    opacity: 1;
+  }
+}
+/* A manual step being automated away — the only primitive that ends on empty. */
+@keyframes tx-vanish {
+  0%,
+  22% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  48%,
+  100% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+/* Status indicator. */
+@keyframes tx-blink {
+  0%,
+  46% {
+    opacity: 1;
+  }
+  54%,
+  100% {
+    opacity: 0.18;
+  }
+}
+@keyframes tx-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes tx-orbit-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+/* The dwell bar under the active outcome while the core is cycling itself. */
+@keyframes tx-dwell {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Scene change — a settle, not a slide, so the core reads as one instrument
+   reconfiguring rather than as three separate pictures. */
+.tx-scene {
+  animation: tx-scene-in 0.5s var(--ease-standard) both;
+}
+@keyframes tx-scene-in {
+  from {
+    opacity: 0;
+    transform: scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The band's drafting surface — a technical grid over near-black, edge-masked
+   so it never collides with the panels sitting on it. */
+.tx-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 52px 52px;
+  -webkit-mask-image: radial-gradient(
+    ellipse 68% 62% at 50% 46%,
+    #000 20%,
+    transparent 82%
+  );
+  mask-image: radial-gradient(
+    ellipse 68% 62% at 50% 46%,
+    #000 20%,
+    transparent 82%
+  );
+}
+
+/* -------------------------------------------------------------------------- *
+ *  SERVICE PAGE — section 04 (build slider) and the Understanding device reel
+ *
+ *  The keyframes behind `components/organisms/solutions/service-page/`. Both
+ *  sets are compositor-only (opacity / transform / stroke-dashoffset), so they
+ *  hold 60fps on the page's longest scroll, and both are neutralised by the
+ *  global `prefers-reduced-motion` rule above (docs/06).
+ * -------------------------------------------------------------------------- */
+
+/* One build item entering as the slider advances. */
+@keyframes build-stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* The slider's dwell bars — how long the current item has left, drawn
+   horizontally on the markers and vertically on the rail. */
+@keyframes build-dwell {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes build-dwell-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* The live dot on the active marker. */
+@keyframes build-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+
+/* The device reel: three screens cycling inside the phone, with the tab
+   indicator, the drawn chart line, and the notification that slides in. */
+@keyframes reel-a {
+  0%,
+  26% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  33%,
+  94% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes reel-b {
+  0%,
+  27% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  34%,
+  60% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  67%,
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes reel-c {
+  0%,
+  60% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  67%,
+  94% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes reel-draw {
+  0%,
+  33% {
+    stroke-dashoffset: 1;
+  }
+  55%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes reel-notif {
+  0%,
+  6% {
+    opacity: 0;
+    transform: translateX(45%);
+  }
+  12%,
+  24% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  30%,
+  100% {
+    opacity: 0;
+    transform: translateX(45%);
+  }
+}
+
+@keyframes reel-tab {
+  0%,
+  26% {
+    transform: translateX(0%);
+  }
+  34%,
+  60% {
+    transform: translateX(100%);
+  }
+  67%,
+  94% {
+    transform: translateX(200%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+/**
+ * Section 02's understanding visuals (`understanding-visual.tsx`).
+ *
+ * That set is built almost entirely from the `sys-*` primitives above, driven
+ * the same declarative way — a node carries `data-anim data-run="always"` and
+ * names its primitive in `--anim` — so it inherits their timing variables and,
+ * more importantly, their reduced-motion rule: `animation-name: none`, leaving
+ * every composition on the rest state it was drawn to read at.
+ *
+ * These two are the only shapes that vocabulary was missing. They live here
+ * rather than with the infrastructure band because nothing else uses them.
+ */
+
+/* A meter that fills and then *stays* filled for most of its cycle.
+   `sys-fill` is a single run — looped, it sawtooths from empty to full and back
+   with no dwell, which reads as a stuck progress bar rather than a value. These
+   visuals show numbers somebody owns (coverage, a budget, a lane's progress), so
+   the filled state is the one the reader should almost always be seeing. */
+@keyframes sv-grow-x {
+  0% {
+    transform: scaleX(0);
+  }
+  32%,
+  92% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+/* A column rising from its floor — the counterpart to `sv-grow-x`. The element
+   sets `transform-origin: bottom`, so the bar grows rather than inflating. */
+@keyframes sv-grow-y {
+  0% {
+    transform: scaleY(0);
+  }
+  38%,
+  92% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(0);
+  }
+}
+
+/* A packet running *down* a rail — a request through the stack, a build through
+   the pipeline, a hash to the next block. `sys-packet` only travels in x.
+   `--travel` is the distance, stated by the artwork that owns the rail. */
+@keyframes sv-travel-y {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  12%,
+  84% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(var(--travel, 40px));
   }
 }

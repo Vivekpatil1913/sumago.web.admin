@@ -86,7 +86,7 @@ export function BeatTrusted() {
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand text-white">
                     <Icon size={20} strokeWidth={2} aria-hidden />
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-wider text-ink/40">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-ink/65">
                     ~{share}% of the book
                   </span>
                 </div>

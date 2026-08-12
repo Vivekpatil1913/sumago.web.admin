@@ -101,7 +101,7 @@ export function ApplyPanel({ jobTitle, jobSlug }: { jobTitle: string; jobSlug?: 
               type="button"
               onClick={close}
               aria-label="Close"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink/50 transition-colors hover:bg-mist hover:text-ink"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-ink/65 transition-colors hover:bg-mist hover:text-ink"
             >
               <X size={18} />
             </button>
@@ -202,7 +202,7 @@ export function ApplyPanel({ jobTitle, jobSlug }: { jobTitle: string; jobSlug?: 
               {/* Consent is a legal precondition for storing a résumé, not a
                   nicety — the server rejects the upload without it, so the
                   candidate is told plainly what submitting means. */}
-              <p className="text-xs leading-relaxed text-ink/55">
+              <p className="text-xs leading-relaxed text-ink/65">
                 Submitting stores your details and CV so the hiring team can consider
                 you for this and future roles. Ask us to delete them at any time.
               </p>

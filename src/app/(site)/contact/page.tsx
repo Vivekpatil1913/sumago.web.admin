@@ -6,16 +6,30 @@ import { LetsMeet } from "@/components/organisms/contact/lets-meet";
 import { WhySumago } from "@/components/organisms/contact/why-sumago";
 import { EngagementPath } from "@/components/organisms/contact/engagement-path";
 import { ScheduleMeeting } from "@/components/organisms/contact/schedule-meeting";
-import { getExpertLine, getOffices, getSettings } from "@/lib/cms";
+import {
+  getExpertLine,
+  getOffices,
+  getSettings,
+  withSeoOverrides,
+} from "@/lib/cms";
 import { localBusinessSchema } from "@/lib/cms/schema-org";
 import { JsonLd } from "@/components/atoms/json-ld";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Let's Connect",
-  description:
-    "Start a conversation with Sumago — talk to an expert or schedule a meeting. Offices across Nashik and Pune.",
-};
+/**
+ * Metadata for /contact, with the panel's SEO record layered on top.
+ *
+ * The base below is what the page ships with; anything published for this
+ * path in SEO Metadata overrides it field by field. No record means the
+ * base stands unchanged — never an empty title.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return withSeoOverrides("/contact", {
+    title: "Let's Connect",
+    description:
+      "Start a conversation with Sumago — talk to an expert or schedule a meeting. Offices across Nashik and Pune.",
+  });
+}
 
 export default async function ContactPage() {
   const [expertLine, settings, offices] = await Promise.all([
@@ -30,14 +44,22 @@ export default async function ContactPage() {
           search matches against, and the reason the address is stored in
           parts rather than as one string. */}
       {offices.map((office) => (
-        <JsonLd key={office.id || office.slug} data={localBusinessSchema(office, settings)} />
+        <JsonLd
+          key={office.id || office.slug}
+          data={localBusinessSchema(office, settings)}
+        />
       ))}
 
       <PageHero
         variant="rings"
         formation="pulse"
         eyebrow="Let's Connect"
-        title={<>Let&apos;s build something with <span className="text-metal-red">Sumago</span>.</>}
+        title={
+          <>
+            Let&apos;s build something with{" "}
+            <span className="text-metal-red-shine">Sumago</span>.
+          </>
+        }
         description="Tell Sumago where your business wants to go — every engagement starts with understanding your goals and challenges, never a sales pitch. Reach us any time."
       >
         {/* Two ways in: call now, or let the team call you. The call button is
@@ -61,7 +83,7 @@ export default async function ContactPage() {
             )}
           >
             <CalendarDays size={17} strokeWidth={2.5} aria-hidden />
-            Schedule a meeting
+            Schedule a free consultation
           </a>
         </div>
       </PageHero>

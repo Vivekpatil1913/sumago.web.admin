@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { ApiError, api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
-import { Button, FieldError, Input, Label, Notice, Spinner } from "@/components/admin/ui";
+import { Button, FieldError, InfoTip, Input, Label, Notice, Spinner } from "@/components/admin/ui";
 
 export default function AccountPage() {
   const { user, loading } = useApp();
@@ -91,7 +91,14 @@ export default function AccountPage() {
   return (
     <div className="mx-auto max-w-2xl space-y-5">
       <header>
-        <h1 className="text-xl font-semibold text-content">Your account</h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+          <h1 className="text-xl font-semibold text-content">Your account</h1>
+          <InfoTip label="About your account">
+            Changing your password signs out every other session immediately. Two-factor
+            authentication is required for any role that can reach personal data, and only an Admin
+            can change which role you hold.
+          </InfoTip>
+        </div>
         <p className="mt-0.5 text-sm text-muted">
           {user.name} · {user.email} · <span>{user.roleName}</span>
         </p>

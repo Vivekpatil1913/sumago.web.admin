@@ -6,15 +6,17 @@ import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
 import { CapabilityCard } from "@/components/molecules/capability-card";
 import { ChapterNav, type Chapter } from "@/components/molecules/chapter-nav";
+import { isStockAsset } from "@/components/molecules/media-placeholder";
 import { HeroEffect } from "@/components/organisms/hero-effect";
+import { Transformation } from "@/components/organisms/industries/transformation";
 import { HeroStars } from "@/components/three/hero-stars";
-import { INDUSTRY_ICONS, FALLBACK_INDUSTRY_ICON } from "@/lib/industry-meta";
-import { type IndustryPoint, type IndustryWithSlug } from "@/lib/industries";
+import { CmsIcon } from "@/lib/icon-registry";
+import { INDUSTRY_ICON_NAMES } from "@/lib/industry-meta";
+
 import { industryPageCopy as copy } from "@/lib/industry-page-copy";
 import { renderCopy } from "@/lib/rich-text";
 import { getCertifications, getMetrics } from "@/lib/cms";
-import type { ServiceWithSlug } from "@/lib/services";
-import { cn } from "@/lib/utils";
+import type { IndustryRecord, ServiceRecord } from "@/lib/cms";
 
 /**
  * The industry detail template — one layout, rendered for all 10 industries.
@@ -75,8 +77,8 @@ const IDS = {
  * and closes on verified company proof — the fastest trust signal available
  * above the fold, and the only claim on this page carrying numbers.
  */
-async function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
-  const Icon = INDUSTRY_ICONS[industry.slug] ?? FALLBACK_INDUSTRY_ICON;
+async function IndustryHero({ industry }: { industry: IndustryRecord }) {
+  const iconName = industry.icon || INDUSTRY_ICON_NAMES[industry.slug];
   /* Verified proof points only — from General Settings, so a corrected figure
      updates every industry page at once. */
   const [metrics, certifications] = await Promise.all([getMetrics(), getCertifications()]);
@@ -84,11 +86,12 @@ async function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
 
   return (
     <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
-      <HeroEffect variant="mesh" redOpacity={0.5} particles={false} />
+      <HeroEffect variant="mesh" particles={false} />
       <HeroStars formation="wave" />
 
       {/* Ghost watermark of the sector icon — depth without a container. */}
-      <Icon
+      <CmsIcon
+        name={iconName}
         aria-hidden
         strokeWidth={0.4}
         className="pointer-events-none absolute -right-16 top-1/2 z-0 hidden h-[34rem] w-[34rem] -translate-y-1/2 text-white/[0.03] lg:block"
@@ -110,7 +113,7 @@ async function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
               aria-hidden
               className="absolute inset-0 -rotate-3 rounded-2xl bg-[linear-gradient(135deg,#d73438,#7a1519)] shadow-lg shadow-brand/30 transition-transform duration-500 group-hover:rotate-3"
             />
-            <Icon size={28} className="relative text-white" aria-hidden />
+            <CmsIcon name={iconName} size={28} className="relative text-white" aria-hidden />
           </span>
           <div className="min-w-0">
             <p className="font-display text-xs font-bold uppercase tracking-[0.22em] text-white/40">
@@ -143,7 +146,7 @@ async function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
 
         {/* Verified proof strip — certifications and real metrics, nothing else. */}
         <div className="mt-12 border-t border-white/10 pt-7">
-          <p className="font-display text-[0.7rem] font-bold uppercase tracking-[0.2em] text-white/35">
+          <p className="font-display text-[0.7rem] font-bold uppercase tracking-[0.2em] text-white/70">
             {copy.hero.proofLabel}
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-4">
@@ -183,8 +186,8 @@ async function IndustryHero({ industry }: { industry: IndustryWithSlug }) {
  * ground, so the two halves read as question and answer rather than two
  * paragraphs of the same essay.
  */
-function Reality({ industry }: { industry: IndustryWithSlug }) {
-  const Icon = INDUSTRY_ICONS[industry.slug] ?? FALLBACK_INDUSTRY_ICON;
+function Reality({ industry }: { industry: IndustryRecord }) {
+  const iconName = industry.icon || INDUSTRY_ICON_NAMES[industry.slug];
 
   return (
     <Section id={IDS.reality} className="scroll-mt-32">
@@ -205,7 +208,8 @@ function Reality({ industry }: { industry: IndustryWithSlug }) {
             aria-hidden
             className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(75%_50%_at_15%_0%,rgba(215,52,56,0.24),transparent_70%)]"
           />
-          <Icon
+          <CmsIcon
+            name={iconName}
             aria-hidden
             strokeWidth={0.5}
             className="pointer-events-none absolute -bottom-10 -right-8 h-52 w-52 text-white/[0.05]"
@@ -250,7 +254,7 @@ function Reality({ industry }: { industry: IndustryWithSlug }) {
 /* -------------------------------------------------------------------------- */
 
 /** Where it hurts today — the three frictions, as cards with ghost numerals. */
-function Friction({ industry }: { industry: IndustryWithSlug }) {
+function Friction({ industry }: { industry: IndustryRecord }) {
   if (!industry.challenges.length) return null;
 
   return (
@@ -303,7 +307,7 @@ function Friction({ industry }: { industry: IndustryWithSlug }) {
  * problem still on screen. A red rail runs down the column to tie the three
  * together as one programme rather than three unrelated products.
  */
-function WhatGetsBuilt({ industry }: { industry: IndustryWithSlug }) {
+function WhatGetsBuilt({ industry }: { industry: IndustryRecord }) {
   if (!industry.solutions.length) return null;
 
   return (
@@ -346,7 +350,7 @@ function WhatGetsBuilt({ industry }: { industry: IndustryWithSlug }) {
               <div className="min-w-0 flex-1 rounded-2xl border border-line bg-paper p-6 transition-all duration-300 group-hover:border-brand/30 group-hover:shadow-[0_24px_48px_-28px_rgba(215,52,56,0.3)] md:p-7">
                 {/* The friction this answers — kept on screen with the answer. */}
                 {answers ? (
-                  <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-ink/40">
+                  <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.12em] text-ink/65">
                     <CornerDownRight size={13} aria-hidden className="text-brand/60" />
                     {answers.title}
                   </p>
@@ -368,190 +372,10 @@ function WhatGetsBuilt({ industry }: { industry: IndustryWithSlug }) {
 /*  What changes                                                               */
 /* -------------------------------------------------------------------------- */
 
-/**
- * One outcome, set as type — no card chrome, so this band can never read as a
- * dark recolour of the friction cards above it.
- */
-function OutcomeBody({ outcome, via }: { outcome: string; via?: IndustryPoint }) {
-  return (
-    <div>
-      <h3 className="text-2xl font-bold leading-tight tracking-tight text-white lg:text-[1.75rem]">
-        {outcome}
-      </h3>
-      {via ? (
-        <p className="mt-4 text-sm leading-relaxed text-white/50">
-          <span className="font-display text-[0.65rem] font-bold uppercase tracking-[0.18em] text-white/30">
-            Delivered by
-          </span>
-          <br />
-          {via.title}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-/**
- * Rail colour at position `t` along the journey (0 = where you are, 1 = where it
- * lands): a faint white hairline warming into full brand red. Computed rather
- * than hard-coded so the track reads continuously for any number of stations.
- */
-function railColor(t: number) {
-  const mix = (from: number, to: number) => Math.round(from + (to - from) * t);
-  const alpha = (0.12 + 0.88 * t).toFixed(2);
-  return `rgba(${mix(255, 215)},${mix(255, 52)},${mix(255, 56)},${alpha})`;
-}
-
-/** A station on the track — the rail passes behind it, the ink disc masks it. */
-function OutcomeNode({ index }: { index: number }) {
-  return (
-    <span className="relative z-10 grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/15 bg-ink transition-colors duration-500 group-hover:border-brand/70">
-      <span
-        aria-hidden
-        className="absolute inset-[0.3rem] rounded-full bg-[linear-gradient(135deg,#d73438,#7a1519)] opacity-25 transition-opacity duration-500 group-hover:opacity-100"
-      />
-      <span className="relative font-display text-xs font-bold tabular-nums text-white/70 transition-colors duration-500 group-hover:text-white">
-        {String(index).padStart(2, "0")}
-      </span>
-    </span>
-  );
-}
-
-/**
- * The dark, cinematic beat — what the operation feels once it's live, drawn as a
- * journey rather than a set of panels: one rail running from where you are to
- * where it lands, with the three outcomes as stations alternating above and
- * below it. Each credits the build that produces it (same index again), which is
- * what keeps this from reading as three adjectives on a dark background.
- *
- * Two markups by breakpoint — a horizontal track from `md` up, a vertical one
- * below it — because a three-station track can't shrink into a phone without
- * becoming unreadable, and mobile is redesigned rather than scaled (CLAUDE.md).
- */
-function WhatChanges({ industry }: { industry: IndustryWithSlug }) {
-  if (!industry.outcomes.length) return null;
-
-  const stations = industry.outcomes.map((outcome, i) => ({
-    outcome,
-    via: industry.solutions[i],
-    index: i + 1,
-  }));
-
-  return (
-    <Section dark id={IDS.outcomes} className="relative overflow-hidden scroll-mt-32">
-      {/* Ambient brand glow so the dark band feels lit, not flat. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(50%_45%_at_50%_0%,rgba(215,52,56,0.18),transparent_70%)]"
-      />
-      <SectionHeading
-        tone="dark"
-        eyebrow={copy.outcomes.eyebrow}
-        title={renderCopy(copy.outcomes.title, {}, "dark")}
-        description={
-          copy.outcomes.description
-            ? renderCopy(copy.outcomes.description, { industry: industry.name })
-            : undefined
-        }
-      />
-
-      {/* ---- Horizontal track (md and up) ----
-           Three shared grid rows (above / stations / below) with each station a
-           `grid-rows-subgrid` column, so the rail sits on the station row's
-           centre line no matter how long an outcome runs — no fixed heights to
-           overflow. The rail is drawn as one segment per cell; the cells abut,
-           so the segments read as a single continuous line. */}
-      <div data-aos="fade-up" className="mx-auto mt-16 hidden max-w-5xl md:block">
-        <div className="flex items-center justify-between font-display text-[0.7rem] font-bold uppercase tracking-[0.2em]">
-          <span className="text-white/35">{copy.outcomes.journeyStart}</span>
-          <span className="text-brand-bright">{copy.outcomes.journeyEnd}</span>
-        </div>
-
-        <ol
-          className="mt-6 grid grid-rows-[1fr_auto_1fr]"
-          style={{
-            gridTemplateColumns: `repeat(${stations.length}, minmax(0, 1fr))`,
-          }}
-        >
-          {stations.map(({ outcome, via, index }, i) => {
-            const above = i % 2 === 0;
-            const body = (
-              <div
-                className={cn(
-                  "flex flex-col items-center px-3 lg:px-5",
-                  above ? "self-end" : "self-start",
-                )}
-              >
-                {above ? null : (
-                  <span
-                    aria-hidden
-                    className="mb-6 h-7 w-px bg-gradient-to-t from-transparent to-brand/70"
-                  />
-                )}
-                <OutcomeBody outcome={outcome} via={via} />
-                {above ? (
-                  <span
-                    aria-hidden
-                    className="mt-6 h-7 w-px bg-gradient-to-b from-transparent to-brand/70"
-                  />
-                ) : null}
-              </div>
-            );
-
-            return (
-              <li
-                key={outcome}
-                className="group row-span-3 grid grid-rows-subgrid text-center"
-              >
-                {above ? body : <span aria-hidden />}
-
-                {/* Station row — carries this cell's slice of the rail. */}
-                <div className="relative flex w-full items-center justify-center">
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2"
-                    style={{
-                      backgroundImage: `linear-gradient(to right, ${railColor(
-                        i / stations.length,
-                      )}, ${railColor((i + 1) / stations.length)})`,
-                    }}
-                  />
-                  <OutcomeNode index={index} />
-                </div>
-
-                {above ? <span aria-hidden /> : body}
-              </li>
-            );
-          })}
-        </ol>
-      </div>
-
-      {/* ---- Vertical track (below md) ---- */}
-      <div className="relative mt-12 md:hidden">
-        <span
-          aria-hidden
-          className="absolute bottom-6 left-6 top-6 w-px bg-gradient-to-b from-white/12 via-brand/45 to-brand"
-        />
-        <p className="mb-7 pl-[4.25rem] font-display text-[0.7rem] font-bold uppercase tracking-[0.2em] text-white/35">
-          {copy.outcomes.journeyStart}
-        </p>
-        <ol className="relative space-y-9">
-          {stations.map(({ outcome, via, index }) => (
-            <li key={outcome} data-aos="fade-up" className="group flex gap-5">
-              <OutcomeNode index={index} />
-              <div className="min-w-0 flex-1 pt-1">
-                <OutcomeBody outcome={outcome} via={via} />
-              </div>
-            </li>
-          ))}
-        </ol>
-        <p className="mt-7 pl-[4.25rem] font-display text-[0.7rem] font-bold uppercase tracking-[0.2em] text-brand-bright">
-          {copy.outcomes.journeyEnd}
-        </p>
-      </div>
-    </Section>
-  );
-}
+/* The transformation band is the page's one interactive beat, and lives in
+   its own client component — organisms/industries/transformation.tsx. It is
+   built on the same three paired arrays as everything above it, so a new
+   industry stays a data edit here too. */
 
 /* -------------------------------------------------------------------------- */
 /*  Services behind it                                                         */
@@ -566,8 +390,8 @@ function ServicesBehind({
   industry,
   services,
 }: {
-  industry: IndustryWithSlug;
-  services: ServiceWithSlug[];
+  industry: IndustryRecord;
+  services: ServiceRecord[];
 }) {
   if (!services.length) return null;
 
@@ -585,7 +409,7 @@ function ServicesBehind({
       <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {services.map((s, i) => (
           <div key={s.slug} data-aos="fade-up" data-aos-delay={(i % 4) * 60}>
-            <CapabilityCard name={s.name} />
+            <CapabilityCard service={s} />
           </div>
         ))}
       </div>
@@ -612,7 +436,7 @@ function Proof({
   stories,
   isProd,
 }: {
-  industry: IndustryWithSlug;
+  industry: IndustryRecord;
   stories: Story[];
   isProd: boolean;
 }) {
@@ -633,7 +457,7 @@ function Proof({
                 href={`/impact/${s.slug}`}
                 data-aos="fade-up"
                 data-aos-delay={(i % 2) * 70}
-                data-placeholder="stock"
+                data-placeholder={isStockAsset(s.coverImage) ? "stock" : undefined}
                 className="group relative flex min-h-[19rem] flex-col justify-end overflow-hidden rounded-2xl ring-1 ring-line transition-all duration-300 hover:-translate-y-1.5 hover:ring-brand/40 md:min-h-[21rem]"
               >
                 <Image
@@ -690,7 +514,7 @@ function Proof({
 /* -------------------------------------------------------------------------- */
 
 /** Where next — the other sectors, as a compact icon rail. */
-function Siblings({ siblings }: { siblings: IndustryWithSlug[] }) {
+function Siblings({ siblings }: { siblings: IndustryRecord[] }) {
   if (!siblings.length) return null;
 
   return (
@@ -701,7 +525,7 @@ function Siblings({ siblings }: { siblings: IndustryWithSlug[] }) {
       />
       <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {siblings.map((s, i) => {
-          const Icon = INDUSTRY_ICONS[s.slug] ?? FALLBACK_INDUSTRY_ICON;
+          const siblingIcon = s.icon || INDUSTRY_ICON_NAMES[s.slug];
           return (
             <Link
               key={s.slug}
@@ -711,7 +535,7 @@ function Siblings({ siblings }: { siblings: IndustryWithSlug[] }) {
               className="group flex items-center gap-3.5 rounded-xl border border-line bg-paper px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_18px_36px_-24px_rgba(215,52,56,0.35)]"
             >
               <span className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-brand/15 bg-brand/[0.06] text-brand transition-colors duration-300 group-hover:border-transparent group-hover:bg-[linear-gradient(135deg,#d73438,#7a1519)] group-hover:text-white">
-                <Icon size={18} aria-hidden />
+                <CmsIcon name={siblingIcon} size={18} aria-hidden />
               </span>
               <span className="min-w-0 flex-1 font-medium leading-snug text-ink transition-colors group-hover:text-brand-ink">
                 {s.name}
@@ -745,10 +569,10 @@ export function IndustryDetail({
   siblings,
   isProd,
 }: {
-  industry: IndustryWithSlug;
-  services: ServiceWithSlug[];
+  industry: IndustryRecord;
+  services: ServiceRecord[];
   stories: Story[];
-  siblings: IndustryWithSlug[];
+  siblings: IndustryRecord[];
   isProd: boolean;
 }) {
   /* The rail lists only the chapters this industry actually renders, in page
@@ -780,7 +604,7 @@ export function IndustryDetail({
       <Reality industry={industry} />
       <Friction industry={industry} />
       <WhatGetsBuilt industry={industry} />
-      <WhatChanges industry={industry} />
+      <Transformation industry={industry} id={IDS.outcomes} />
       <ServicesBehind industry={industry} services={services} />
       <Proof industry={industry} stories={stories} isProd={isProd} />
       <Siblings siblings={siblings} />

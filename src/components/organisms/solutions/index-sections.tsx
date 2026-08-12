@@ -59,7 +59,10 @@ export function WhyPartner() {
             data-aos-delay={(i % 3) * 60}
             className="group grid items-baseline gap-x-6 gap-y-1 border-b border-line py-6 transition-colors hover:bg-paper sm:grid-cols-[auto_minmax(0,15rem)_1fr] sm:py-7"
           >
-            <span className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl">
+            <span
+              aria-hidden
+              className="font-display text-2xl font-bold leading-none text-ink/15 transition-colors group-hover:text-brand/40 sm:text-3xl"
+            >
               {String(i + 1).padStart(2, "0")}
             </span>
             <h3 className="text-lg font-bold leading-snug text-ink">{d.title}</h3>

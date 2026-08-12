@@ -9,12 +9,18 @@ import { BeatRun } from "@/components/organisms/delivery/beat-run";
 import { BeatBuilt } from "@/components/organisms/delivery/beat-built";
 import { InfrastructureBand } from "@/components/organisms/delivery/infrastructure-band";
 import { BeatTrusted } from "@/components/organisms/delivery/beat-trusted";
-import { getCertifications, getMetrics } from "@/lib/cms";
+import { canonicalFor, getCertifications, getMetrics } from "@/lib/cms";
 
+/*
+ * The one public page with no SEO Metadata record behind it: the panel offers
+ * thirteen static pages and this is not among them. It keeps the metadata it
+ * ships with, and gains the canonical every other route now carries.
+ */
 export const metadata: Metadata = {
   title: "How We Deliver",
   description:
     "How a Sumago engagement is actually run, the three delivery centres across Nashik and Pune it runs from, the infrastructure behind them, and the 600+ clients who shaped all of it.",
+  alternates: canonicalFor("/how-we-deliver"),
 };
 
 /**
@@ -63,7 +69,6 @@ export default async function HowWeDeliverPage() {
     <>
       <PageHero
         variant="floor"
-        redOpacity={0.55}
         eyebrow="How we deliver"
         titleClassName="max-w-4xl"
         title={
@@ -100,7 +105,7 @@ export default async function HowWeDeliverPage() {
                 <span className="text-metal-red-shine">checkable.</span>
               </>
             }
-            description="The certifications are independently audited, the numbers are on record, and the three floors are real rooms you are welcome to walk through before you sign anything."
+            description="The certifications are independently audited, the numbers are on record, and the three locations are real rooms you are welcome to walk through before you sign anything."
           />
 
           <div className="mx-auto mt-12 max-w-5xl rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-10 backdrop-blur-sm sm:px-8">

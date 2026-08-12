@@ -32,7 +32,7 @@ export function BeatBuilt() {
       kicker="Where it's built"
       title={
         <>
-          Three floors,{" "}
+          Three locations,{" "}
           <span className="text-metal-red">one operation.</span>
         </>
       }
@@ -66,7 +66,7 @@ export function BeatBuilt() {
                 <span
                   className={cn(
                     "rounded-full px-3 py-1 text-[0.625rem] font-bold uppercase tracking-[0.14em]",
-                    centre.lead ? "bg-brand/10 text-brand-ink" : "bg-mist text-ink/55",
+                    centre.lead ? "bg-brand/10 text-brand-ink" : "bg-mist text-ink/65",
                   )}
                 >
                   {centre.role}
@@ -75,7 +75,7 @@ export function BeatBuilt() {
 
               <h3 className="mt-6 text-balance font-display font-bold tracking-tight text-ink text-3xl/[1.12] lg:text-[2.75rem]/[1.06]">
                 {centre.locality}
-                <span className="block text-ink/40">{centre.city}</span>
+                <span className="block text-ink/65">{centre.city}</span>
               </h3>
 
               <p

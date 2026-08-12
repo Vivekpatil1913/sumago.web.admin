@@ -1,17 +1,20 @@
 "use client";
 
 /** Module 22 — Users & Roles. Admin only; the server enforces that too. */
-import { useCallback, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
-import { ApiError, api } from "@/lib/admin/api";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Plus, Search, X } from "lucide-react";
+import { ApiError, api, queryString } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatDateTime, humanise, statusTone } from "@/lib/admin/format";
+import { ExportMenu } from "@/components/admin/export-menu";
+import { Pager } from "@/components/admin/pager";
 import {
   Badge,
   Button,
   EmptyState,
   ErrorState,
   FieldError,
+  InfoTip,
   Input,
   Label,
   Modal,
@@ -19,13 +22,16 @@ import {
   Select,
   Spinner,
 } from "@/components/admin/ui";
-import type { RecordValue, RoleRecord } from "@/lib/admin/types";
+import type { RecordValue, RoleRecord, SelectOption } from "@/lib/admin/types";
+
+const PAGE_SIZE = 25;
 
 export default function UsersPage() {
-  const { user: currentUser, loading } = useApp();
+  const { user: currentUser, loading, loadOptions } = useApp();
   const { notify } = useToast();
 
   const [users, setUsers] = useState<RecordValue[]>([]);
+  const [total, setTotal] = useState(0);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<RecordValue | null>(null);
@@ -34,22 +40,62 @@ export default function UsersPage() {
   const [busy, setBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Search, filters and paging are all resolved by SQL — see /platform/users.
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [roleId, setRoleId] = useState("");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(1);
+  const [roleOptions, setRoleOptions] = useState<SelectOption[]>([]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void loadOptions("ref:roles").then((options) => {
+      if (!cancelled) setRoleOptions(options);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadOptions]);
+
+  const params = useMemo(() => {
+    const query: Record<string, string> = {
+      page: String(page),
+      pageSize: String(PAGE_SIZE),
+    };
+    if (debouncedSearch) query["search"] = debouncedSearch;
+    if (roleId) query["roleId"] = roleId;
+    if (status) query["status"] = status;
+    return query;
+  }, [page, debouncedSearch, roleId, status]);
+
   const load = useCallback(async () => {
     setLoadingUsers(true);
     setError(null);
     try {
-      const response = await api.get<RecordValue[]>("/platform/users?pageSize=100");
+      const response = await api.get<RecordValue[]>(`/platform/users${queryString(params)}`);
       setUsers(response.data ?? []);
+      setTotal(response.meta?.total ?? 0);
     } catch (caught) {
       setError(errorMessage(caught));
     } finally {
       setLoadingUsers(false);
     }
-  }, []);
+  }, [params]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  const hasFilters = Boolean(debouncedSearch || roleId || status);
 
   if (loading) return <Spinner />;
   if (!currentUser?.isAdmin) {
@@ -76,8 +122,13 @@ export default function UsersPage() {
     <div className="mx-auto max-w-5xl">
       <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h1 className="text-xl font-semibold text-content">Users &amp; Roles</h1>
+            <InfoTip label="About Users and Roles">
+              Admin and HR accounts must use two-factor authentication because they can see personal
+              data. A user cannot change their own role, and the last Admin cannot be deleted or
+              suspended.
+            </InfoTip>
             <span className="text-xs text-muted">PRD Module 22</span>
           </div>
           <p className="mt-0.5 text-sm text-muted">
@@ -89,11 +140,73 @@ export default function UsersPage() {
         </Button>
       </header>
 
-      <div className="mb-4">
-        <Notice tone="info">
-          Admin and HR accounts must use two-factor authentication because they can see personal data.
-          A user cannot change their own role, and the last Admin cannot be deleted or suspended.
-        </Notice>
+      {/* --------------------------------------------------------- Toolbar */}
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <div className="relative min-w-56 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+          <Input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search name or email…"
+            aria-label="Search users"
+            className="pl-9"
+          />
+        </div>
+
+        <Select
+          value={roleId}
+          onChange={(event) => {
+            setRoleId(event.target.value);
+            setPage(1);
+          }}
+          aria-label="Filter by role"
+        >
+          <option value="">Role: all</option>
+          {roleOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value);
+            setPage(1);
+          }}
+          aria-label="Filter by status"
+        >
+          <option value="">Status: all</option>
+          <option value="active">Active</option>
+          <option value="suspended">Suspended</option>
+        </Select>
+
+        {hasFilters ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<X className="h-3.5 w-3.5" />}
+            onClick={() => {
+              setSearch("");
+              setRoleId("");
+              setStatus("");
+              setPage(1);
+            }}
+          >
+            Clear
+          </Button>
+        ) : null}
+
+        <div className="ml-auto">
+          <ExportMenu
+            endpoint="/platform/users"
+            params={params}
+            fileBase="users"
+            label="Users"
+            total={total}
+          />
+        </div>
       </div>
 
       <div className="overflow-hidden admin-card">
@@ -102,7 +215,7 @@ export default function UsersPage() {
         ) : error ? (
           <ErrorState message={error} onRetry={() => void load()} />
         ) : users.length === 0 ? (
-          <EmptyState title="No users yet" />
+          <EmptyState title={hasFilters ? "No users match these filters" : "No users yet"} />
         ) : (
           <div className="table-scroll">
             <table className="w-full text-sm">
@@ -163,6 +276,10 @@ export default function UsersPage() {
           </div>
         )}
       </div>
+
+      {!loadingUsers && !error ? (
+        <Pager page={page} pageSize={PAGE_SIZE} total={total} onPage={setPage} noun="users" />
+      ) : null}
 
       <UserModal
         open={creating || Boolean(editing)}

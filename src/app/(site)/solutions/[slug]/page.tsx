@@ -1,20 +1,38 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ServiceDetail } from "@/components/organisms/solutions/service-detail";
-import { getSuccessStories } from "@/lib/cms";
-import { services } from "@/lib/services";
+import { ServicePage } from "@/components/organisms/solutions/service-page";
+import type { Story } from "@/lib/service-page";
+import { canonicalFor, getService, getServices, getSuccessStories } from "@/lib/cms";
+import { services as authoredServices, type ServiceWithSlug } from "@/lib/services";
 
 /**
- * Service detail route — one template for all 15 services.
+ * Service detail — one route, one layout, fifteen services.
  *
- * Everything on the page resolves from `services` (lib/services.ts), the single
- * source of truth; the legacy sidebar layout and the editorial/visual A-B map
- * are gone. When the CMS lands, this route swaps its lookup for a Sanity fetch
- * and the template is untouched (CLAUDE.md — content is CMS-driven).
+ * Every service renders the same eleven-section page
+ * (`components/organisms/solutions/service-page`). There is no per-service
+ * branching here and there must never be: a service differs only in the content
+ * it supplies and `lib/service-page.ts` resolves.
+ *
+ * ## Where the content comes from
+ *
+ * Two sources, merged. The admin panel owns the fields it can edit — name,
+ * blurb, problem, summary, approach, deliverables, outcomes, technologies,
+ * tools, linked stories, and the whole SEO group — so publishing an edit still
+ * changes this page. The authored entry in `lib/services.ts` supplies the
+ * page-shaped copy the panel has no columns for yet (`understanding`,
+ * `whatWeBuild`, `valueDrivers`, `howItHelps`, `capabilityGroups`, `process`,
+ * `whyUs`), which is what gives a fully authored service like Mobile App
+ * Engineering its density.
+ *
+ * Nothing here is conditional on either source being present:
+ * `resolveServicePage` derives an honest fallback for every optional field, so
+ * a service published in the panel with no authored counterpart renders the
+ * identical eleven sections — thinner, never broken.
  */
 
-export function generateStaticParams() {
-  return services.map((s) => ({ slug: s.slug }));
+export async function generateStaticParams() {
+  const services = await getServices();
+  return services.map((service) => ({ slug: service.slug }));
 }
 
 export async function generateMetadata({
@@ -23,8 +41,23 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const service = services.find((s) => s.slug === slug);
-  return { title: service?.name ?? "Solution", description: service?.summary };
+  const service = await getService(slug);
+  if (!service) return { title: "Solution" };
+
+  return {
+    // The panel's SEO fields win where they are filled in; the name and summary
+    // stand in where they are not, so a service published without touching the
+    // SEO group still gets a sensible title rather than an empty one.
+    title: service.metaTitle || service.name,
+    description: service.metaDescription || service.summary,
+    alternates: canonicalFor(`/solutions/${slug}`, service.canonicalUrl),
+    ...(service.noIndex ? { robots: { index: false, follow: false } } : {}),
+    openGraph: {
+      title: service.metaTitle || service.name,
+      description: service.metaDescription || service.summary,
+      ...(service.ogImage ? { images: [{ url: service.ogImage, alt: service.ogImageAlt ?? "" }] } : {}),
+    },
+  };
 }
 
 export default async function SolutionDetailPage({
@@ -33,31 +66,69 @@ export default async function SolutionDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const service = services.find((s) => s.slug === slug);
-  if (!service) notFound();
+
+  const [record, published] = await Promise.all([getService(slug), getSuccessStories()]);
+  if (!record) notFound();
+
+  /* The panel record over the authored one: every field the panel owns is taken
+     from the database, and everything the panel has no column for survives from
+     `services.ts`.
+
+     "Owns" means *filled in*. `normaliseService` coerces an unset column to an
+     empty array, and an unwritten one to an empty string — neither is an
+     instruction to blank the section. Spreading them straight over the authored
+     entry would erase written copy, and `??` would not catch it: `[] ?? x` is
+     `[]`. So each field falls back when the panel's is empty. */
+  const authored = authoredServices.find((service) => service.slug === slug);
+  const text = (value: string, fallback: string | undefined) =>
+    value.trim() ? value : (fallback ?? "");
+  const list = <T,>(value: T[], fallback: readonly T[] | undefined): T[] =>
+    value.length ? value : [...(fallback ?? [])];
+
+  const service: ServiceWithSlug = {
+    ...authored,
+    name: text(record.name, authored?.name),
+    slug: record.slug,
+    icon: text(record.icon, authored?.icon),
+    phase: record.phase,
+    blurb: text(record.blurb, authored?.blurb),
+    problem: text(record.problem, authored?.problem),
+    summary: text(record.summary, authored?.summary),
+    approach: text(record.approach, authored?.approach),
+    deliverables: list(record.deliverables, authored?.deliverables),
+    outcomes: list(record.outcomes, authored?.outcomes),
+    technologies: list(record.technologies, authored?.technologies),
+    tools: list(record.tools, authored?.tools),
+    /* Left undefined rather than empty, so `resolveServicePage` can move down
+       its fallback chain instead of rendering section 03 with nothing in it. */
+    whoFor: record.whoFor.length ? record.whoFor : authored?.whoFor,
+    stories: list(record.stories, authored?.stories),
+    hasProof: record.hasProof,
+  };
 
   /* Real stories that genuinely involved this service — only 3 of 15 have any.
      Where none exist, a flagged gap renders outside production (docs/17).
 
-     The link is still a slug list on the service (lib/services.ts); the story
-     itself now comes from the admin panel, so a story that is unpublished or
-     deleted simply drops out of the list here. */
-  const published = await getSuccessStories();
-  const stories = (service.stories ?? [])
+     The link is a slug list on the service record; the story itself is its own
+     record, so a story that is unpublished or deleted simply drops out here. */
+  const stories: Story[] = record.stories
     .map((wanted) => published.find((story) => story.slug === wanted))
-    .filter((story) => story !== undefined);
-
-  /* Prefer siblings from the same lifecycle phase — the services a visitor is
-     most likely weighing at the same time — then top up from the rest. */
-  const related = services
-    .filter((s) => s.slug !== slug && s.phase === service.phase)
-    .concat(services.filter((s) => s.slug !== slug && s.phase !== service.phase))
-    .slice(0, 3);
+    .filter((story) => story !== undefined)
+    .map((story) => ({
+      slug: story.slug,
+      title: story.title,
+      industry: story.industry,
+      region: story.region,
+      cover: story.coverImage,
+      challenge: story.challenge,
+      solution: story.solution,
+      impact: story.impact,
+      tech: story.technologies,
+    }));
 
   return (
-    <ServiceDetail
+    <ServicePage
       service={service}
-      related={related}
       stories={stories}
       isProd={process.env.NODE_ENV === "production"}
     />

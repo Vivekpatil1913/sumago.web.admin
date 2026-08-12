@@ -77,7 +77,7 @@ export function ShiftDiagram({
         className="relative overflow-hidden rounded-3xl border border-line bg-mist p-7 sm:p-9"
       >
         <div className="flex items-start justify-between gap-6">
-          <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-ink/40">
+          <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-ink/65">
             {problemLabel}
           </p>
           <TrendLine direction="down" />
@@ -255,7 +255,7 @@ export function ManifestDiagram({
           <p className="font-display text-[0.7rem] font-bold uppercase tracking-[0.2em] text-brand-ink">
             {title}
           </p>
-          <p className="font-display text-[0.7rem] font-bold uppercase tracking-[0.18em] text-ink/40">
+          <p className="font-display text-[0.7rem] font-bold uppercase tracking-[0.18em] text-ink/65">
             {String(items.length).padStart(2, "0")} items
           </p>
         </div>
@@ -273,7 +273,7 @@ export function ManifestDiagram({
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-brand/25 bg-brand/[0.07] text-brand transition-colors duration-300 group-hover:bg-brand group-hover:text-white">
               <Check size={15} strokeWidth={3} aria-hidden />
             </span>
-            <span className="font-display text-xs font-bold tabular-nums text-ink/25">
+            <span className="font-display text-xs font-bold tabular-nums text-ink/65">
               {String(i + 1).padStart(2, "0")}
             </span>
             <span className="flex-1 text-base font-medium leading-snug text-ink transition-transform duration-300 group-hover:translate-x-1 sm:text-lg">
@@ -285,7 +285,7 @@ export function ManifestDiagram({
 
       {/* Stamp + perforated tear-off edge */}
       <div className="relative flex items-center justify-between gap-4 border-t border-line px-6 py-5 sm:px-8">
-        <p className="text-xs leading-relaxed text-ink/50">{footnote}</p>
+        <p className="text-xs leading-relaxed text-ink/65">{footnote}</p>
         <span
           aria-hidden
           className="hidden shrink-0 -rotate-6 rounded-md border-2 border-brand/25 px-3 py-1 font-display text-[0.65rem] font-bold uppercase tracking-[0.18em] text-brand/40 sm:block"
@@ -331,7 +331,7 @@ export function OutcomeSteps({
     <div className="mt-14">
       {/* Journey framing — start on the left, destination on the right. */}
       <div className="mb-6 flex items-center justify-between gap-4 text-[0.7rem] font-bold uppercase tracking-[0.18em]">
-        <span className="text-white/35">{startLabel}</span>
+        <span className="text-white/70">{startLabel}</span>
         <span className="flex items-center gap-2 text-brand-bright">
           <Icon size={14} aria-hidden />
           {endLabel}
@@ -407,18 +407,52 @@ export function OrbitDiagram({
 
   if (!icons.length) {
     return technologies?.length ? (
-      <p className="mx-auto mt-12 max-w-3xl text-center text-sm font-medium uppercase tracking-[0.1em] text-ink/40">
+      <p className="mx-auto mt-12 max-w-3xl text-center text-sm font-medium uppercase tracking-[0.1em] text-ink/65">
         {technologies.join("  ·  ")}
       </p>
     ) : null;
   }
 
   return (
-    <div className="mt-14 grid items-center gap-10 lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-16">
-      {/* Orbit */}
+    /*
+      `overflow-x-clip` on the wrapper, and it is doing something the stage
+      below cannot.
+
+      The rotating carrier is a square, and the browser counts a rotated
+      square's *bounding box* — √2 of its side — toward the document's
+      scroll width, even though that box paints nothing. At 390px a 294px stage
+      was reported as 416px wide, so the page grew a horizontal scrollbar off an
+      element with no pixels in it.
+
+      Clipping here rather than on the stage is what keeps it visually lossless:
+      this wrapper spans the whole column and the tiles orbit well inside it (the
+      stage is inset for exactly that reason), so the only thing clipped is the
+      empty corner sweep. `clip` rather than `hidden` — `hidden` would make this
+      a scroll container and break the sticky in-page nav above it.
+    */
+    <div className="mt-14 grid items-center gap-10 overflow-x-clip lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-16">
+      {/*
+        Orbit.
+
+        Narrower than its column below `sm`, and that is load-bearing rather
+        than taste. Two things reach past this box: the rotating carrier is a
+        square, and a rotating square's bounding box grows to √2 of its side —
+        and the tool tiles sit on a ring at 46% of the radius, so a 62px tile
+        centred at 3 o'clock puts its outer edge ~31px past the stage.
+
+        On a laptop the column is far wider than the 420px cap, so both sweep
+        harmlessly into empty space. At 320–390px the stage filled the column,
+        the sweep left the viewport, and the whole page gained a horizontal
+        scrollbar — measured at +118px on a 320 screen.
+
+        Clipping was the wrong fix: `overflow-hidden` here would cut the tiles
+        at the extremes, which are the part a visitor is meant to read. Giving
+        the stage 28px of room on each side keeps every tile inside the page
+        and the ring geometry untouched.
+      */}
       <div
         data-aos="fade-up"
-        className="relative mx-auto aspect-square w-full max-w-[420px]"
+        className="relative mx-auto aspect-square w-[calc(100%-3.5rem)] max-w-[420px] sm:w-full"
         aria-hidden
       >
         {/* Rings */}
@@ -480,7 +514,7 @@ export function OrbitDiagram({
           ))}
         </ul>
         {technologies?.length ? (
-          <p className="mt-6 text-sm font-medium uppercase leading-relaxed tracking-[0.1em] text-ink/40">
+          <p className="mt-6 text-sm font-medium uppercase leading-relaxed tracking-[0.1em] text-ink/65">
             {technologies.join("  ·  ")}
           </p>
         ) : null}
@@ -519,7 +553,7 @@ export function RelatedMap({
           <Icon size={22} className="relative text-white" aria-hidden />
         </span>
         <div>
-          <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-ink/40">
+          <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-ink/65">
             You are here
           </p>
           <p className="mt-0.5 text-base font-bold text-ink">{currentName}</p>

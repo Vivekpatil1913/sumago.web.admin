@@ -7,17 +7,20 @@
  * table view kept for the audit columns. Alt text is required at upload; the
  * "missing alt" and "is stock" filters exist because both block launch.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, Grid3x3, Info, List, Search, Upload, X } from "lucide-react";
 import { api, queryString } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
 import { formatBytes, formatDate } from "@/lib/admin/format";
 import { DataTable } from "@/components/admin/data-table";
+import { ExportMenu } from "@/components/admin/export-menu";
+import { Pager } from "@/components/admin/pager";
 import {
   Badge,
   Button,
   EmptyState,
   ErrorState,
+  InfoTip,
   Input,
   Label,
   Modal,
@@ -35,6 +38,9 @@ interface Usage {
   field: string;
 }
 
+/** Five across on a wide screen — twelve full rows to a page. */
+const GRID_PAGE_SIZE = 60;
+
 export default function MediaPage() {
   const { moduleByKey, loading } = useApp();
   const { notify } = useToast();
@@ -45,7 +51,9 @@ export default function MediaPage() {
   const [loadingAssets, setLoadingAssets] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filter, setFilter] = useState("");
+  const [page, setPage] = useState(1);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -56,18 +64,38 @@ export default function MediaPage() {
 
   const module = moduleByKey("media");
 
+  // Typing must not fire a request per keystroke.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  /**
+   * The grid asks the server for one page at a time, exactly like the table.
+   * It used to request 60 assets and show whatever came back beside a total
+   * counted over the whole library — so a library of 200 looked complete at 60.
+   */
+  const params = useMemo(() => {
+    const query: Record<string, string> = {
+      page: String(page),
+      pageSize: String(GRID_PAGE_SIZE),
+    };
+    if (debouncedSearch) query["search"] = debouncedSearch;
+    if (filter === "missingAlt") query["missingAlt"] = "true";
+    if (filter === "isStock") query["isStock"] = "true";
+    if (filter === "unused") query["unused"] = "true";
+    if (filter === "image" || filter === "video") query["type"] = filter;
+    return query;
+  }, [page, debouncedSearch, filter]);
+
   const load = useCallback(async () => {
     if (!module || view !== "grid") return;
     setLoadingAssets(true);
     setError(null);
     try {
-      const params: Record<string, string> = { pageSize: "60" };
-      if (search) params["search"] = search;
-      if (filter === "missingAlt") params["missingAlt"] = "true";
-      if (filter === "isStock") params["isStock"] = "true";
-      if (filter === "unused") params["unused"] = "true";
-      if (filter === "image" || filter === "video") params["type"] = filter;
-
       const response = await api.get<RecordValue[]>(`${module.endpoint}${queryString(params)}`);
       setAssets(response.data ?? []);
       setTotal(response.meta?.total ?? 0);
@@ -76,7 +104,7 @@ export default function MediaPage() {
     } finally {
       setLoadingAssets(false);
     }
-  }, [module, view, search, filter]);
+  }, [module, view, params]);
 
   useEffect(() => {
     void load();
@@ -117,8 +145,13 @@ export default function MediaPage() {
     <div className="mx-auto max-w-7xl">
       <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <h1 className="text-xl font-semibold text-content">Media Library</h1>
+            <InfoTip label="About the Media Library">
+              Alt text is required on every image — the site fails its accessibility audit without
+              it. Stock imagery is for preview only and blocks launch while any is live. An asset
+              still used by a record cannot be deleted; open it to see where it appears.
+            </InfoTip>
             <span className="text-xs text-muted">PRD Module 14</span>
           </div>
           <p className="mt-0.5 text-sm text-muted">Central store for every image and video.</p>
@@ -176,7 +209,15 @@ export default function MediaPage() {
                 className="pl-8"
               />
             </div>
-            <Select value={filter} onChange={(event) => setFilter(event.target.value)} aria-label="Filter" className="w-auto">
+            <Select
+              value={filter}
+              onChange={(event) => {
+                setFilter(event.target.value);
+                setPage(1);
+              }}
+              aria-label="Filter"
+              className="w-auto"
+            >
               <option value="">All assets</option>
               <option value="image">Images</option>
               <option value="video">Video</option>
@@ -185,6 +226,13 @@ export default function MediaPage() {
               <option value="isStock">Stock (blocks launch)</option>
             </Select>
             <span className="ml-auto text-sm text-muted">{total} asset{total === 1 ? "" : "s"}</span>
+            <ExportMenu
+              endpoint={module.endpoint}
+              params={params}
+              fileBase={module.key}
+              label={module.label}
+              total={total}
+            />
           </div>
 
           {loadingAssets ? (
@@ -252,6 +300,16 @@ export default function MediaPage() {
               })}
             </ul>
           )}
+
+          {!loadingAssets && !error ? (
+            <Pager
+              page={page}
+              pageSize={GRID_PAGE_SIZE}
+              total={total}
+              onPage={setPage}
+              noun="assets"
+            />
+          ) : null}
         </>
       )}
 

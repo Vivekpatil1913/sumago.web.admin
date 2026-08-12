@@ -8,12 +8,16 @@ import { Stat } from "@/components/molecules/stat";
 import { CapabilityCard } from "@/components/molecules/capability-card";
 import { ChallengesCinematic } from "@/components/organisms/home/challenges-cinematic";
 import { ImpactShowcase } from "@/components/organisms/home/impact-showcase";
-import { industries, primaryCta } from "@/lib/site";
-import { getMetrics, getSuccessStories } from "@/lib/cms";
-import { featuredServices } from "@/lib/services";
-import { industryImages } from "@/lib/preview-assets";
-import { INDUSTRY_ICONS, FALLBACK_INDUSTRY_ICON } from "@/lib/industry-meta";
-import { slugify } from "@/lib/utils";
+import { primaryCta } from "@/lib/site";
+import {
+  getFeaturedServices,
+  getIndustries,
+  getMetrics,
+  getSuccessStories,
+  type IndustryRecord,
+} from "@/lib/cms";
+import { CmsIcon } from "@/lib/icon-registry";
+import { INDUSTRY_ICON_NAMES } from "@/lib/industry-meta";
 
 /** Trust bar — real metrics. */
 export async function TrustBar() {
@@ -100,7 +104,10 @@ export function ChallengesWeSolve() {
 }
 
 /** Our services — six flagship service cards + "Explore all services". */
-export function CapabilitiesSection() {
+export async function CapabilitiesSection() {
+  // The services flagged "Featured on Home" in the panel, capped at six.
+  const featured = await getFeaturedServices();
+
   return (
     <section className="relative overflow-hidden bg-blueprint py-16 text-white md:py-22">
       {/* Ambient brand glows drifting over the dark blueprint grid */}
@@ -131,9 +138,9 @@ export function CapabilitiesSection() {
           description="The tech world keeps changing, and one-size-fits-all can't keep up. Each service below is tailored from the ground up — engineered for how you actually operate, not the other way around."
         />
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {featuredServices.map((s, i) => (
-            <div key={s.slug} data-aos="fade-up" data-aos-delay={(i % 3) * 60}>
-              <CapabilityCard name={s.name} tone="dark" />
+          {featured.map((service, i) => (
+            <div key={service.slug} data-aos="fade-up" data-aos-delay={(i % 3) * 60}>
+              <CapabilityCard service={service} tone="dark" />
             </div>
           ))}
         </div>
@@ -158,9 +165,10 @@ export function CapabilitiesSection() {
  * than the viewport on phones — at `w-96` a card is wider than a 375px screen,
  * so both its edges sit off-screen and the row stops reading as cards.
  */
-function IndustryPill({ name }: { name: string }) {
-  const slug = slugify(name);
-  const Icon = INDUSTRY_ICONS[slug] ?? FALLBACK_INDUSTRY_ICON;
+function IndustryPill({ industry }: { industry: IndustryRecord }) {
+  const { name, slug } = industry;
+  // The record's own icon wins; the committed map answers for a row that has none.
+  const iconName = industry.icon || INDUSTRY_ICON_NAMES[slug];
   return (
     <Link
       href={`/industries/${slug}`}
@@ -168,7 +176,7 @@ function IndustryPill({ name }: { name: string }) {
       className="group/card relative mr-3 block h-40 w-64 shrink-0 overflow-hidden rounded-2xl shadow-sm ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:mr-4 sm:h-52 sm:w-96"
     >
       <Image
-        src={industryImages[slug]}
+        src={industry.image}
         alt={name}
         fill
         sizes="(min-width: 640px) 384px, 256px"
@@ -184,7 +192,7 @@ function IndustryPill({ name }: { name: string }) {
       {/* icon + text over the shade */}
       <div className="absolute inset-x-0 bottom-0 flex items-center gap-3 p-4">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-brand to-[#7a1519] text-white shadow-sm shadow-brand/30">
-          <Icon size={20} />
+          <CmsIcon name={iconName} size={20} />
         </span>
         <span className="font-display text-base font-semibold leading-tight text-white">
           {name}
@@ -195,9 +203,13 @@ function IndustryPill({ name }: { name: string }) {
 }
 
 /** Industries — two rows of pills auto-scrolling in opposite directions. */
-export function IndustriesSection() {
-  const row1 = industries.slice(0, 5);
-  const row2 = industries.slice(5);
+export async function IndustriesSection() {
+  const industries = await getIndustries();
+  // Split into two marquee rows. `ceil` so an odd count leaves the shorter row
+  // second — a single-item second row still scrolls, an empty one is a gap.
+  const half = Math.ceil(industries.length / 2);
+  const row1 = industries.slice(0, half);
+  const row2 = industries.slice(half);
   const edgeFade =
     "group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]";
   return (
@@ -219,16 +231,16 @@ export function IndustriesSection() {
         {/* Row 1 → scrolls left */}
         <div className={edgeFade}>
           <div className="flex w-max animate-[marquee-x_40s_linear_infinite] group-hover:[animation-play-state:paused]">
-            {[...row1, ...row1].map((name, i) => (
-              <IndustryPill key={`r1-${name}-${i}`} name={name} />
+            {[...row1, ...row1].map((industry, i) => (
+              <IndustryPill key={`r1-${industry.slug}-${i}`} industry={industry} />
             ))}
           </div>
         </div>
         {/* Row 2 → scrolls right */}
         <div className={edgeFade}>
           <div className="flex w-max animate-[marquee-x_40s_linear_infinite_reverse] group-hover:[animation-play-state:paused]">
-            {[...row2, ...row2].map((name, i) => (
-              <IndustryPill key={`r2-${name}-${i}`} name={name} />
+            {[...row2, ...row2].map((industry, i) => (
+              <IndustryPill key={`r2-${industry.slug}-${i}`} industry={industry} />
             ))}
           </div>
         </div>

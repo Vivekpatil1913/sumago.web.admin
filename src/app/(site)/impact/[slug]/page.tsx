@@ -5,9 +5,9 @@ import { ArrowLeft } from "lucide-react";
 import { Section } from "@/components/atoms/section";
 import { Eyebrow } from "@/components/atoms/eyebrow";
 import { Button } from "@/components/atoms/button";
-import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
-import { getSuccessStories, getSuccessStory } from "@/lib/cms";
-import { toParagraphs } from "@/lib/cms/format";
+import { Media, isStockAsset } from "@/components/molecules/media-placeholder";
+import { canonicalFor, getSuccessStories, getSuccessStory } from "@/lib/cms";
+import { MarkdownBody } from "@/lib/markdown";
 import { breadcrumbSchema, caseStudySchema } from "@/lib/cms/schema-org";
 import { JsonLd } from "@/components/atoms/json-ld";
 
@@ -27,7 +27,7 @@ export async function generateMetadata({
   return {
     title: story.metaTitle ?? story.title,
     description: story.metaDescription ?? story.summary,
-    ...(story.canonicalUrl ? { alternates: { canonical: story.canonicalUrl } } : {}),
+    alternates: canonicalFor(`/impact/${slug}`, story.canonicalUrl),
     ...(story.noIndex ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       type: "article",
@@ -78,8 +78,8 @@ export default async function ImpactDetailPage({
       {/* Story header — compact dark band (matches the site's hero language). */}
       <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute inset-0 bg-[radial-gradient(60%_70%_at_50%_0%,rgba(215,52,56,0.18),transparent_70%)]" />
-          <div className="fx-red-aurora absolute inset-0" />
+          <div className="absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_35%,rgba(255,255,255,0.05),transparent_70%)]" />
+          <div className="fx-hero-aurora absolute inset-0" />
           <div className="fx-dots absolute inset-0" />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#0a0708] to-transparent" />
         </div>
@@ -92,10 +92,16 @@ export default async function ImpactDetailPage({
             All stories
           </Link>
           <div className="mt-8 max-w-3xl">
-            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wider text-brand-bright">
-              <span>{story.industry}</span>
-              <span className="text-white/30">·</span>
-              <span className="text-white/50">{story.region}</span>
+            {/* Same rule as the index card: only what the story actually has. */}
+            <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-wider text-brand-bright">
+              {[story.category, story.industry, story.region]
+                .filter((label): label is string => Boolean(label?.trim()))
+                .map((label, i) => (
+                  <span key={label} className="flex items-center gap-3">
+                    {i > 0 && <span className="text-white/70">·</span>}
+                    <span className={i === 0 ? undefined : "text-white/50"}>{label}</span>
+                  </span>
+                ))}
             </div>
             <h1 className="mt-3 text-4xl font-bold leading-tight tracking-[-0.02em] md:text-5xl">
               {story.title}
@@ -107,7 +113,13 @@ export default async function ImpactDetailPage({
 
       <Section>
         <div className="mx-auto max-w-3xl">
-          <MediaPlaceholder src={story.coverImage} alt={story.title} ratio="16/9" />
+          <Media
+            src={story.coverImage}
+            alt={story.title}
+            ratio="16/9"
+            sizes="(max-width: 768px) 100vw, 48rem"
+            stock={isStockAsset(story.coverImage)}
+          />
 
           {/* Measured results — the reason an evaluator opened this page. */}
           {story.results.length > 0 && (
@@ -132,12 +144,12 @@ export default async function ImpactDetailPage({
             {sections.map((section) => (
               <div key={section.heading}>
                 <h2 className="font-display text-xl font-bold text-ink">{section.heading}</h2>
-                <div className="mt-3 space-y-5">
-                  {toParagraphs(section.body).map((para, i) => (
-                    <p key={i} className="text-lg leading-relaxed text-ink/80">
-                      {para}
-                    </p>
-                  ))}
+                {/* Markdown, not plain paragraphs: "What was built" carries the
+                    surface-by-surface breakdown, the architecture notes and the
+                    stack as sub-headed lists, which a <p> per block would print
+                    as literal `### ` and `- `. */}
+                <div className="mt-3">
+                  <MarkdownBody body={section.body} />
                 </div>
               </div>
             ))}
@@ -152,11 +164,16 @@ export default async function ImpactDetailPage({
               <ul className="grid gap-4 sm:grid-cols-2">
                 {story.gallery.map((image) => (
                   <li key={image.url} className="overflow-hidden rounded-xl border border-line">
-                    <MediaPlaceholder src={image.url} alt={image.alt} ratio="4/3" />
+                    <Media
+                      src={image.url}
+                      alt={image.alt}
+                      ratio="4/3"
+                      stock={isStockAsset(image.url)}
+                    />
                   </li>
                 ))}
               </ul>
-              <figcaption className="mt-3 text-center text-xs text-ink/45">
+              <figcaption className="mt-3 text-center text-xs text-ink/65">
                 From the {story.title} engagement
               </figcaption>
             </figure>
@@ -166,7 +183,7 @@ export default async function ImpactDetailPage({
             <dl className="mt-10 grid gap-5 rounded-2xl border border-line bg-mist p-6 sm:grid-cols-3">
               {story.technologies.length > 0 && (
                 <div className="sm:col-span-3">
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/50">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/65">
                     Technologies
                   </dt>
                   <dd className="mt-2 flex flex-wrap gap-2">
@@ -183,7 +200,7 @@ export default async function ImpactDetailPage({
               )}
               {story.timeline && (
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/50">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/65">
                     Timeline
                   </dt>
                   <dd className="mt-1 text-sm text-ink/75">{story.timeline}</dd>
@@ -191,7 +208,7 @@ export default async function ImpactDetailPage({
               )}
               {story.roi && (
                 <div>
-                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/50">ROI</dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-ink/65">ROI</dt>
                   <dd className="mt-1 text-sm text-ink/75">{story.roi}</dd>
                 </div>
               )}
@@ -234,11 +251,13 @@ export default async function ImpactDetailPage({
                 className="group flex flex-col overflow-hidden rounded-2xl border border-line bg-paper transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/30 hover:shadow-[0_28px_56px_-28px_rgba(215,52,56,0.35)]"
               >
                 <div className="overflow-hidden">
-                  <MediaPlaceholder
+                  <Media
                     src={s.coverImage}
                     alt={s.title}
                     ratio="16/9"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="rounded-none ring-0 transition-transform duration-500 group-hover:scale-[1.05]"
+                    stock={isStockAsset(s.coverImage)}
                   />
                 </div>
                 <div className="flex flex-1 flex-col p-5">
@@ -248,7 +267,7 @@ export default async function ImpactDetailPage({
                   <h3 className="mt-2 text-lg font-semibold leading-snug text-ink transition-colors group-hover:text-brand-ink">
                     {s.title}
                   </h3>
-                  <span className="mt-auto pt-4 text-xs font-medium text-ink/45">
+                  <span className="mt-auto pt-4 text-xs font-medium text-ink/65">
                     {s.region}
                   </span>
                 </div>

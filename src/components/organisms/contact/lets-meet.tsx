@@ -66,7 +66,7 @@ export async function LetsMeet() {
             {/* Hours, email and phone are all optional on an office record, so
                 each renders only when it has something to say. */}
             {office.hours && (
-              <p className="mt-2 flex items-center gap-2 text-sm text-ink/55">
+              <p className="mt-2 flex items-center gap-2 text-sm text-ink/65">
                 <Clock size={14} className="shrink-0" aria-hidden />
                 {office.hours}
               </p>
@@ -82,7 +82,7 @@ export async function LetsMeet() {
                   href={`mailto:${office.email}`}
                   className="flex items-center gap-2.5 text-ink/70 transition-colors hover:text-brand-ink"
                 >
-                  <Mail size={14} className="shrink-0 text-ink/35" aria-hidden />
+                  <Mail size={14} className="shrink-0 text-ink/65" aria-hidden />
                   {office.email}
                 </a>
               )}
@@ -91,7 +91,7 @@ export async function LetsMeet() {
                   href={`tel:${office.phone.replace(/\s/g, "")}`}
                   className="flex items-center gap-2.5 text-ink/70 transition-colors hover:text-brand-ink"
                 >
-                  <Phone size={14} className="shrink-0 text-ink/35" aria-hidden />
+                  <Phone size={14} className="shrink-0 text-ink/65" aria-hidden />
                   {office.phone}
                 </a>
               )}

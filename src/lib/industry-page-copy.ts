@@ -38,7 +38,24 @@ export type IndustryPageCopy = {
   };
   challenges: SectionCopy;
   build: SectionCopy;
-  outcomes: SectionCopy & { journeyStart: string; journeyEnd: string };
+  /**
+   * The transformation band (organisms/industries/transformation.tsx): the two
+   * states either side of the core, plus the instrument's own labels.
+   */
+  outcomes: SectionCopy & {
+    /** Column label for the state the sector arrives in. */
+    beforeLabel: string;
+    beforeCaption: string;
+    /** Column label for the state the work lands it in. */
+    afterLabel: string;
+    afterCaption: string;
+    /** Header label on the core panel. */
+    coreLabel: string;
+    /** Credit line under the core — precedes the build that produces it. */
+    viaLabel: string;
+    /** Accessible name for the outcome selector driving the core. */
+    selectorLabel: string;
+  };
   services: SectionCopy & { cta: string };
   proof: SectionCopy;
   siblings: SectionCopy & { cta: string };
@@ -74,12 +91,17 @@ export const industryPageCopy: IndustryPageCopy = {
   },
   outcomes: {
     eyebrow: "What changes",
-    title: "The difference it makes to *the operation.*",
+    title: "See what changes when *technology gets it right.*",
     description:
-      "What a {industry} team can expect to feel once the work is live — stated plainly, with no invented numbers attached.",
+      "Better visibility. Less friction. Smarter operations — built into the way a {industry} team already works, with no invented numbers attached.",
     navLabel: "What changes",
-    journeyStart: "Where you are",
-    journeyEnd: "Where it lands",
+    beforeLabel: "Before",
+    beforeCaption: "Where it stands today",
+    afterLabel: "After",
+    afterCaption: "Where the work lands it",
+    coreLabel: "Transformation core",
+    viaLabel: "Delivered by",
+    selectorLabel: "Choose an outcome to see how it is delivered",
   },
   services: {
     eyebrow: "The work behind it",

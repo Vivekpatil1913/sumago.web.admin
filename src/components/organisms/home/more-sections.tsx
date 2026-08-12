@@ -13,48 +13,73 @@ import {
 import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
-import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
+import { Media } from "@/components/molecules/media-placeholder";
 import { MosaicGallery } from "@/components/organisms/gallery/mosaic-gallery";
 import { Reveal } from "@/components/motion/reveal";
 import { company } from "@/lib/site";
-import { testimonials, faqs } from "@/lib/content";
-import { previewImages, cultureGalleryImages } from "@/lib/preview-assets";
+import { getFaqs, getTestimonials, type PublicTestimonial } from "@/lib/cms";
+import { toParagraphs } from "@/lib/cms/format";
+import { cultureGallery, founderPortraits } from "@/lib/real-assets";
 
-/** Initials for the avatar; falls back to a quote glyph while names are pending. */
-function initialsOf(name: string): string | null {
-  if (/pending/i.test(name)) return null;
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+/**
+ * Initials for the avatar — from the **company**, never the person.
+ *
+ * The name is not published (see `lib/content.ts`), and initials taken from it
+ * would republish it in miniature: "SP" beside "CEO, Shreerag Engineering" is
+ * the name, just harder to read. Company initials say the same thing the line
+ * beneath already says.
+ *
+ * Returns null while an attribution is still pending, which is the case the
+ * quote glyph exists for.
+ */
+function initialsOf(source: string | null): string | null {
+  if (!source || /pending/i.test(source)) return null;
+  const parts = source.trim().split(/\s+/).filter(Boolean);
+  const letters = (parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "");
+  return letters.trim() || null;
 }
 
 /**
- * A single testimonial card: the person (avatar + name + role) on top, a star
- * rating, then the review below.
+ * A single testimonial card: the attribution (avatar + company + designation)
+ * on top, a star rating, then the review below.
+ *
+ * The client's own name is deliberately absent. Consent to publish the quote is
+ * recorded against a person, but what a reader needs is the organisation that
+ * stands behind it — so the card leads with the company and the role, and the
+ * name never leaves the CMS.
  */
-function TestimonialCard({ t }: { t: (typeof testimonials)[number] }) {
-  const initials = initialsOf(t.name);
+function TestimonialCard({ t }: { t: PublicTestimonial }) {
+  /* Where a record predates the company field, the role carries the whole
+     attribution ("CTO, Enterprise client") and is promoted to the first line
+     rather than leaving it blank. */
+  const primary = t.company?.trim() || t.role;
+  const secondary = t.company?.trim() ? t.role : null;
+  const initials = initialsOf(primary);
+
   return (
     /* Narrower than the narrowest phone on purpose: at a flat 320px the card is
        the whole viewport, so both its edges sit off-screen and the quote is cut
        mid-word instead of reading as a card with the next one peeking in. */
-    <figure className="mx-3 flex w-[268px] shrink-0 flex-col self-start rounded-2xl border border-line bg-paper p-6 shadow-sm sm:w-[320px] sm:p-7 md:w-[380px]">
-      {/* Person — name above */}
+    <figure className="mx-3 flex w-[268px] shrink-0 flex-col rounded-2xl border border-line bg-paper p-6 shadow-sm sm:w-[320px] sm:p-7 md:w-[380px]">
+      {/* Attribution — the organisation, then the designation */}
       <figcaption className="flex items-center gap-3">
         <span
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-semibold uppercase text-white"
-          style={{ backgroundColor: t.accent }}
+          style={{ backgroundColor: t.accent ?? "#d73438" }}
           aria-hidden={!initials}
         >
           {initials ?? <User size={18} />}
         </span>
         <span className="min-w-0">
-          <span className="block font-semibold text-ink">{t.name}</span>
-          <span className="block truncate text-sm text-ink/55">{t.role}</span>
+          <span className="block truncate font-semibold text-ink">{primary}</span>
+          {secondary && (
+            <span className="block truncate text-sm text-ink/70">{secondary}</span>
+          )}
         </span>
       </figcaption>
 
       {/* Rating */}
-      <div className="mt-4 flex gap-0.5" aria-label={`${t.rating} out of 5`}>
+      <div className="mt-4 flex gap-0.5" role="img" aria-label={`${t.rating} out of 5`}>
         {Array.from({ length: 5 }).map((_, i) => (
           <Star
             key={i}
@@ -67,9 +92,13 @@ function TestimonialCard({ t }: { t: (typeof testimonials)[number] }) {
         ))}
       </div>
 
-      {/* Review below */}
-      <blockquote className="mt-3 text-sm leading-relaxed text-ink/80">
-        {t.quote}
+      {/* Review below. Split on blank lines: two of the real testimonials are
+          several paragraphs, and a single text node collapses them into one
+          unbroken block. */}
+      <blockquote className="mt-3 space-y-2 text-sm leading-relaxed text-ink/80">
+        {toParagraphs(t.quote).map((para, i) => (
+          <p key={i}>{para}</p>
+        ))}
       </blockquote>
     </figure>
   );
@@ -80,12 +109,22 @@ function TestimonialCard({ t }: { t: (typeof testimonials)[number] }) {
  *  cards room so their shadows aren't clipped at the top and bottom edges. */
 const TESTIMONIAL_ROW = "relative overflow-hidden py-4";
 
-/** Two rows so the marquee stays full without over-duplicating a short list. */
-const rowA = testimonials.filter((_, i) => i % 2 === 0);
-const rowB = testimonials.filter((_, i) => i % 2 === 1);
+/**
+ * Client testimonials — two rows, opposite directions.
+ *
+ * Reads the published records, so a quote added or withdrawn in the admin
+ * panel changes this band. The section disappears entirely when nothing is
+ * published: a marquee with no cards in it is an empty strip that reads as a
+ * failed load.
+ */
+export async function Testimonials() {
+  const testimonials = await getTestimonials();
+  if (testimonials.length === 0) return null;
 
-/** Client testimonials (sample copy, flagged) — two rows, opposite directions. */
-export function Testimonials() {
+  /* Two rows so the marquee stays full without over-duplicating a short list. */
+  const rowA = testimonials.filter((_, i) => i % 2 === 0);
+  const rowB = testimonials.filter((_, i) => i % 2 === 1);
+
   return (
     <section id="testimonials" className="bg-mist py-16 md:py-22">
       <div className="container-page">
@@ -104,17 +143,17 @@ export function Testimonials() {
       <div className="mt-10 flex flex-col gap-6">
         {/* Row 1 → scrolls left */}
         <div data-aos="fade-up" className={TESTIMONIAL_ROW}>
-          <div className="flex w-max items-start will-change-transform animate-[marquee-x_55s_linear_infinite]">
+          <div className="flex w-max items-stretch will-change-transform animate-[marquee-x_55s_linear_infinite]">
             {[...rowA, ...rowA].map((t, i) => (
-              <TestimonialCard key={`a-${i}`} t={t} />
+              <TestimonialCard key={`a-${t.id}-${i}`} t={t} />
             ))}
           </div>
         </div>
         {/* Row 2 → scrolls right */}
         <div data-aos="fade-up" data-aos-delay="120" className={TESTIMONIAL_ROW}>
-          <div className="flex w-max items-start will-change-transform animate-[marquee-x_55s_linear_infinite_reverse]">
+          <div className="flex w-max items-stretch will-change-transform animate-[marquee-x_55s_linear_infinite_reverse]">
             {[...rowB, ...rowB].map((t, i) => (
-              <TestimonialCard key={`b-${i}`} t={t} />
+              <TestimonialCard key={`b-${t.id}-${i}`} t={t} />
             ))}
           </div>
         </div>
@@ -171,10 +210,7 @@ export function BlogAndCareers() {
 }
 
 /** Life-at-Sumago culture collage — auto-scrolling mosaic of team & workspace stills. */
-const homeGalleryImages = cultureGalleryImages.map((src, i) => ({
-  src,
-  alt: `Sumago team, engineers, and workspace — culture still ${i + 1}`,
-}));
+const homeGalleryImages = cultureGallery;
 
 export function CultureGallery() {
   return (
@@ -220,7 +256,14 @@ export function InnovationHighlight() {
     <Section>
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <Reveal>
-          <MediaPlaceholder src={previewImages.innovation} alt="Sumago innovation and AI lab" ratio="4/3" />
+          {/* The AI Impact Expo stand, not a lab interior: the section is about
+              applied AI reaching a market, and this is the one photograph that
+              actually shows Sumago doing that. */}
+          <Media
+            src="/images/events/conferences/ai-expo-02.webp"
+            alt="Sumago at the India AI Impact Expo 2026 in New Delhi"
+            ratio="4/3"
+          />
         </Reveal>
         <div>
           <SectionHeading
@@ -261,8 +304,11 @@ export function LeadershipBand() {
     <Section muted>
       <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="flex gap-4">
-          <MediaPlaceholder src={previewImages.founder} alt={`${company.leadership[0].name} — ${company.leadership[0].role}`} ratio="3/4" className="w-1/2" />
-          <MediaPlaceholder src={previewImages.cofounder} alt={`${company.leadership[1].name} — ${company.leadership[1].role}`} ratio="3/4" className="mt-8 w-1/2" />
+          {/* The founders' own portraits, named at source — no longer stock.
+              An editor can still attach a different one in the panel (Founders
+              & Leadership) and the record wins from there. */}
+          <Media src={founderPortraits.sudhirGorade.src} alt={`${company.leadership[0].name} — ${company.leadership[0].role}`} ratio="3/4" className="w-1/2" />
+          <Media src={founderPortraits.sonaliGorade.src} alt={`${company.leadership[1].name} — ${company.leadership[1].role}`} ratio="3/4" className="mt-8 w-1/2" />
         </div>
         <div>
           <SectionHeading
@@ -288,8 +334,16 @@ export function LeadershipBand() {
   );
 }
 
-/** FAQ — native accordion (accessible, no JS required). */
-export function FaqSection() {
+/**
+ * FAQ — native accordion (accessible, no JS required).
+ *
+ * CMS-driven. The answer is rich text, so it renders as paragraphs rather
+ * than one run-on block, and the section drops out when nothing is published.
+ */
+export async function FaqSection() {
+  const faqs = await getFaqs();
+  if (faqs.length === 0) return null;
+
   return (
     <Section>
       <SectionHeading
@@ -301,16 +355,27 @@ export function FaqSection() {
       <div className="mx-auto mt-10 max-w-3xl divide-y divide-line rounded-xl border border-line">
         {faqs.map((f, i) => (
           <details
-            key={f.q}
+            key={f.id}
             data-aos="fade-up"
             data-aos-delay={(i % 4) * 60}
-            className="group p-5"
+            className="group px-5 py-1"
           >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-ink">
+            {/*
+              The padding lives on the summary, not the `<details>`, so the
+              whole row is the hit area rather than just the 20px line of text
+              it contains. Measured at 238×20 on a 320px screen before this —
+              under the 24px WCAG 2.2 target minimum, and awkward to hit with a
+              thumb regardless of what the standard says.
+            */}
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-semibold text-ink">
               {f.q}
               <ChevronDown size={18} className="shrink-0 text-brand transition-transform group-open:rotate-180" />
             </summary>
-            <p className="mt-3 text-ink/70">{f.a}</p>
+            <div className="mb-4 space-y-3 text-ink/70">
+              {toParagraphs(f.a).map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
           </details>
         ))}
       </div>

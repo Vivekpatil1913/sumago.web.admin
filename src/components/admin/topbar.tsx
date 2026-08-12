@@ -45,7 +45,7 @@ export function Topbar({
           type="button"
           onClick={onOpenMobile}
           aria-label="Open menu"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-field)] text-content-soft transition-colors hover:bg-surface-hover lg:hidden"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--radius-field)] text-content-soft transition-colors hover:bg-canvas-subtle lg:hidden"
         >
           <Menu className="h-[18px] w-[18px]" aria-hidden />
         </button>
@@ -54,7 +54,7 @@ export function Topbar({
           type="button"
           onClick={onToggleCollapse}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="hidden h-9 w-9 items-center justify-center rounded-[var(--radius-field)] text-content-soft transition-colors hover:bg-surface-hover lg:inline-flex"
+          className="hidden h-9 w-9 items-center justify-center rounded-[var(--radius-field)] text-content-soft transition-colors hover:bg-canvas-subtle lg:inline-flex"
         >
           {collapsed ? (
             <PanelLeft className="h-[18px] w-[18px]" aria-hidden />
@@ -63,29 +63,42 @@ export function Topbar({
           )}
         </button>
 
-        <nav aria-label="Breadcrumb" className="hidden min-w-0 sm:block">
-          <ol className="flex min-w-0 items-center gap-1 text-[13px]">
-            {crumbs.map((crumb, index) => {
-              const last = index === crumbs.length - 1;
-              return (
-                <li key={crumb.href} className="flex min-w-0 items-center gap-1">
-                  {index > 0 ? (
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden />
-                  ) : null}
-                  {last ? (
-                    <span className="truncate font-medium text-content" aria-current="page">
-                      {crumb.label}
-                    </span>
-                  ) : (
-                    <Link href={crumb.href} className="truncate text-muted transition-colors hover:text-content">
-                      {crumb.label}
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
+        {/* Two lines: which workspace this is (it depends on the signed-in
+            role — an HR user genuinely sees a different panel), then where in
+            it you are. The eyebrow answers a question the breadcrumb cannot. */}
+        <div className="hidden min-w-0 sm:block">
+          {user ? (
+            <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-muted">
+              {user.roleName} workspace
+            </p>
+          ) : null}
+          <nav aria-label="Breadcrumb">
+            <ol className="flex min-w-0 items-center gap-1 text-[13px]">
+              {crumbs.map((crumb, index) => {
+                const last = index === crumbs.length - 1;
+                return (
+                  <li key={crumb.href} className="flex min-w-0 items-center gap-1">
+                    {index > 0 ? (
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted" aria-hidden />
+                    ) : null}
+                    {last ? (
+                      <span className="truncate font-bold text-content" aria-current="page">
+                        {crumb.label}
+                      </span>
+                    ) : (
+                      <Link
+                        href={crumb.href}
+                        className="truncate text-muted transition-colors hover:text-accent"
+                      >
+                        {crumb.label}
+                      </Link>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-1">
@@ -94,7 +107,7 @@ export function Topbar({
           target="_blank"
           rel="noreferrer"
           title="Open the public website"
-          className="hidden h-9 items-center gap-1.5 rounded-[var(--radius-field)] px-2.5 text-[13px] text-content-soft transition-colors hover:bg-surface-hover hover:text-content sm:inline-flex"
+          className="hidden h-9 items-center gap-1.5 rounded-[var(--radius-field)] px-2.5 text-[13px] font-medium text-content-soft transition-colors hover:bg-canvas-subtle hover:text-accent sm:inline-flex"
         >
           <ExternalLink className="h-[15px] w-[15px]" aria-hidden />
           View site
@@ -104,17 +117,20 @@ export function Topbar({
 
         {user ? (
           <Dropdown
+            /* Name and address sit to the *left* of the avatar and are
+               right-aligned, so the identity block ends flush with the page
+               edge instead of ragging against it. */
             trigger={
-              <span className="flex h-9 items-center gap-2 rounded-[var(--radius-field)] pl-1 pr-2 transition-colors hover:bg-surface-hover">
-                <Avatar name={user.name} size={28} />
-                <span className="hidden min-w-0 text-left leading-tight sm:block">
-                  <span className="block max-w-32 truncate text-[13px] font-medium text-content">
+              <span className="flex h-11 items-center gap-2.5 rounded-[var(--radius-field)] px-1.5 transition-colors hover:bg-canvas-subtle">
+                <span className="hidden min-w-0 text-right leading-tight sm:block">
+                  <span className="block max-w-40 truncate text-[13px] font-bold text-content">
                     {user.name}
                   </span>
-                  <span className="block max-w-32 truncate text-[11px] text-muted">
-                    {user.roleName}
+                  <span className="block max-w-40 truncate text-[10px] uppercase tracking-[0.04em] text-muted">
+                    {user.email}
                   </span>
                 </span>
+                <Avatar name={user.name} size={36} />
               </span>
             }
           >
@@ -178,7 +194,6 @@ function useCrumbs(pathname: string, modules: { key: string; label: string }[]):
     users: "Users",
     roles: "Roles & Permissions",
     activity: "Activity Log",
-    settings: "General Settings",
     account: "Your account",
   };
 

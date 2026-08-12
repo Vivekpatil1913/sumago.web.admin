@@ -168,7 +168,7 @@ function ServiceHero({ service }: { service: ServiceWithSlug }) {
 
   return (
     <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
-      <HeroEffect variant="circuit" redOpacity={0.5} particles={false} />
+      <HeroEffect variant="circuit" particles={false} />
       <HeroStars formation="torus" />
 
       {/* Ghost watermark of the service icon — depth without a container. */}

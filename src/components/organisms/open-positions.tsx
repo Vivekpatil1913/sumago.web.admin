@@ -100,7 +100,7 @@ export function OpenPositions({ jobs }: { jobs: JobRecord[] }) {
       </div>
 
       {/* result count */}
-      <p className="mt-6 text-sm text-ink/50" aria-live="polite">
+      <p className="mt-6 text-sm text-ink/65" aria-live="polite">
         Showing {positions.length} open{" "}
         {positions.length === 1 ? "role" : "roles"}
         {filter !== ALL ? ` in ${filter}` : ""}.

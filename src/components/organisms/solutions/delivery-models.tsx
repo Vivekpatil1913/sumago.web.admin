@@ -341,7 +341,7 @@ export function DeliveryModels() {
                       <h3 className="font-display text-2xl font-bold leading-tight text-ink sm:text-[1.75rem]">
                         {model.name}
                       </h3>
-                      <p className="mt-1 text-xs font-semibold leading-snug text-ink/50">
+                      <p className="mt-1 text-xs font-semibold leading-snug text-ink/65">
                         {model.tagline}
                       </p>
                     </div>
@@ -399,7 +399,7 @@ export function DeliveryModels() {
                         <p className="font-display text-sm font-bold leading-snug text-ink">
                           {phase.name}
                         </p>
-                        <p className="mt-0.5 text-xs leading-snug text-ink/55">
+                        <p className="mt-0.5 text-xs leading-snug text-ink/65">
                           {phase.note}
                         </p>
                       </div>
@@ -407,7 +407,7 @@ export function DeliveryModels() {
                   ))}
                 </ol>
 
-                <p className="mt-5 flex items-center gap-2 text-xs font-semibold leading-snug text-ink/50">
+                <p className="mt-5 flex items-center gap-2 text-xs font-semibold leading-snug text-ink/65">
                   <CadenceIcon
                     size={13}
                     strokeWidth={2.5}
@@ -440,7 +440,7 @@ export function DeliveryModels() {
 
                 {/* Best suited to — the fit test, in the reader's own terms */}
                 <div className="mt-7 border-t border-line/80 pt-6">
-                  <p className="text-[0.625rem] font-bold uppercase leading-none tracking-[0.16em] text-ink/40">
+                  <p className="text-[0.625rem] font-bold uppercase leading-none tracking-[0.16em] text-ink/65">
                     Best suited to
                   </p>
                   <ul className="mt-3.5 flex flex-wrap gap-2">
@@ -478,7 +478,7 @@ export function DeliveryModels() {
             className="order-2 flex items-center justify-center gap-4 lg:flex-col"
           >
             <span className="h-px flex-1 bg-[linear-gradient(90deg,transparent,var(--color-line))] lg:h-auto lg:w-px lg:bg-[linear-gradient(180deg,transparent,var(--color-line))]" />
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-line bg-white/80 font-display text-[0.6875rem] font-bold tracking-[0.1em] text-ink/45 shadow-[0_6px_18px_-10px_rgba(16,24,40,0.4)] backdrop-blur-sm">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-line bg-white/80 font-display text-[0.6875rem] font-bold tracking-[0.1em] text-ink/65 shadow-[0_6px_18px_-10px_rgba(16,24,40,0.4)] backdrop-blur-sm">
               VS
             </span>
             <span className="h-px flex-1 bg-[linear-gradient(270deg,transparent,var(--color-line))] lg:h-auto lg:w-px lg:bg-[linear-gradient(0deg,transparent,var(--color-line))]" />
@@ -505,7 +505,14 @@ export function DeliveryModels() {
             {/* The table keeps its own horizontal scroll, so seven prose rows at
                 a readable size never widen the page (globals.css: html is
                 overflow-x: clip, but a section should not depend on that). */}
-            <div className="table-scroll overflow-x-auto">
+            {/* Focusable and named: a scroll container a mouse can drag but a
+                keyboard cannot reach is unusable without a pointer. */}
+            <div
+              className="table-scroll overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label="Agile compared with Waterfall"
+            >
               <table className="w-full min-w-[44rem] border-collapse text-left">
                 <caption className="sr-only">
                   Agile compared with Waterfall across seven delivery dimensions
@@ -514,7 +521,7 @@ export function DeliveryModels() {
                   <tr className="bg-mist/60">
                     <th
                       scope="col"
-                      className="w-[22%] px-6 py-4 text-[0.625rem] font-bold uppercase leading-none tracking-[0.16em] text-ink/45"
+                      className="w-[22%] px-6 py-4 text-[0.625rem] font-bold uppercase leading-none tracking-[0.16em] text-ink/65"
                     >
                       Dimension
                     </th>

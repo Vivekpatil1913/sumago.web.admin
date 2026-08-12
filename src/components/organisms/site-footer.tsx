@@ -2,18 +2,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
 import { Logo } from "@/components/atoms/logo";
-import { primaryCta, industries } from "@/lib/site";
+import { primaryCta } from "@/lib/site";
 import {
   getEmails,
   getFooterSocialLinks,
   getHeadOffice,
+  getIndustries,
   getPhones,
+  getServices,
   getSettings,
 } from "@/lib/cms";
 import { telHref } from "@/lib/cms/format";
 import { brands } from "@/lib/brands";
-import { services } from "@/lib/services";
-import { slugify } from "@/lib/utils";
 
 /**
  * Accreditation marks shown in the footer. Placeholder artwork lives in
@@ -25,16 +25,22 @@ const CERT_LOGOS = [
   { src: "/certifications/cmmi-level-5.svg", alt: "CMMI Maturity Level 5", width: 300, height: 150 },
 ];
 
-/** Footer navigation, grouped into link columns. */
-const FOOTER_NAV: {
+interface FooterColumn {
   heading: string;
   /** If set, the heading itself links here (its index / "all" page). */
   href?: string;
   links: { label: string; href: string; badge?: string }[];
   /** Flow the list into two sub-columns (for long lists like all services). */
   twoCol?: boolean;
-}[] = [
-  {
+}
+
+/**
+ * The two columns that are site structure rather than content — routes, not
+ * records. Nothing in the admin panel corresponds to them, so making them
+ * editable would mean inventing a module to hold four links.
+ */
+const STATIC_COLUMNS: Record<"whoWeAre" | "ourWork", FooterColumn> = {
+  whoWeAre: {
     heading: "Who We Are",
     links: [
       { label: "About us", href: "/about" },
@@ -43,22 +49,7 @@ const FOOTER_NAV: {
       { label: "Careers", href: "/careers", badge: "We're hiring!" },
     ],
   },
-  {
-    heading: "Our Services",
-    href: "/solutions",
-    twoCol: true,
-    // Every service, linked to its detail page — driven by lib/services.ts.
-    links: services.map((s) => ({ label: s.name, href: `/solutions/${s.slug}` })),
-  },
-  {
-    heading: "Industries",
-    href: "/industries",
-    // Every industry, linked to its detail page — driven by lib/site.ts.
-    links: industries
-      .filter((i) => i !== "Professional Services")
-      .map((i) => ({ label: i, href: `/industries/${slugify(i)}` })),
-  },
-  {
+  ourWork: {
     heading: "Our Work",
     links: [
       { label: "How we deliver", href: "/how-we-deliver" },
@@ -67,7 +58,7 @@ const FOOTER_NAV: {
       { label: "Blogs", href: "/blog" },
     ],
   },
-];
+};
 
 /** Inline brand glyphs (lucide v1 dropped brand logos). 24×24 viewBox paths. */
 const SOCIAL_PATHS: Record<string, string> = {
@@ -83,7 +74,7 @@ const SOCIAL_PATHS: Record<string, string> = {
 };
 
 /** A single footer link column (heading + list). Long lists flow into columns. */
-function NavGroup({ group }: { group: (typeof FOOTER_NAV)[number] }) {
+function NavGroup({ group }: { group: FooterColumn }) {
   const headingClass =
     "text-sm font-semibold uppercase tracking-wider text-white/90 md:text-base";
   return (
@@ -106,7 +97,7 @@ function NavGroup({ group }: { group: (typeof FOOTER_NAV)[number] }) {
           <li key={link.href}>
             <Link
               href={link.href}
-              className="inline-flex items-center gap-2 text-white/60 transition-colors hover:text-white"
+              className="inline-flex items-center gap-2 py-1 text-white/60 transition-colors hover:text-white"
             >
               {link.label}
               {link.badge ? (
@@ -125,23 +116,46 @@ function NavGroup({ group }: { group: (typeof FOOTER_NAV)[number] }) {
 export async function SiteFooter() {
   const year = 2026; // static to avoid hydration drift; update per build
 
-  const [settings, socialLinks, allPhones, allEmails, headOffice] = await Promise.all([
-    getSettings(),
-    getFooterSocialLinks(),
-    getPhones(),
-    getEmails(),
-    getHeadOffice(),
-  ]);
+  const [settings, socialLinks, allPhones, allEmails, headOffice, services, industries] =
+    await Promise.all([
+      getSettings(),
+      getFooterSocialLinks(),
+      getPhones(),
+      getEmails(),
+      getHeadOffice(),
+      getServices(),
+      getIndustries(),
+    ]);
 
   // `showInFooter` is per-record in the admin panel, so an internal-only line
   // can be published for the contact page without appearing on every page.
   const phones = allPhones.filter((phone) => phone.showInFooter);
   const emails = allEmails.filter((email) => email.showInFooter);
 
-  const whoWeAre = FOOTER_NAV.find((g) => g.heading === "Who We Are")!;
-  const ourServices = FOOTER_NAV.find((g) => g.heading === "Our Services")!;
-  const ourIndustries = FOOTER_NAV.find((g) => g.heading === "Industries")!;
-  const ourWork = FOOTER_NAV.find((g) => g.heading === "Our Work")!;
+  const whoWeAre = STATIC_COLUMNS.whoWeAre;
+  const ourWork = STATIC_COLUMNS.ourWork;
+
+  // Both lists are the published records, so a service or industry moved to
+  // draft leaves the footer of every page on the next revalidation — and one
+  // added in the panel appears without a deploy.
+  const ourServices: FooterColumn = {
+    heading: "Our Services",
+    href: "/solutions",
+    twoCol: true,
+    links: services.map((service) => ({
+      label: service.name,
+      href: `/solutions/${service.slug}`,
+    })),
+  };
+
+  const ourIndustries: FooterColumn = {
+    heading: "Industries",
+    href: "/industries",
+    links: industries.map((industry) => ({
+      label: industry.name,
+      href: `/industries/${industry.slug}`,
+    })),
+  };
 
   return (
     <footer className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#161016_0%,#0d0a0c_45%,#080608_100%)] text-white">
@@ -216,9 +230,9 @@ export async function SiteFooter() {
                   <li key={phone.id || phone.phoneNumber}>
                     <a
                       href={telHref(phone.phoneNumber)}
-                      className="inline-flex items-center gap-2 text-white/70 transition-colors hover:text-white"
+                      className="inline-flex items-center gap-2 py-1 text-white/70 transition-colors hover:text-white"
                     >
-                      <Phone size={14} className="shrink-0 text-white/35" aria-hidden />
+                      <Phone size={14} className="shrink-0 text-white/70" aria-hidden />
                       <span>
                         {phone.phoneNumber}
                         <span className="ml-1.5 text-xs text-white/40">{phone.label}</span>
@@ -230,9 +244,9 @@ export async function SiteFooter() {
                   <li key={email.id || email.emailAddress}>
                     <a
                       href={`mailto:${email.emailAddress}`}
-                      className="inline-flex items-center gap-2 text-white/70 transition-colors hover:text-white"
+                      className="inline-flex items-center gap-2 py-1 text-white/70 transition-colors hover:text-white"
                     >
-                      <Mail size={14} className="shrink-0 text-white/35" aria-hidden />
+                      <Mail size={14} className="shrink-0 text-white/70" aria-hidden />
                       {email.emailAddress}
                     </a>
                   </li>
@@ -245,7 +259,7 @@ export async function SiteFooter() {
             {headOffice && (
               <address className="mt-5 not-italic text-sm leading-relaxed text-white/50">
                 <span className="inline-flex items-start gap-2">
-                  <MapPin size={14} className="mt-0.5 shrink-0 text-white/35" aria-hidden />
+                  <MapPin size={14} className="mt-0.5 shrink-0 text-white/70" aria-hidden />
                   {headOffice.address}
                 </span>
               </address>

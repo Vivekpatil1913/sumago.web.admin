@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { INDUSTRY_ICONS, FALLBACK_INDUSTRY_ICON } from "@/lib/industry-meta";
-import { industryCatalog, type IndustryWithSlug } from "@/lib/industries";
+import { CmsIcon } from "@/lib/icon-registry";
+import { getIndustries, type IndustryRecord } from "@/lib/cms";
+import { INDUSTRY_ICON_NAMES } from "@/lib/industry-meta";
 
 /**
- * All ten industries, as cards — the whole list visible and comparable in one
+ * Every published industry, as cards — the whole list visible and comparable in one
  * view, which is what a visitor arrives on this page to do: find their own
  * sector fast.
  *
@@ -23,10 +24,11 @@ function IndustryCard({
   industry,
   index,
 }: {
-  industry: IndustryWithSlug;
+  industry: IndustryRecord;
   index: number;
 }) {
-  const Icon = INDUSTRY_ICONS[industry.slug] ?? FALLBACK_INDUSTRY_ICON;
+  // The record's own icon wins; the committed map answers for a row with none.
+  const iconName = industry.icon || INDUSTRY_ICON_NAMES[industry.slug];
 
   return (
     <Link
@@ -44,7 +46,8 @@ function IndustryCard({
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/60 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
       />
       {/* Outline watermark of the sector icon, bleeding off the bottom-right */}
-      <Icon
+      <CmsIcon
+        name={iconName}
         aria-hidden
         strokeWidth={1}
         className="pointer-events-none absolute -bottom-7 -right-7 z-0 h-40 w-40 text-ink/[0.05] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110"
@@ -58,7 +61,7 @@ function IndustryCard({
               aria-hidden
               className="absolute inset-0 -rotate-3 rounded-xl bg-[linear-gradient(135deg,#d73438,#7a1519)] transition-transform duration-500 group-hover:rotate-3"
             />
-            <Icon size={22} className="relative text-white" aria-hidden />
+            <CmsIcon name={iconName} size={22} className="relative text-white" aria-hidden />
           </span>
 
           <h3 className="min-w-0 flex-1 pt-1 text-xl font-bold leading-snug tracking-tight text-ink transition-colors group-hover:text-brand-ink md:text-[1.375rem]">
@@ -100,11 +103,20 @@ function IndustryCard({
   );
 }
 
-/** The full industry list, as a card grid. */
-export function IndustryGrid() {
+/**
+ * The full industry list, as a card grid.
+ *
+ * Reads the published industries, so adding, reordering or unpublishing one in
+ * the admin panel changes this page. Still a server component shipping zero
+ * client JS — every effect here is CSS, which is what keeps the Lighthouse gate
+ * intact (CLAUDE.md).
+ */
+export async function IndustryGrid() {
+  const industries = await getIndustries();
+
   return (
     <div className="mt-14 grid gap-5 md:grid-cols-2">
-      {industryCatalog.map((industry, i) => (
+      {industries.map((industry, i) => (
         <div
           key={industry.slug}
           data-aos="fade-up"

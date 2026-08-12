@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Flag } from "lucide-react";
-import { growthOpportunities } from "@/lib/careers-content";
+import type { IconItemRecord } from "@/lib/cms";
+import { CmsIcon } from "@/lib/icon-registry";
 
 /**
  * Growth opportunities — "where a career here can take you", drawn as a climb.
@@ -31,7 +32,8 @@ const STEP_Y = (i: number) => BASE_Y - STEP_H(i);
 /** Step fills run pale (first) → deep brand (last), echoing the values target. */
 const STEP_FILL = ["#fdecec", "#f9d2d3", "#f2acad", "#e8686b", "#d0272b", "#a81b22"];
 
-function Staircase({ active }: { active: number }) {
+function Staircase({ active, steps }: { active: number; steps: number }) {
+  const rungs = Array.from({ length: steps });
   return (
     <svg
       viewBox={`0 0 ${VB_W} ${VB_H}`}
@@ -47,7 +49,7 @@ function Staircase({ active }: { active: number }) {
 
       {/* Ascending guide line along the step corners */}
       <path
-        d={`M ${STEP_X(0)} ${STEP_Y(0)} ${growthOpportunities
+        d={`M ${STEP_X(0)} ${STEP_Y(0)} ${rungs
           .map((_, i) => `L ${STEP_X(i) + STEP_W} ${STEP_Y(i)}`)
           .join(" ")}`}
         fill="none"
@@ -57,7 +59,7 @@ function Staircase({ active }: { active: number }) {
         strokeLinecap="round"
       />
 
-      {growthOpportunities.map((_, i) => {
+      {rungs.map((_, i) => {
         const reached = i <= active;
         const isActive = i === active;
         return (
@@ -120,25 +122,35 @@ function Staircase({ active }: { active: number }) {
   );
 }
 
-export function CareersGrowth() {
+/**
+ * The growth climb. A client component — it owns the auto-advance timer and
+ * the hover hand-off — so the published opportunities arrive as a prop.
+ */
+export function CareersGrowth({ opportunities }: { opportunities: IconItemRecord[] }) {
   const reduce = useReducedMotion();
   const [active, setActive] = useState(0);
   const [hold, setHold] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  /*
+   * The list length is now data rather than a module constant, so the timer has
+   * to restart when it changes — otherwise publishing a seventh opportunity
+   * leaves the cycle wrapping at six and the last card unreachable.
+   */
+  const count = opportunities.length;
+
   useEffect(() => {
-    if (reduce || hold) return;
-    timer.current = setInterval(
-      () => setActive((i) => (i + 1) % growthOpportunities.length),
-      CYCLE_MS,
-    );
+    if (reduce || hold || count === 0) return;
+    timer.current = setInterval(() => setActive((i) => (i + 1) % count), CYCLE_MS);
     return () => {
       if (timer.current) clearInterval(timer.current);
     };
-  }, [reduce, hold]);
+  }, [reduce, hold, count]);
 
-  const item = growthOpportunities[active];
-  const ActiveIcon = item.icon;
+  // A shorter list published while this is mounted would leave `active` past
+  // the end; clamp rather than render `undefined` into the medallion.
+  const item = opportunities[Math.min(active, count - 1)];
+  if (!item) return null;
 
   /* Medallion sits on the tread of the active step, in container percentages. */
   const medallionLeft = ((STEP_X(active) + STEP_W / 2) / VB_W) * 100;
@@ -175,9 +187,9 @@ export function CareersGrowth() {
         <div className="relative">
           <div className="flex items-baseline justify-between gap-4">
             <p className="text-[0.7rem] font-bold uppercase tracking-[0.2em] text-brand-ink">
-              Step {active + 1} of {growthOpportunities.length}
+              Step {active + 1} of {opportunities.length}
             </p>
-            <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-[0.16em] text-ink/45">
+            <span className="inline-flex items-center gap-1.5 text-[0.7rem] font-bold uppercase tracking-[0.16em] text-ink/65">
               <Flag size={13} className="text-brand" aria-hidden />
               Leadership
             </span>
@@ -185,12 +197,12 @@ export function CareersGrowth() {
 
           {/* Staircase + the medallion standing on the active step */}
           <div className="relative mt-4 aspect-[340/240] w-full">
-            <Staircase active={active} />
+            <Staircase active={active} steps={opportunities.length} />
             <span
               className="absolute grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-xl bg-gradient-to-br from-brand to-[#7a1519] text-white shadow-lg shadow-brand/30 transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
               style={{ left: `${medallionLeft}%`, top: `${medallionTop}%` }}
             >
-              <ActiveIcon size={20} aria-hidden />
+              <CmsIcon name={item.icon} size={20} aria-hidden />
             </span>
           </div>
 
@@ -205,9 +217,8 @@ export function CareersGrowth() {
 
       {/* The list — every step readable without interacting */}
       <ul className="flex flex-col gap-2.5">
-        {growthOpportunities.map((g, i) => {
+        {opportunities.map((g, i) => {
           const isActive = i === active;
-          const Icon = g.icon;
           return (
             <li key={g.title}>
               <button
@@ -251,7 +262,7 @@ export function CareersGrowth() {
                     color: isActive ? "#ffffff" : "var(--color-brand)",
                   }}
                 >
-                  <Icon size={19} aria-hidden />
+                  <CmsIcon name={g.icon} size={19} aria-hidden />
                 </span>
 
                 <span className="min-w-0 flex-1">

@@ -6,23 +6,42 @@ import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
 import { Stat } from "@/components/molecules/stat";
-import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
+import { Media } from "@/components/molecules/media-placeholder";
 import { MosaicGallery } from "@/components/organisms/gallery/mosaic-gallery";
-import { CoreValuesRadial, type CoreValue } from "@/components/organisms/about/core-values";
+import {
+  CoreValuesRadial,
+  type CoreValue,
+} from "@/components/organisms/about/core-values";
 import { StoryTimeline } from "@/components/organisms/about/story-timeline";
 import { VisionMission } from "@/components/organisms/about/vision-mission";
 import { TrustWall } from "@/components/organisms/about/trust-wall";
 import { Recognition } from "@/components/organisms/about/recognition";
 import { company } from "@/lib/site";
-import { getCertifications, getMetrics, getSettings } from "@/lib/cms";
-import { clientNames, clientLogos } from "@/lib/content";
-import { previewImages, cultureGalleryImages } from "@/lib/preview-assets";
+import {
+  getCertifications,
+  getClientLogos,
+  getClients,
+  getMetrics,
+  getSettings,
+  getTestimonials,
+  withSeoOverrides,
+} from "@/lib/cms";
+import { cultureGallery, officePhotos } from "@/lib/real-assets";
 
-export const metadata: Metadata = {
-  title: "Inside Sumago",
-  description:
-    "The story, mantra, values, recognition, and people behind Sumago — a strategic technology partner since 2013.",
-};
+/**
+ * Metadata for /about, with the panel's SEO record layered on top.
+ *
+ * The base below is what the page ships with; anything published for this
+ * path in SEO Metadata overrides it field by field. No record means the
+ * base stands unchanged — never an empty title.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  return withSeoOverrides("/about", {
+    title: "Inside Sumago",
+    description:
+      "The story, mantra, values, recognition, and people behind Sumago — a strategic technology partner since 2013.",
+  });
+}
 
 /** Verified core values (COMPANY-PROFILE.md) — outcome-first framing. */
 const coreValues: CoreValue[] = [
@@ -63,57 +82,66 @@ const nameMeaning: [string, string][] = [
 ];
 
 /** Team celebration collage — reuses the auto-scrolling mosaic pattern. */
-const teamGalleryImages = cultureGalleryImages.map((src, i) => ({
-  src,
-  alt: `Sumago team member, engineer, or workspace — team still ${i + 1}`,
-}));
+const teamGalleryImages = cultureGallery;
 
 /** Edge-fade + overflow clip shared by both client marquee strips (matches home). */
 const CLIENT_STRIP_MASK =
   "relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]";
 
-/** Split the roster into two strips so they scroll in opposite directions. */
-const clientRowA = clientLogos.filter((_, i) => i % 2 === 0);
-const clientRowB = clientLogos.filter((_, i) => i % 2 === 1);
-
 /**
- * One client mark on the marquee (matches home). Alt text is empty because the
- * strip duplicates itself for the seamless scroll; the roster is exposed once,
- * as text, in the screen-reader summary below the strips.
+ * One client mark on the marquee (matches home) — set directly on the band,
+ * normalised on height. Alt text is empty because the strip duplicates itself
+ * for the seamless scroll; the roster is exposed once, as text, in the
+ * screen-reader summary below the strips.
  */
 function ClientLogo({ name, logo }: { name: string; logo: string }) {
   return (
     <span
       title={name}
-      className="mx-2 flex h-16 w-32 shrink-0 items-center justify-center rounded-xl border border-white/12 bg-white/92 p-1.5 backdrop-blur-sm sm:h-[4.5rem] sm:w-36 sm:p-2"
+      className="mx-5 flex h-14 shrink-0 items-center sm:mx-7 sm:h-16"
     >
       <Image
         src={logo}
         alt=""
-        width={144}
-        height={72}
-        sizes="144px"
-        className="max-h-full w-auto max-w-full object-contain"
+        width={176}
+        height={64}
+        sizes="176px"
+        className="h-full w-auto max-w-[8.5rem] object-contain sm:max-w-[11rem]"
       />
     </span>
   );
 }
 
 export default async function AboutPage() {
-  // Founded year, metrics and certifications are General Settings. Leadership
-  // is still the committed list — that module is not wired to the site yet.
-  const [settings, metrics, certifications] = await Promise.all([
+  // Founded year, metrics and certifications are company identity — static by
+  // design (see the note in `lib/cms`). The client roster is CMS-driven.
+  const [
+    settings,
+    metrics,
+    certifications,
+    logoClients,
+    allClients,
+    testimonials,
+  ] = await Promise.all([
     getSettings(),
     getMetrics(),
     getCertifications(),
+    getClientLogos(),
+    getClients(),
+    getTestimonials(),
   ]);
+
+  /* Split the roster into two strips so they scroll in opposite directions.
+     `getClientLogos` has already dropped anyone without a mark, so a client
+     added in the panel without a logo cannot put a hole in the band. */
+  const clientRowA = logoClients.filter((_, i) => i % 2 === 0);
+  const clientRowB = logoClients.filter((_, i) => i % 2 === 1);
 
   return (
     <>
       <PageHero
         variant="aurora"
         formation="galaxy"
-        redOpacity={0.08}
         eyebrow="About us"
         /* Long headline — kept at the home-hero type scale, widened so it breaks
            cleanly into three lines rather than shrinking. */
@@ -150,15 +178,17 @@ export default async function AboutPage() {
             aria-hidden
             className="absolute -inset-5 -z-10 rounded-[2rem] bg-brand/5 blur-2xl"
           />
-          <MediaPlaceholder
-            src={previewImages.heroOffice}
-            alt="Sumago headquarters and team, Nashik"
+          <Media
+            src={officePhotos.openPlan.src}
+            alt={officePhotos.openPlan.alt}
             ratio="16/9"
             priority
             className="card-hover"
           />
           <div className="absolute -bottom-4 left-4 rounded-xl border border-line bg-paper/95 px-4 py-3 shadow-lg backdrop-blur">
-            <p className="font-display text-2xl font-bold text-metal-red">2013</p>
+            <p className="font-display text-2xl font-bold text-metal-red">
+              2013
+            </p>
             <p className="text-xs font-medium text-ink/60">Nashik → global</p>
           </div>
         </div>
@@ -169,25 +199,25 @@ export default async function AboutPage() {
           className="mx-auto mt-12 max-w-3xl space-y-4 text-justify text-lg leading-relaxed text-ink/75"
         >
           <p>
-            In {settings.foundedYear}, Sumago began in Nashik as a small software team
-            led by {company.leadership[0].name}, built around one stubborn belief — that
-            great technology shouldn&apos;t belong only to the few who could afford it. The
-            mission was simple to say and hard to do: make IT a tool for the masses as much
-            as the classes.
+            In {settings.foundedYear}, Sumago began in Nashik as a small
+            software team led by {company.leadership[0].name}, built around one
+            stubborn belief — that great technology shouldn&apos;t belong only
+            to the few who could afford it. The mission was simple to say and
+            hard to do: make IT a tool for the masses as much as the classes.
           </p>
           <p>
-            Clients came for code and left with something more valuable — a partner who
-            understood their business first. That shift, from shipping software to shaping
-            outcomes, is what turned a local studio into a strategic technology partner.
-            Thirteen-plus years and 700+ projects later, that handful has grown into a 70+
-            specialist team spanning strategy, design, engineering, cloud, and AI — with
-            offices in Nashik and Pune, and led today by{" "}
-            {company.leadership[1].name}, {company.leadership[1].role}. Through every stage,
-            the conviction has stayed the same: understand the business before the
-            technology, earn trust through outcomes, and stay long after launch.
+            Clients came for code and left with something more valuable — a
+            partner who understood their business first. That shift, from
+            shipping software to shaping outcomes, is what turned a local studio
+            into a strategic technology partner. Thirteen-plus years and 700+
+            projects later, that handful has grown into a 70+ specialist team
+            spanning strategy, design, engineering, cloud, and AI — with offices
+            in Nashik and Pune, and led today by {company.leadership[1].name},{" "}
+            {company.leadership[1].role}. Through every stage, the conviction
+            has stayed the same: understand the business before the technology,
+            earn trust through outcomes, and stay long after launch.
           </p>
         </div>
-
       </Section>
 
       {/* Milestone timeline — pinned horizontal scroll through the years.
@@ -223,7 +253,11 @@ export default async function AboutPage() {
                 key={c}
                 className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur"
               >
-                <BadgeCheck size={16} className="text-success-bright" aria-hidden />
+                <BadgeCheck
+                  size={16}
+                  className="text-success-bright"
+                  aria-hidden
+                />
                 {c}
               </span>
             ))}
@@ -245,7 +279,11 @@ export default async function AboutPage() {
 
       {/* 2 · Our mantra — vision & mission */}
       <Section muted>
-        <SectionHeading align="left" eyebrow="Our purpose" title="Vision & Mission" />
+        <SectionHeading
+          align="left"
+          eyebrow="Our purpose"
+          title="Vision & Mission"
+        />
         <VisionMission />
       </Section>
 
@@ -255,7 +293,8 @@ export default async function AboutPage() {
           eyebrow="Core values"
           title={
             <>
-              The principles we <span className="text-metal-red">refuse to trade</span>.
+              The principles we{" "}
+              <span className="text-metal-red">refuse to trade</span>.
             </>
           }
           description="Under deadlines and pressure, these are the things that don't bend."
@@ -307,12 +346,16 @@ export default async function AboutPage() {
             description="From global brands to government bodies — a partial list of the teams who trust Sumago with mission-critical work."
           />
 
-          <div className="mt-12 flex flex-col gap-4" aria-hidden>
+          <div className="mt-12 flex flex-col gap-14 sm:gap-20" aria-hidden>
             {/* Row 1 → scrolls left */}
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite]">
                 {[...clientRowA, ...clientRowA].map((c, i) => (
-                  <ClientLogo key={`a-${c.name}-${i}`} name={c.name} logo={c.logo} />
+                  <ClientLogo
+                    key={`a-${c.id}-${i}`}
+                    name={c.name}
+                    logo={c.logo!}
+                  />
                 ))}
               </div>
             </div>
@@ -320,18 +363,26 @@ export default async function AboutPage() {
             <div className={CLIENT_STRIP_MASK}>
               <div className="flex w-max animate-[marquee-x_45s_linear_infinite_reverse]">
                 {[...clientRowB, ...clientRowB].map((c, i) => (
-                  <ClientLogo key={`b-${c.name}-${i}`} name={c.name} logo={c.logo} />
+                  <ClientLogo
+                    key={`b-${c.id}-${i}`}
+                    name={c.name}
+                    logo={c.logo!}
+                  />
                 ))}
               </div>
             </div>
           </div>
           {/* The roster once, in text, for anyone who can't read the marks. */}
-          <p className="sr-only">Clients include {clientNames.join(", ")}.</p>
+          <p className="sr-only">
+            Clients include{" "}
+            {logoClients.map((client) => client.name).join(", ")}.
+          </p>
 
           <p className="mt-8 text-center text-sm font-medium uppercase tracking-wider text-white/45">
-            50+ government · 500+ domestic · 60+ international clients and counting
+            50+ government · 500+ domestic · 60+ international clients and
+            counting
           </p>
-          <p className="mt-3 text-center text-xs text-white/35">
+          <p className="mt-3 text-center text-xs text-white/70">
             Client names shown as text — logos displayed with permission.
           </p>
         </div>
@@ -339,7 +390,14 @@ export default async function AboutPage() {
 
       {/* 6 · What they say — scroll-driven wall of proof that resolves
           into the closing brand moment. Full-bleed: no Section wrapper. */}
-      <TrustWall certifications={certifications} />
+      <TrustWall
+        certifications={certifications}
+        testimonials={testimonials}
+        /* Every client by name, marks or not — the marquee above shows only
+           those with a logo, and the screen-reader roster should not be the
+           shorter list. */
+        clientNames={allClients.map((client) => client.name)}
+      />
 
       {/* 7 · The team behind it all */}
       <Section>
@@ -364,7 +422,9 @@ export default async function AboutPage() {
             className="rounded-2xl ring-1 ring-line"
           />
           <div className="pointer-events-none absolute -top-4 right-4 z-10 rounded-xl border border-line bg-paper/95 px-4 py-3 shadow-lg backdrop-blur">
-            <p className="font-display text-2xl font-bold text-metal-red">70+</p>
+            <p className="font-display text-2xl font-bold text-metal-red">
+              70+
+            </p>
             <p className="text-xs font-medium text-ink/60">one standard</p>
           </div>
         </div>

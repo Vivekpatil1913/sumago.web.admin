@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CAPABILITY_ICONS, FALLBACK_CAPABILITY_ICON } from "@/lib/capability-icons";
 import { ToolStrip } from "@/components/molecules/tool-strip";
-import { servicesByPhase, type ServiceWithSlug } from "@/lib/services";
+import { getServicesByPhase, type ServiceRecord } from "@/lib/cms";
 import { cn } from "@/lib/utils";
 
 /**
@@ -33,7 +33,7 @@ type Tone = "light" | "mist";
  * visitor's own voice, so it carries the block the way the leadership quotes do
  * on the team page.
  */
-function ServiceBlock({ service, index }: { service: ServiceWithSlug; index: number }) {
+function ServiceBlock({ service, index }: { service: ServiceRecord; index: number }) {
   const Icon = CAPABILITY_ICONS[service.icon] ?? FALLBACK_CAPABILITY_ICON;
 
   return (
@@ -63,7 +63,7 @@ function ServiceBlock({ service, index }: { service: ServiceWithSlug; index: num
             <Icon size={22} className="relative text-white" aria-hidden />
           </span>
           <div className="min-w-0">
-            <span className="font-display text-xs font-bold tracking-[0.2em] text-ink/25">
+            <span className="font-display text-xs font-bold tracking-[0.2em] text-ink/65">
               {String(index).padStart(2, "0")}
             </span>
             {/* h4: nested under the stage's h3, which sits under the section h2. */}
@@ -94,7 +94,7 @@ function ServiceBlock({ service, index }: { service: ServiceWithSlug; index: num
         {/* Stack, set quietly as running text — chips read as UI, not editorial.
             Deliverables deliberately live on the detail page: this page hooks
             with the problem, that page answers it. */}
-        <p className="mt-6 text-xs font-medium uppercase tracking-[0.1em] text-ink/40">
+        <p className="mt-6 text-xs font-medium uppercase tracking-[0.1em] text-ink/65">
           {service.technologies.join("  ·  ")}
         </p>
 
@@ -135,7 +135,7 @@ function PhaseStage({
   startIndex,
   tone,
 }: {
-  phase: (typeof servicesByPhase)[number];
+  phase: Awaited<ReturnType<typeof getServicesByPhase>>[number];
   stage: number;
   startIndex: number;
   tone: Tone;
@@ -194,7 +194,7 @@ function PhaseStage({
                         href={`#${s.slug}`}
                         className="group/link flex items-baseline gap-2.5 text-sm text-white/60 transition-colors hover:text-white"
                       >
-                        <span className="font-display text-[0.65rem] font-bold tabular-nums text-white/30 transition-colors group-hover/link:text-brand-bright">
+                        <span className="font-display text-[0.65rem] font-bold tabular-nums text-white/70 transition-colors group-hover/link:text-brand-bright">
                           {String(startIndex + i).padStart(2, "0")}
                         </span>
                         <span className="leading-snug">{s.name}</span>
@@ -218,27 +218,39 @@ function PhaseStage({
   );
 }
 
-/** Band rhythm across the five stages. */
-const TONES: Tone[] = ["light", "mist", "light", "mist", "light"];
+/**
+ * Band rhythm. Cycles rather than listing one tone per phase, so a phase with
+ * nothing published in it — dropped by `getServicesByPhase` — cannot knock the
+ * light/mist alternation out of step.
+ */
+const TONES: Tone[] = ["light", "mist"];
 
 /**
- * Stages numbered 01…15 continuously across phases, so the running offset is
- * precomputed here rather than mutated during render (`servicesByPhase` is
- * static module data, so this only ever runs once).
+ * The full catalog, as one editorial stage per lifecycle phase.
+ *
+ * Reads the published services rather than the committed catalog, so adding a
+ * service, reordering the list or moving one to draft in the admin panel
+ * changes this page. The stage numbering runs continuously across phases
+ * (01…n), so the running offset is computed once here rather than mutated
+ * during render.
+ *
+ * Still a server component shipping zero client JS — every effect on the page
+ * is CSS — which is what keeps the Lighthouse budget intact on the site's
+ * longest page (CLAUDE.md).
  */
-const STAGES = servicesByPhase.map((phase, i) => ({
-  phase,
-  stage: i + 1,
-  tone: TONES[i] ?? "light",
-  startIndex:
-    servicesByPhase.slice(0, i).reduce((n, p) => n + p.services.length, 0) + 1,
-}));
+export async function ServiceChapters() {
+  const phases = await getServicesByPhase();
 
-/** The full catalog, as five editorial stages. */
-export function ServiceChapters() {
+  const stages = phases.map((phase, i) => ({
+    phase,
+    stage: i + 1,
+    tone: TONES[i % TONES.length] ?? "light",
+    startIndex: phases.slice(0, i).reduce((n, p) => n + p.services.length, 0) + 1,
+  }));
+
   return (
     <div id="service-chapters">
-      {STAGES.map(({ phase, stage, tone, startIndex }) => (
+      {stages.map(({ phase, stage, tone, startIndex }) => (
         <PhaseStage
           key={phase.key}
           phase={phase}

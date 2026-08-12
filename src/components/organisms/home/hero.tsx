@@ -1,20 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { CalendarDays, Phone } from "lucide-react";
 import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { HeroVisual } from "@/components/three/hero-visual";
-import { primaryCta } from "@/lib/site";
 
 /* Easing — a soft, confident "expo-out" used across the entrance. */
 const EASE = [0.16, 1, 0.3, 1] as const;
 
+/* Both hero buttons share this geometry so they read as one pair rather than
+   two controls that happen to sit together. Sized off the viewport like the
+   headline is, so the CTA scales with the hero instead of against it. */
+const CTA_SIZE =
+  "h-[clamp(2.75rem,min(4.2vw,6vh),3.75rem)] px-[clamp(1.25rem,min(2.6vw,3.6vh),2.25rem)] text-base";
+
 /** Cinematic homepage hero — dark, immersive, outcome-first, trust-forward. */
 /**
- * Tagline and founded year arrive as props: this is a client component (the
- * 3D star field needs the browser), and the CMS layer is server-only.
+ * Tagline, founded year and the expert phone line arrive as props: this is a
+ * client component (the 3D star field needs the browser), and the CMS layer is
+ * server-only. `expertLine` is nullable — with no published number the call
+ * button is dropped rather than rendering a dead `tel:` link, matching how
+ * `/contact` handles the same pair.
  */
-export function HomeHero({ tagline, foundedYear }: { tagline: string; foundedYear: number }) {
+export function HomeHero({
+  tagline,
+  foundedYear,
+  expertLine,
+}: {
+  tagline: string;
+  foundedYear: number;
+  expertLine: string | null;
+}) {
   const reduce = useReducedMotion();
 
   const container: Variants = {
@@ -96,20 +112,28 @@ export function HomeHero({ tagline, foundedYear }: { tagline: string; foundedYea
           business outcomes for enterprises, startups, and government.
         </motion.p>
 
-        {/* CTA */}
+        {/* CTA — the same pair `/contact` opens with: dial now, or book the
+            conversation. Ranked that way deliberately; a phone call is the
+            shorter path for the enterprise buyer who has already decided. */}
         <motion.div
           variants={item}
-          className="mt-[clamp(0.25rem,1.5vh,1.25rem)] flex flex-wrap items-center justify-center gap-4"
+          className="mt-[clamp(0.25rem,1.5vh,1.25rem)] flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4"
         >
+          {expertLine && (
+            <a
+              href={`tel:${expertLine.replace(/\s/g, "")}`}
+              className={`inline-flex items-center justify-center gap-2 rounded-lg bg-brand font-semibold text-white shadow-[0_0_0_0_rgba(215,52,56,0.5)] transition-all duration-300 hover:bg-brand-strong hover:shadow-[0_10px_40px_-8px_rgba(215,52,56,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0708] ${CTA_SIZE}`}
+            >
+              <Phone size={17} strokeWidth={2.5} aria-hidden />
+              Talk with an expert
+            </a>
+          )}
           <Link
-            href={primaryCta.href}
-            className="group relative inline-flex items-center justify-center gap-2 rounded-lg bg-brand font-semibold text-white shadow-[0_0_0_0_rgba(215,52,56,0.5)] transition-all duration-300 hover:bg-brand-strong hover:shadow-[0_10px_40px_-8px_rgba(215,52,56,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0708] h-[clamp(2.75rem,min(4.2vw,6vh),3.75rem)] px-[clamp(1.5rem,min(3vw,4vh),2.75rem)] text-base"
+            href="/contact#schedule"
+            className={`inline-flex items-center justify-center gap-2 rounded-lg border border-white/25 font-semibold text-white backdrop-blur-sm transition-all duration-300 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0708] ${CTA_SIZE}`}
           >
-            {primaryCta.label}
-            <ArrowRight
-              size={18}
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
+            <CalendarDays size={17} strokeWidth={2.5} aria-hidden />
+            Schedule a free consultation
           </Link>
         </motion.div>
 

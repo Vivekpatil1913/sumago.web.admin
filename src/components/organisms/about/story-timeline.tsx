@@ -48,7 +48,7 @@ function Panel({ m, index }: { m: Milestone; index: number }) {
     <div className="container-page grid w-full items-center gap-6 lg:grid-cols-[1.1fr_0.9fr]">
       <div className="max-w-xl">
         <p className="text-sm font-bold uppercase tracking-[0.22em] text-brand-ink">
-          {String(index + 1).padStart(2, "0")} <span className="text-ink/30">/ {String(N).padStart(2, "0")}</span>
+          {String(index + 1).padStart(2, "0")} <span className="text-ink/65">/ {String(N).padStart(2, "0")}</span>
         </p>
         <h3 className="mt-3 font-display text-6xl font-bold leading-none text-metal-red sm:text-7xl">
           {m.year}
@@ -111,7 +111,7 @@ export function StoryTimeline() {
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-brand-ink">
             The journey so far
           </p>
-          <p className="mt-1 text-sm text-ink/50">
+          <p className="mt-1 text-sm text-ink/65">
             Keep scrolling — a decade of milestones, side to side.
           </p>
         </div>

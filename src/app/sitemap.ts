@@ -12,10 +12,8 @@
  */
 import type { MetadataRoute } from "next";
 
-import { getBlogPosts, getJobs, getSuccessStories } from "@/lib/cms";
+import { getBlogPosts, getIndustries, getJobs, getServices, getSuccessStories } from "@/lib/cms";
 import { SITE_URL } from "@/lib/cms/schema-org";
-import { services } from "@/lib/services";
-import { industryCatalog } from "@/lib/industries";
 
 /** Rebuild hourly — well inside how often anything here changes. */
 export const revalidate = 3600;
@@ -40,14 +38,16 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: "daily" 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   /*
-   * All three reads fall back to committed content if the API is unreachable,
+   * All five reads fall back to committed content if the API is unreachable,
    * so a sitemap is always produced. It may briefly under-report new records —
    * far better than the build failing or the file coming back empty.
    */
-  const [posts, stories, jobs] = await Promise.all([
+  const [posts, stories, jobs, services, industries] = await Promise.all([
     getBlogPosts(),
     getSuccessStories(),
     getJobs(),
+    getServices(),
+    getIndustries(),
   ]);
 
   const now = new Date();
@@ -61,19 +61,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: route.priority,
     })),
 
-    ...services.map((service) => ({
-      url: url(`/solutions/${service.slug}`),
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-    })),
+    // Unpublish a service in the panel and its detail page leaves the sitemap
+    // on the next revalidation, the same as a post or a story.
+    ...services
+      .filter((service) => !service.noIndex)
+      .map((service) => ({
+        url: url(`/solutions/${service.slug}`),
+        lastModified: new Date(service.updatedAt || now),
+        changeFrequency: "monthly" as const,
+        priority: service.featured ? 0.9 : 0.8,
+      })),
 
-    ...industryCatalog.map((industry) => ({
-      url: url(`/industries/${industry.slug}`),
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.7,
-    })),
+    ...industries
+      .filter((industry) => !industry.noIndex)
+      .map((industry) => ({
+        url: url(`/industries/${industry.slug}`),
+        lastModified: new Date(industry.updatedAt || now),
+        changeFrequency: "monthly" as const,
+        priority: 0.7,
+      })),
 
     ...posts
       .filter((post) => !post.noIndex)
