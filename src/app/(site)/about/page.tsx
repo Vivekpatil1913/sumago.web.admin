@@ -160,8 +160,12 @@ export default async function AboutPage() {
         description={`Since ${settings.foundedYear}, Sumago has turned technology into real business outcomes for enterprises, startups, and governments — built on trust, engineering rigor, and partnerships that outlast the project.`}
       />
 
-      {/* 1 · About Sumago — centered image, justified story, milestone timeline. */}
-      <Section>
+      {/* 1 · About Sumago — centered image, justified story, milestone timeline.
+          The pinned timeline that follows opens with 5rem of fixed-nav
+          clearance, so this section's usual 4rem bottom padding stacks with it
+          into one long blank on a phone. Trimmed here only; desktop rhythm
+          unchanged. */}
+      <Section className="pb-6 md:pb-22">
         <SectionHeading
           eyebrow="Our story"
           title={

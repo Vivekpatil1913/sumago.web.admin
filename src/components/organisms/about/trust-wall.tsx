@@ -452,11 +452,22 @@ export function TrustWall({
               style={{ scale: haloScale, opacity: haloOpacity }}
               className="absolute h-56 w-56 rounded-full bg-[radial-gradient(closest-side,rgba(215,52,56,0.55),rgba(215,52,56,0.14)_55%,rgba(215,52,56,0)_100%)] blur-2xl will-change-transform"
             />
+            {/* The Sumago globe in place of the painted orb. `drop-shadow`, not
+                `shadow`: the glow has to follow the mark's own silhouette —
+                a box shadow would ring the square image box instead. */}
             <motion.div
               aria-hidden
               style={{ scale: sparkScale, opacity: sparkOpacity }}
-              className="absolute h-24 w-24 rounded-full bg-[radial-gradient(circle_at_35%_30%,#ffffff,#ff8a8c_38%,#d73438_72%,#8f1418_100%)] shadow-[0_0_50px_rgba(215,52,56,0.75)] will-change-transform"
-            />
+              className="absolute h-24 w-24 drop-shadow-[0_0_50px_rgba(215,52,56,0.75)] will-change-transform"
+            >
+              <Image
+                src="/sumago-globe.png"
+                alt=""
+                fill
+                sizes="96px"
+                className="object-contain"
+              />
+            </motion.div>
             <motion.div
               style={{ opacity: logoOpacity, scale: logoScale }}
               className="relative will-change-transform"

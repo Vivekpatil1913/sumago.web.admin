@@ -45,15 +45,15 @@ const N = MILESTONES.length;
 /** Left-aligned year title + description used by both the pinned and stacked layouts. */
 function Panel({ m, index }: { m: Milestone; index: number }) {
   return (
-    <div className="container-page grid w-full items-center gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <div className="container-page grid w-full items-center gap-4 sm:gap-6 lg:grid-cols-[1.1fr_0.9fr]">
       <div className="max-w-xl">
         <p className="text-sm font-bold uppercase tracking-[0.22em] text-brand-ink">
           {String(index + 1).padStart(2, "0")} <span className="text-ink/65">/ {String(N).padStart(2, "0")}</span>
         </p>
-        <h3 className="mt-3 font-display text-6xl font-bold leading-none text-metal-red sm:text-7xl">
+        <h3 className="mt-2 font-display text-6xl font-bold leading-none text-metal-red sm:mt-3 sm:text-7xl">
           {m.year}
         </h3>
-        <p className="mt-6 text-lg leading-relaxed text-ink/75">{m.body}</p>
+        <p className="mt-4 text-lg leading-relaxed text-ink/75 sm:mt-6">{m.body}</p>
       </div>
       {/* Decorative oversized year — depth on the right. */}
       <div aria-hidden className="hidden justify-end lg:flex">
@@ -105,9 +105,17 @@ export function StoryTimeline() {
 
   return (
     <section ref={targetRef} style={{ height: `${N * 90}vh` }} className="relative">
-      <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden">
-        {/* Pinned header */}
-        <div className="container-page pt-[clamp(5rem,12vh,8rem)]">
+      {/* The pinned box is a full screen tall on desktop, where the panels are
+          centred in it. On a phone the content hugs the top, so a fixed screen
+          height would leave the unused remainder as a white band between the
+          progress rail and whatever section follows — the box is sized to its
+          content there instead. */}
+      <div className="sticky top-0 flex flex-col overflow-hidden sm:h-[100svh]">
+        {/* Pinned header. The site bar is `fixed` and 4rem tall, so this padding
+            is clearance, not decoration — anything under 5rem tucks the eyebrow
+            behind it while the section is pinned. 5rem is that floor plus a
+            hairline of breathing room; the desktop clamp can afford more. */}
+        <div className="container-page pt-20 sm:pt-[clamp(5rem,12vh,8rem)]">
           <p className="text-sm font-bold uppercase tracking-[0.22em] text-brand-ink">
             The journey so far
           </p>
@@ -116,17 +124,30 @@ export function StoryTimeline() {
           </p>
         </div>
 
-        {/* Horizontal track */}
-        <motion.div style={{ x }} className="flex flex-1 items-center will-change-transform">
+        {/* Horizontal track. Centring a panel vertically in the leftover height
+            is right on a desktop, where a panel is a few lines tall. On a phone
+            the year and its paragraph nearly fill that space, so centring only
+            opens a gap under the header — top-aligned there, centred from
+            `sm` up. */}
+        <motion.div
+          style={{ x }}
+          className="flex grow-0 items-start pt-6 will-change-transform sm:flex-1 sm:items-center sm:pt-0"
+        >
           {MILESTONES.map((m, i) => (
-            <article key={m.year} className="flex h-full w-screen shrink-0 items-center">
+            <article
+              key={m.year}
+              className="flex h-full w-screen shrink-0 items-start sm:items-center"
+            >
               <Panel m={m} index={i} />
             </article>
           ))}
         </motion.div>
 
-        {/* Progress rail */}
-        <div className="container-page pb-[clamp(2rem,6vh,4rem)]">
+        {/* Progress rail. On desktop the track above grows to fill the pinned
+            viewport, so this lands on the bottom edge. On a phone the track
+            hugs its panel instead, which brings the rail up to sit just under
+            the milestone rather than a screen below it. */}
+        <div className="container-page mt-8 pb-6 sm:mt-0 sm:pb-[clamp(2rem,6vh,4rem)]">
           <div className="h-1 overflow-hidden rounded-full bg-line">
             <motion.div
               style={{ scaleX: scrollYProgress }}

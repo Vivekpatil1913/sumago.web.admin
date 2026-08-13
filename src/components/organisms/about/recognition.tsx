@@ -369,7 +369,12 @@ export async function Recognition() {
                     </span>
                     {group.label}
                   </p>
-                  <ul className="mt-4 flex flex-wrap gap-2">
+                  {/* Centred rather than left-packed: the marks are fixed-width
+                      tiles, so a row that doesn't divide evenly into the column
+                      leaves its remainder as a notch of empty space on the
+                      right — most visible on a phone, where the column fits
+                      exactly two. */}
+                  <ul className="mt-4 flex flex-wrap justify-center gap-2">
                     {group.clients.map((client) => (
                       <li key={client.name}>
                         {client.logo ? (

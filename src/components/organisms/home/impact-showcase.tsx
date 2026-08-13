@@ -42,13 +42,18 @@ export function ImpactShowcase({
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
   const [reduced, setReduced] = useState(false);
+  /** Zero-based card nearest the left edge — drives the "2 / 7" mobile counter. */
+  const [index, setIndex] = useState(0);
 
   const update = useCallback(() => {
     const el = trackRef.current;
     if (!el) return;
     setCanPrev(el.scrollLeft > 8);
     setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-  }, []);
+    const card = el.firstElementChild as HTMLElement | null;
+    const step = card ? card.offsetWidth + GAP : el.clientWidth;
+    setIndex(step > 0 ? Math.min(items.length - 1, Math.round(el.scrollLeft / step)) : 0);
+  }, [items.length]);
 
   useEffect(() => {
     setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -71,8 +76,13 @@ export function ImpactShowcase({
     el.scrollBy({ left: amount * dir, behavior: reduced ? "auto" : "smooth" });
   };
 
-  const arrowClass =
-    "hidden h-11 w-11 shrink-0 place-items-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:text-ink sm:grid";
+  /* 44px round control — the WCAG 2.2 target minimum, so it stays thumb-sized
+     on the phone row as well as beside the cards on desktop. */
+  const arrowBase =
+    "h-11 w-11 shrink-0 place-items-center rounded-full border border-line text-ink transition-colors hover:border-brand hover:text-brand disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-line disabled:hover:text-ink";
+  /* Flanking arrows are desktop-only: at 82vw per card there is no room either
+     side of the track on a phone, so the mobile controls sit below it instead. */
+  const arrowClass = `hidden sm:grid ${arrowBase}`;
 
   return (
     <div>
@@ -89,8 +99,10 @@ export function ImpactShowcase({
         </div>
       </div>
 
-      {/* Full-bleed carousel — an arrow on each side of the cards */}
-      <div className="mt-10 flex items-center gap-3 px-4 sm:gap-4 sm:px-6">
+      {/* Full-bleed carousel — an arrow on each side of the cards.
+          Tighter top gap on a phone: the heading already wraps to four lines
+          there, so the desktop 40px reads as a hole between it and the cards. */}
+      <div className="mt-6 flex items-center gap-3 px-4 sm:mt-10 sm:gap-4 sm:px-6">
         <button
           type="button"
           onClick={() => scroll(-1)}
@@ -148,6 +160,37 @@ export function ImpactShowcase({
         >
           <ArrowRight size={18} />
         </button>
+      </div>
+
+      {/* Mobile controls — prev / position / next, under the cards.
+          Swiping still works; this is the affordance that says it can be. */}
+      <div className="container-page sm:hidden">
+        <div className="mt-5 flex items-center justify-center gap-5">
+          <button
+            type="button"
+            onClick={() => scroll(-1)}
+            disabled={!canPrev}
+            aria-label="Previous project"
+            className={`grid ${arrowBase}`}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <p
+            aria-live="polite"
+            className="min-w-14 text-center text-sm font-semibold tabular-nums text-ink/50"
+          >
+            <span className="text-ink">{index + 1}</span> / {items.length}
+          </p>
+          <button
+            type="button"
+            onClick={() => scroll(1)}
+            disabled={!canNext}
+            aria-label="Next project"
+            className={`grid ${arrowBase}`}
+          >
+            <ArrowRight size={18} />
+          </button>
+        </div>
       </div>
 
       {/* View-all button, below the cards */}
