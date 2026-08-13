@@ -269,7 +269,7 @@ export async function ImpactPreview() {
   if (items.length === 0) return null;
 
   return (
-    <section className="py-16 md:py-22">
+    <section className="py-12 md:py-16">
       <ImpactShowcase
         eyebrow="Proof of impact"
         title={

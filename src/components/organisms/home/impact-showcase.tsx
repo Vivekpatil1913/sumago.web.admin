@@ -90,7 +90,7 @@ export function ImpactShowcase({
       </div>
 
       {/* Full-bleed carousel — an arrow on each side of the cards */}
-      <div className="mt-12 flex items-center gap-3 px-4 sm:gap-4 sm:px-6">
+      <div className="mt-10 flex items-center gap-3 px-4 sm:gap-4 sm:px-6">
         <button
           type="button"
           onClick={() => scroll(-1)}
@@ -105,7 +105,11 @@ export function ImpactShowcase({
           ref={trackRef}
           role="region"
           aria-label="Featured projects"
-          className="no-scrollbar flex min-w-0 flex-1 snap-x snap-mandatory gap-6 overflow-x-auto pb-2"
+          /* `items-start` so one story with a long summary can't stretch every
+             other card — the track would then end in a band of empty space
+             under all the short ones. The clamps below cap that summary too, so
+             the tallest card is bounded no matter what the panel publishes. */
+          className="no-scrollbar flex min-w-0 flex-1 snap-x snap-mandatory items-start gap-6 overflow-x-auto pb-2"
         >
           {items.map((item, i) => (
             <Link
@@ -125,10 +129,10 @@ export function ImpactShowcase({
                   stock={isStockAsset(item.src)}
                 />
               </div>
-              <h3 className="mt-5 text-xl font-bold leading-snug text-ink transition-colors group-hover:text-brand-ink">
+              <h3 className="mt-4 line-clamp-2 text-xl font-bold leading-snug text-ink transition-colors group-hover:text-brand-ink">
                 {item.title}
               </h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink/60">
+              <p className="mt-1.5 line-clamp-2 text-sm leading-relaxed text-ink/60">
                 {item.summary}
               </p>
             </Link>
@@ -148,7 +152,7 @@ export function ImpactShowcase({
 
       {/* View-all button, below the cards */}
       <div className="container-page">
-        <div className="mt-10 flex justify-center">
+        <div className="mt-8 flex justify-center">
           <Link
             href={href}
             className="inline-flex h-11 items-center gap-2 rounded-full border border-ink/15 bg-paper px-5 text-sm font-semibold text-ink transition-colors hover:border-brand hover:text-brand"
