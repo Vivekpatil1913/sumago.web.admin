@@ -6,12 +6,12 @@ import { Section } from "@/components/atoms/section";
 import { SectionHeading } from "@/components/atoms/section-heading";
 import { Button } from "@/components/atoms/button";
 import { Stat } from "@/components/molecules/stat";
-import { Media } from "@/components/molecules/media-placeholder";
 import { MosaicGallery } from "@/components/organisms/gallery/mosaic-gallery";
 import {
   CoreValuesRadial,
   type CoreValue,
 } from "@/components/organisms/about/core-values";
+import { StorySlideshow } from "@/components/organisms/about/story-slideshow";
 import { StoryTimeline } from "@/components/organisms/about/story-timeline";
 import { VisionMission } from "@/components/organisms/about/vision-mission";
 import { TrustWall } from "@/components/organisms/about/trust-wall";
@@ -26,7 +26,7 @@ import {
   getTestimonials,
   withSeoOverrides,
 } from "@/lib/cms";
-import { cultureGallery, momentPhotos } from "@/lib/real-assets";
+import { cultureGallery, founderSpeaking, momentPhotos } from "@/lib/real-assets";
 
 /**
  * Metadata for /about, with the panel's SEO record layered on top.
@@ -176,22 +176,43 @@ export default async function AboutPage() {
           }
         />
 
-        {/* Centered hero still — brand glow + founding-year badge. */}
+        {/* Centered hero — brand glow + a three-frame dissolve + the founding
+            year. The still that used to sit here is the slideshow's first
+            frame, so the section opens on exactly the image it always did and
+            then earns the other two. */}
         <div className="relative mx-auto mt-12 max-w-3xl" data-aos="fade-up">
           <div
             aria-hidden
             className="absolute -inset-5 -z-10 rounded-[2rem] bg-brand/5 blur-2xl"
           />
-          <Media
-            src={momentPhotos.officeGathering.src}
-            alt={momentPhotos.officeGathering.alt}
-            ratio="16/9"
-            priority
-            unoptimized
+          <StorySlideshow
             className="card-hover"
+            slides={[
+              {
+                src: momentPhotos.officeGathering.src,
+                alt: momentPhotos.officeGathering.alt,
+                label: "the team on the office floor",
+              },
+              {
+                src: founderSpeaking.sudhirGorade.src,
+                alt: founderSpeaking.sudhirGorade.alt,
+                label: "Sudhir Gorade speaking",
+              },
+              {
+                src: founderSpeaking.sonaliGorade.src,
+                alt: founderSpeaking.sonaliGorade.alt,
+                label: "Sonali Gorade speaking",
+              },
+            ]}
           />
-          <div className="absolute -bottom-4 left-4 rounded-xl border border-line bg-paper/95 px-4 py-3 shadow-lg backdrop-blur">
-            <p className="font-display text-2xl font-bold text-metal-red">
+          {/* Founding year, under the photograph rather than on it. As an
+              overlay (`absolute -bottom-4 left-4`) the chip sat across the
+              lower-left of the group shot and covered a face — a caption
+              obscuring the very people it is captioning. Below the frame it
+              reads as a caption on the moment instead of a sticker over it,
+              and needs no scrim or blur to stay legible. */}
+          <div className="mt-5 inline-flex items-baseline gap-3 rounded-xl border border-line bg-paper px-4 py-2.5 shadow-sm">
+            <p className="font-display text-2xl font-bold leading-none text-metal-red">
               2013
             </p>
             <p className="text-xs font-medium text-ink/60">Nashik → global</p>

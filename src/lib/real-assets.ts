@@ -150,6 +150,31 @@ export const founderPortraits = {
   sonaliGorade: namedPortrait("sonali-gorade", "Sonali Gorade"),
 } as const satisfies Record<string, Photo>;
 
+/**
+ * The founders on a stage, as opposed to `founderPortraits` above, which are
+ * headshots. Both name a face, so the same rule applies: verified identity, no
+ * `stock` flag, ever.
+ *
+ * These sit in `public/images/people/` as JPEGs rather than beside the WebP
+ * portraits, because they arrived from the event photographer rather than
+ * through `image-manifest.mjs`. `next/image` re-encodes them on the way out, so
+ * the format costs the visitor nothing.
+ *
+ * The alt says what the photograph shows — someone speaking at a podium — not
+ * which event it was. The occasion is not recorded anywhere the site can check,
+ * and naming one would be inventing a fact (CLAUDE.md).
+ */
+export const founderSpeaking = {
+  sudhirGorade: {
+    src: "/images/people/sudhir.jpeg",
+    alt: "Sudhir Gorade of Sumago Infotech speaking at a podium",
+  },
+  sonaliGorade: {
+    src: "/images/people/sonali.jpeg",
+    alt: "Sonali Gorade of Sumago Infotech speaking at a podium",
+  },
+} as const satisfies Record<string, Photo>;
+
 export const namedLeadershipPortraits = {
   diptiPawar: namedPortrait("dipti-pawar", "Dipti Pawar"),
   pankajPathak: namedPortrait("pankaj-pathak", "Pankaj Pathak"),
