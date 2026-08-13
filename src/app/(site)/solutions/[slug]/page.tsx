@@ -103,15 +103,21 @@ export default async function SolutionDetailPage({
        its fallback chain instead of rendering section 03 with nothing in it. */
     whoFor: record.whoFor.length ? record.whoFor : authored?.whoFor,
     stories: list(record.stories, authored?.stories),
-    hasProof: record.hasProof,
+    // Derived from the merged list, so it cannot disagree with what renders.
+    hasProof: list(record.stories, authored?.stories).length > 0,
   };
 
-  /* Real stories that genuinely involved this service — only 3 of 15 have any.
+  /* Real stories that genuinely involved this service — only 5 of 15 have any.
      Where none exist, a flagged gap renders outside production (docs/17).
 
      The link is a slug list on the service record; the story itself is its own
-     record, so a story that is unpublished or deleted simply drops out here. */
-  const stories: Story[] = record.stories
+     record, so a story that is unpublished or deleted simply drops out here.
+
+     Reads the merged `service.stories`, not `record.stories`: a panel record
+     whose column has never been filled in returns `[]`, and taking that
+     literally would hide a link authored in `services.ts` — the same "empty is
+     not an instruction to blank it" rule the merge above follows. */
+  const stories: Story[] = (service.stories ?? [])
     .map((wanted) => published.find((story) => story.slug === wanted))
     .filter((story) => story !== undefined)
     .map((story) => ({

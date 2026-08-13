@@ -75,6 +75,9 @@ const FOUNDER_PORTRAITS = [
   founderPortraits.sonaliGorade.src,
 ];
 
+/** Original founder portrait supplied for the Team-page leadership feature. */
+const SUDHIR_FEATURE_PORTRAIT = "/leader board photo/sudhir sirHalf.jpeg";
+
 /**
  * SEED CONTENT — department leadership, used only until the Leadership module
  * has records with a Department set against them.
@@ -120,7 +123,9 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
       "Code review culture",
       "Built to scale",
     ],
-    portrait: namedLeadershipPortraits.satishA.src,
+    // Original 1024px photograph: avoids enlarging the compressed 900px WebP
+    // when this portrait is cropped closer in the spotlight.
+    portrait: "/leader board photo/satish A.jpeg",
   },
   {
     name: "Prasad Pawar",
@@ -137,7 +142,9 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
       "Events & presence",
       "Analytics & ROI",
     ],
-    portrait: namedLeadershipPortraits.prasadPawar.src,
+    // Original 1024px photograph: avoids enlarging the compressed 900px WebP
+    // when this portrait is cropped closer in the spotlight.
+    portrait: "/leader board photo/prasad pawar.jpeg",
   },
   {
     name: "Dipti Pawar",
@@ -173,7 +180,7 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
       "New tech adoption",
       "Ready for the project",
     ],
-    portrait: namedLeadershipPortraits.pankajPathak.src,
+    portrait: "/leader board photo/pankaj pathak.png",
   },
   {
     name: "Vrushali Varpe",
@@ -207,7 +214,7 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
       "Relationship building",
       "Renewals",
     ],
-    portrait: namedLeadershipPortraits.yashGhodake.src,
+    portrait: "/leader board photo/yash ghodake.jpeg",
   },
   {
     name: "Prachi Gavali",
@@ -224,7 +231,7 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
       "Performance reviews",
       "People policy",
     ],
-    portrait: namedLeadershipPortraits.prachiGavali.src,
+    portrait: "/leader board photo/prachi gavali.jpeg",
   },
 ];
 
@@ -324,7 +331,10 @@ export default async function TeamPage() {
             // Both sides are real photographs now — the panel's portrait when
             // an editor has attached one, and the founders' own portraits when
             // not — so nothing here is flagged as stock.
-            const portrait = leader.photo || FOUNDER_PORTRAITS[i];
+            const portrait =
+              slugify(leader.name) === "sudhir-gorade"
+                ? SUDHIR_FEATURE_PORTRAIT
+                : leader.photo || FOUNDER_PORTRAITS[i];
             const flip = i % 2 === 1;
             return (
               <div
@@ -357,6 +367,7 @@ export default async function TeamPage() {
                     ratio="4/5"
                     bare
                     sizes="(max-width: 1024px) 18rem, 22rem"
+                    unoptimized
                     className="rounded-[1.75rem] ring-0"
                   />
                 </div>
@@ -684,6 +695,13 @@ function Annotation({
 function LeaderSpotlight({ leader }: { leader: DepartmentLead }) {
   // Id must be unique per instance — 7 spotlights share this document.
   const stageId = `leader-${slugify(leader.name)}`;
+  const isCloseCroppedPortrait = [
+    "Satish A",
+    "Prasad Pawar",
+    "Pankaj Pathak",
+    "Yash Ghodake",
+    "Prachi Gavali",
+  ].includes(leader.name);
   const left = leader.traits.slice(0, 4);
   const right = leader.traits.slice(4, 7);
 
@@ -768,6 +786,10 @@ function LeaderSpotlight({ leader }: { leader: DepartmentLead }) {
             bare
             stock={leader.photoIsStock}
             sizes="(max-width: 640px) 15rem, 18rem"
+            unoptimized
+            imageClassName={
+              isCloseCroppedPortrait ? "origin-top scale-[1.6]" : undefined
+            }
             className="rounded-2xl bg-transparent ring-0"
           />
         </div>

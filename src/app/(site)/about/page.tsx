@@ -26,7 +26,7 @@ import {
   getTestimonials,
   withSeoOverrides,
 } from "@/lib/cms";
-import { cultureGallery, officePhotos } from "@/lib/real-assets";
+import { cultureGallery, momentPhotos } from "@/lib/real-assets";
 
 /**
  * Metadata for /about, with the panel's SEO record layered on top.
@@ -179,10 +179,11 @@ export default async function AboutPage() {
             className="absolute -inset-5 -z-10 rounded-[2rem] bg-brand/5 blur-2xl"
           />
           <Media
-            src={officePhotos.openPlan.src}
-            alt={officePhotos.openPlan.alt}
+            src={momentPhotos.officeGathering.src}
+            alt={momentPhotos.officeGathering.alt}
             ratio="16/9"
             priority
+            unoptimized
             className="card-hover"
           />
           <div className="absolute -bottom-4 left-4 rounded-xl border border-line bg-paper/95 px-4 py-3 shadow-lg backdrop-blur">

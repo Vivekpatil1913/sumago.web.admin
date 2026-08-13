@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { Button } from "@/components/atoms/button";
+import { ArrowLeft, CalendarDays, Phone } from "lucide-react";
+import { buttonVariants } from "@/components/atoms/button";
 import { HeroEffect } from "@/components/organisms/hero-effect";
 import { HeroStars } from "@/components/three/hero-stars";
 import { CAPABILITY_ICONS, FALLBACK_CAPABILITY_ICON } from "@/lib/capability-icons";
+import { getExpertLine } from "@/lib/cms";
 import type { ServiceWithSlug } from "@/lib/services";
 import type { ServicePageContent } from "@/lib/service-page";
+import { cn } from "@/lib/utils";
 
 /**
  * 01 · HERO
@@ -31,7 +33,7 @@ import type { ServicePageContent } from "@/lib/service-page";
  * Drawn, never stock (CLAUDE.md); pure CSS/SVG from system tokens, so it ships
  * no JS and no image request.
  */
-export function ServiceHero({
+export async function ServiceHero({
   service,
   content,
 }: {
@@ -39,6 +41,7 @@ export function ServiceHero({
   content: ServicePageContent;
 }) {
   const { hero } = content;
+  const expertLine = await getExpertLine();
 
   return (
     <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#0a0708] text-white">
@@ -80,19 +83,30 @@ export function ServiceHero({
           {hero.subtitle}
         </p>
 
-        <div className="mt-[clamp(0.25rem,1.5vh,1rem)] flex flex-wrap items-center justify-center gap-4">
-          <Button href="/contact" size="lg">
-            Book a consultation
-          </Button>
-          <Button
-            href="#understanding"
-            variant="outline"
-            size="lg"
-            className="border-white/25 text-white hover:bg-white/10"
+        {/* The same two ways in the home and contact heroes offer: call now, or
+            let the team call you. The call button is dropped entirely when no
+            number is published — a dead tel: link is worse than one fewer
+            button. */}
+        <div className="mt-[clamp(0.25rem,1.5vh,1rem)] flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+          {expertLine && (
+            <a
+              href={`tel:${expertLine.replace(/\s/g, "")}`}
+              className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
+            >
+              <Phone size={17} strokeWidth={2.5} aria-hidden />
+              Talk with an expert
+            </a>
+          )}
+          <Link
+            href="/contact#schedule"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "w-full border-white/25 text-white backdrop-blur-sm hover:bg-white/10 sm:w-auto",
+            )}
           >
-            {hero.cta}
-            <ArrowRight size={16} aria-hidden />
-          </Button>
+            <CalendarDays size={17} strokeWidth={2.5} aria-hidden />
+            Schedule a free consultation
+          </Link>
         </div>
       </div>
     </section>

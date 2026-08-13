@@ -153,3 +153,95 @@ const TOOL_BY_TITLE: Record<string, ToolIcon> = Object.fromEntries(
 export function getToolIcons(titles: readonly string[]): ToolIcon[] {
   return titles.map((t) => TOOL_BY_TITLE[t]).filter(Boolean);
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Making every mark visible on both tile surfaces                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * The effective fill of a tool tile on each surface — the dark one is
+ * `bg-white/[0.06]` over the ink section (`--color-ink: #1a1a1a`).
+ *
+ * A published brand hex assumes the brand's own background. Painted as-is on
+ * the ink band, GitHub (#181717) landed black-on-black and its tile read as an
+ * empty box; Vercel and Notion (#000000) are the same case.
+ */
+const TILE_SURFACE = { dark: "1F1F20", light: "FFFFFF" } as const;
+
+/**
+ * Contrast a glyph needs against its tile, per surface.
+ *
+ * Asymmetric on purpose. A published brand hex is chosen to sit on white, so on
+ * the light tile the only mark that can disappear is a near-white one — a low
+ * bar there, or the rule starts darkening brands that were never a problem
+ * (Sketch's yellow reads perfectly well on white and is nobody's accessibility
+ * complaint). The ink tile is the case these colours were never chosen for, and
+ * that is where the bar has to be real.
+ *
+ * Marks are large, decorative, and carry a text label besides, so 3:1 — the
+ * WCAG figure for non-text content — is the target rather than 4.5:1.
+ */
+const MIN_CONTRAST = { dark: 3, light: 1.2 } as const;
+
+/** How close to grey a brand has to be to count as monochrome (0–255 spread). */
+const ACHROMATIC_SPREAD = 16;
+
+function channels(hex: string): [number, number, number] {
+  const n = parseInt(hex, 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function toHex([r, g, b]: [number, number, number]): string {
+  return [r, g, b].map((c) => Math.round(c).toString(16).padStart(2, "0")).join("");
+}
+
+/** WCAG relative luminance. */
+function luminance(hex: string): number {
+  const [r, g, b] = channels(hex).map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function contrast(a: number, b: number): number {
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+}
+
+/** Blend `hex` toward `target` by `t` (0–1). */
+function mix(hex: string, target: string, t: number): string {
+  const from = channels(hex);
+  const to = channels(target);
+  return toHex([0, 1, 2].map((i) => from[i] + (to[i] - from[i]) * t) as [number, number, number]);
+}
+
+/**
+ * A brand mark's colour, adjusted so it stays legible on the tile it sits on.
+ *
+ * Monochrome brands (GitHub, Vercel, Notion — anything published as flat black
+ * or white) flip outright, which is what their own brand guidelines call for on
+ * an inverted background. Everything with a hue keeps it and is only lightened
+ * or darkened until it clears `MIN_CONTRAST`, so Jira stays recognisably Jira
+ * blue rather than turning into another white glyph.
+ *
+ * Pure functions of a constant: this runs once per tile at render time on the
+ * server and ships no JS.
+ */
+export function markColor(hex: string, tone: "light" | "dark" = "light"): string {
+  const surface = luminance(TILE_SURFACE[tone]);
+  const target = MIN_CONTRAST[tone];
+  if (contrast(luminance(hex), surface) >= target) return `#${hex}`;
+
+  const [r, g, b] = channels(hex);
+  const toward = tone === "dark" ? "FFFFFF" : "000000";
+  const monochrome = Math.max(r, g, b) - Math.min(r, g, b) <= ACHROMATIC_SPREAD;
+  if (monochrome) return `#${toward}`;
+
+  /* Walk toward the tile's opposite in tenths and stop at the first step that
+     clears the bar — the least change that makes the mark readable. */
+  for (let step = 1; step <= 10; step++) {
+    const next = mix(hex, toward, step / 10);
+    if (contrast(luminance(next), surface) >= target) return `#${next}`;
+  }
+  return `#${toward}`;
+}

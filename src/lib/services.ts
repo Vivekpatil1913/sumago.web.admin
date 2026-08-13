@@ -11,8 +11,8 @@
  * Copy is drafted pending review — no invented metrics.
  *
  * PROOF STATUS — read before adding claims:
- * Only 4 real stories exist (COMPANY-PROFILE.md), and they map to just 3
- * services via `stories` below. The other 12 services have NO verified proof:
+ * Only 4 real stories exist (COMPANY-PROFILE.md), and they map to just 5
+ * services via `stories` below. The other 10 services have NO verified proof:
  * no metrics, no ROI, no timelines, no attributed quotes. `hasProof` is derived
  * from `stories`. The service DETAIL pages surface a story where one exists and
  * a `[REAL PROOF NEEDED]` flag (outside production) where it doesn't, so the gap
@@ -2681,251 +2681,336 @@ const RAW: Service[] = [
   },
   {
     name: "Managed Outsourcing",
-    heroStatement: "A dedicated development team, without the hiring and setup.",
+    heroStatement:
+      "Extend your technology capabilities without expanding operational complexity.",
     heroCta: "See how it works",
     buildMock: "team",
     icon: "Handshake",
     phase: "Support",
-    blurb: "Hand off delivery with confidence — outcomes owned end to end.",
+    blurb:
+      "Skilled technology professionals, dedicated teams, and managed delivery aligned to your business requirements.",
     problem:
-      "Delivery capacity is the bottleneck, hiring takes months you don't have, and the last vendor who promised to fix it left you with code nobody can maintain.",
+      "Lengthy recruitment cycles, hard-to-find specialist skills, and fluctuating project demand make it difficult to build the technology capacity your business needs.",
     summary:
-      "Skilled engineers who work only on your project from Sumago's office, on our infrastructure and under our supervision — the capability of an in-house team, without the recruitment, overhead, or long-term commitment.",
+      "Access skilled technology professionals, dedicated teams, and managed delivery capabilities while Sumago manages the people, infrastructure, supervision, and delivery operations behind them.",
     approach:
-      "Clear scope, governance, and transparent communication — a partner accountable for outcomes, not hours.",
+      "Engagement models are structured around your requirements, giving you the capacity and expertise you need while you retain control over priorities, product direction, and intellectual property.",
     deliverables: [
-      "A named, accountable delivery team",
-      "Defined scope and governance model",
-      "A transparent reporting cadence",
-      "Documentation and knowledge transfer, always",
+      "Qualified technology professionals without lengthy recruitment cycles",
+      "Capacity that scales with project and business requirements",
+      "Structured delivery processes and technical oversight",
+      "Team-level support and knowledge continuity",
+      "Clear reporting and delivery governance",
     ],
-    outcomes: ["Reduced delivery risk", "Predictable costs", "Focus on core business"],
-    technologies: ["Dedicated delivery", "Governance", "Agile", "Quality assurance"],
+    outcomes: [
+      "Faster time to capacity",
+      "Predictable costs",
+      "Greater flexibility",
+      "Reduced delivery risk",
+      "Focus on core business",
+    ],
+    technologies: [
+      "Software engineering",
+      "Quality engineering & QA",
+      "UI/UX design",
+      "Business analysis",
+      "Cloud & DevOps",
+      "AI & automation",
+      "Technical leadership",
+    ],
     tools: ["Slack", "Zoom", "Jira", "Notion", "Dropbox"],
+    /* Mahindra is a resourcing engagement as well as a build one — the client
+       testimonial on record speaks to the resources provided, not the app — so
+       the story belongs on this page as much as on Mobile App Engineering. */
+    stories: ["mahindra-rise-app-launch"],
     understanding: {
-      title: "What managed outsourcing means for your business.",
+      title: "Build capacity without building the entire operation.",
       narrative: [
-        "You get engineers who work full-time on your project — but they sit in Sumago's office, on our systems, managed by our team leads. You set the priorities and the work; we handle attendance, supervision, quality, and everything that keeps a team running.",
-        "You skip the slow, costly parts — recruitment, equipment, workspace, connectivity, and staff benefits — and get delivery capacity at a single, predictable cost.",
+        "Resource management and outsourcing provide a flexible way to expand technology capabilities while maintaining control over cost, quality, and delivery.",
+        "Whether you need a specialist for a specific role, a dedicated engineering team, or an end-to-end managed delivery function, the engagement can be aligned to your business requirements.",
       ],
       shifts: [
-        "You add capacity in weeks instead of hiring for months.",
-        "Engineers work on-site and supervised, not remotely and unmanaged.",
-        "Multiple overhead costs become one fixed monthly rate.",
-        "If one person is unavailable, the team covers it — delivery continues.",
+        "Access talent faster without extended hiring cycles.",
+        "Turn multiple operational costs into a structured engagement.",
+        "Scale capacity as your roadmap and business demand change.",
+        "Build continuity beyond individual resources.",
       ],
       cards: [
         {
-          title: "Dedicated resource",
+          title: "Resource augmentation",
           icon: "customers",
           description:
-            "One engineer or specialist assigned only to your work, present and accountable during working hours.",
+            "Add individual technology professionals to address skill gaps, increase delivery capacity, or support specific project requirements.",
         },
         {
           title: "Dedicated team",
           icon: "partnership",
           description:
-            "A small pod of engineers, QA, and a team lead, aligned to your roadmap rather than shared across accounts.",
+            "A team of engineers, QA specialists, designers, analysts, and technical leads works around your product roadmap and delivery objectives.",
         },
         {
-          title: "Managed delivery",
+          title: "Managed outsourcing",
           icon: "management",
           description:
-            "Sumago runs the full engagement and delivers to agreed outcomes, with the reporting to evidence it.",
+            "Sumago takes broader responsibility for team management, delivery governance, quality, reporting, and operational execution against agreed objectives.",
         },
       ],
     },
     valueDrivers: [
       {
-        title: "Capacity in weeks, not months",
+        title: "Access talent faster",
         icon: "efficiency",
         description:
-          "No recruitment cycle to wait on — a vetted engineer is productive while a hiring process would still be scheduling interviews.",
+          "Access vetted technology professionals and delivery teams based on technical skills, experience, and project requirements.",
       },
       {
-        title: "A predictable cost",
+        title: "Improve cost predictability",
         icon: "payments",
         description:
-          "One fixed rate instead of many variable overheads, which is what makes the capacity something you can budget rather than estimate.",
+          "Reduce the overhead associated with recruitment, infrastructure, workspace, employee administration, supervision, and resource management.",
       },
       {
-        title: "Full ownership stays with you",
+        title: "Scale with business demand",
         icon: "compliance",
         description:
-          "Your priorities, your codebase, your IP — the arrangement adds capacity without moving control of the work.",
+          "Adapt team size, roles, and technical expertise based on project phases, delivery requirements, and business priorities.",
       },
       {
-        title: "Built-in backup",
+        title: "Reduce delivery risk",
         icon: "support",
         description:
-          "A wider engineering team supports every resource, so an absence or a hard problem doesn't become a stalled roadmap.",
+          "Dedicated resources are supported by a wider technical ecosystem, helping address complex challenges, resource availability, and knowledge continuity.",
       },
     ],
     whatWeBuild: [
       {
-        title: "Engineers work from our office",
-        icon: "business",
+        title: "Software engineering",
+        icon: "engineering",
         purpose:
-          "Your resource works on-site at Sumago's office alongside the wider engineering team — present, supervised, and reachable during working hours. Work stays visible and accountable from day one.",
-        value: "Presence you can verify, not a status you have to take on trust.",
+          "Develop, enhance, and maintain applications across modern technology stacks with dedicated engineering capacity.",
+        value: "Engineering capability aligned to your product and delivery requirements.",
         features: [
-          "Managed office",
-          "On-site team lead",
-          "In-person collaboration",
-          "Verifiable presence",
-          "Secure workspace",
+          "Application development",
+          "Modern technology stacks",
+          "Product enhancement",
+          "Ongoing maintenance",
+          "Dedicated capacity",
         ],
       },
       {
-        title: "Work is tracked and monitored",
-        icon: "analytics",
-        purpose:
-          "Tasks, hours, and output are logged and reported on a schedule you set — so you always know what's being worked on and where it stands, without asking for updates.",
-        value: "You know where the work stands without having to ask.",
-        features: [
-          "Task tracking",
-          "Time & output reports",
-          "Agreed reporting cadence",
-          "Shared dashboards",
-          "Sprint reviews",
-        ],
-      },
-      {
-        title: "No overhead or hidden costs",
-        icon: "payments",
-        purpose:
-          "Workspace, high-speed connectivity, hardware, software licences, utilities, HR, and staff benefits are all handled by Sumago. You pay for the work — not the infrastructure behind it.",
-        value: "You pay for the work, not the infrastructure behind it.",
-        features: [
-          "Workspace & connectivity",
-          "Hardware & licences",
-          "HR, payroll & benefits",
-          "Facilities & utilities",
-          "One fixed rate",
-        ],
-      },
-      {
-        title: "Full technical backup",
-        icon: "support",
-        purpose:
-          "No single point of failure. When a resource needs help — an architecture decision, a difficult bug, or a specialist skill — Sumago's wider team of architects, engineers, and QA supports them directly. Blockers get resolved, not stalled.",
-        value: "Blockers get resolved rather than parked until someone is free.",
-        features: [
-          "Architects on call",
-          "Specialist skills available",
-          "QA & code review",
-          "Cover for absence",
-          "Guaranteed continuity",
-        ],
-      },
-      {
-        title: "A workspace built for productivity",
+        title: "Quality engineering & QA",
         icon: "quality",
         purpose:
-          "A professional environment set up for focused delivery — proper tooling, peer review, defined processes, and the standards of an ISO 9001:2015 and CMMI Level 5 certified company. Engineers deliver more, and to a higher standard, than they would working alone.",
-        value: "Certified process applied to the work, not just to the company.",
+          "Strengthen software quality through functional testing, automation, regression testing, performance validation, and structured QA processes.",
+        value: "Quality support that helps delivery remain reliable as it scales.",
         features: [
-          "Professional tooling",
-          "Peer review",
-          "Defined processes",
-          "Engineering standards",
-          "Focused environment",
+          "Functional testing",
+          "Test automation",
+          "Regression testing",
+          "Performance validation",
+          "Structured QA processes",
+        ],
+      },
+      {
+        title: "UI/UX design",
+        icon: "interface",
+        purpose:
+          "Design intuitive digital experiences aligned with your product requirements, user needs, and business objectives.",
+        value: "Experiences that connect user needs with clear business objectives.",
+        features: [
+          "Product requirements",
+          "User needs",
+          "Experience design",
+          "Business objectives",
+          "Design collaboration",
+        ],
+      },
+      {
+        title: "Business analysis",
+        icon: "advisory",
+        purpose:
+          "Translate business requirements into structured functional specifications, workflows, documentation, and actionable development requirements.",
+        value: "A clearer path from business requirement to technology delivery.",
+        features: [
+          "Functional specifications",
+          "Workflow definition",
+          "Documentation",
+          "Development requirements",
+          "Business alignment",
+        ],
+      },
+      {
+        title: "Cloud & DevOps",
+        icon: "infrastructure",
+        purpose:
+          "Support cloud infrastructure, CI/CD, deployment automation, monitoring, scalability, and operational reliability.",
+        value: "Infrastructure and delivery practices that support reliable operations.",
+        features: [
+          "Cloud infrastructure",
+          "CI/CD",
+          "Deployment automation",
+          "Monitoring",
+          "Scalability & reliability",
         ],
       },
     ],
     howItHelps: [
       {
-        before: "Months spent recruiting for a role you need filled now",
-        after: "A vetted engineer productive within weeks",
+        before: "Long recruitment and hiring cycles",
+        after: "Faster access to qualified technology professionals",
       },
       {
-        before: "Overhead costs that are hard to predict",
-        after: "One fixed rate you can budget against",
+        before: "Difficulty finding specialised skills",
+        after: "Access to a broader multidisciplinary talent pool",
       },
       {
-        before: "A remote contractor you can't see or verify",
-        after: "A supervised team you can check on any day",
+        before: "Fluctuating project requirements",
+        after: "Flexible capacity that can scale with demand",
       },
       {
-        before: "A key person leaves mid-project",
-        after: "A wider team absorbs it — no lost momentum",
+        before: "Increasing operational overhead",
+        after: "A structured and predictable engagement model",
       },
       {
-        before: "Paying for capacity you aren't fully using",
-        after: "Scale the team up or down as needs change",
+        before: "Dependency on individual contributors",
+        after: "Team-level support and knowledge continuity",
+      },
+      {
+        before: "Limited internal technology capacity",
+        after: "Additional engineering capability without expanding the entire organization",
+      },
+      {
+        before: "Need for faster project execution",
+        after: "Dedicated resources aligned to defined priorities",
       },
     ],
     industries: [
       {
-        name: "Software product companies",
+        name: "Software & Product Companies",
         useCase:
-          "Add engineering capacity without diluting the core team or its roadmap.",
+          "Extend engineering capacity, accelerate product development, or access specialised expertise without disrupting the existing technology organization.",
       },
       {
-        name: "Growing startups",
+        name: "Startups & Scale-ups",
         useCase:
-          "Access senior skills before senior hires are affordable.",
+          "Build technology capabilities quickly while maintaining flexibility and avoiding the fixed operational burden of a large internal engineering organization.",
       },
       {
         name: "Enterprises",
         useCase:
-          "Handle peak load and non-core delivery under clear governance.",
+          "Support transformation programs, technology modernization, application development, and non-core technology functions under structured governance.",
       },
       {
-        name: "Agencies & consultancies",
+        name: "Agencies & Consultancies",
         useCase:
-          "A delivery team that scales with your project pipeline rather than ahead of it.",
+          "Expand delivery capacity based on project demand without maintaining a large permanent workforce between engagements.",
+      },
+      {
+        name: "Financial Services",
+        useCase:
+          "Access technology and engineering capabilities for digital platforms, application modernization, integrations, automation, and technology operations.",
+      },
+      {
+        name: "Healthcare & Other Regulated Industries",
+        useCase:
+          "Extend technology teams while maintaining structured processes, documentation, governance, and delivery oversight.",
       },
     ],
     process: [
       {
-        title: "Define the role",
+        title: "Understand requirements",
         description:
-          "Skills, seniority, and outcomes agreed up front.",
+          "Define the business objective, project scope, required skills, technology stack, seniority, responsibilities, and expected outcomes.",
         icon: "discovery",
       },
       {
-        title: "Match the right people",
-        description: "Proposed on fit, not just availability.",
+        title: "Define the engagement",
+        description:
+          "Determine the most appropriate model — resource augmentation, dedicated resource, dedicated team, or managed outsourcing.",
+        icon: "management",
+      },
+      {
+        title: "Identify the right talent",
+        description:
+          "Evaluate professionals based on technical capability, relevant experience, domain knowledge, and project fit.",
         icon: "customers",
       },
       {
-        title: "Onboard",
-        description: "Into your codebase, tools, and priorities.",
+        title: "Evaluate & onboard",
+        description:
+          "Complete technical evaluation and integrate selected resources into your tools, processes, technology environment, and delivery workflows.",
         icon: "integrations",
       },
       {
-        title: "Deliver, tracked",
-        description: "Work recorded and reported as it happens.",
+        title: "Deliver & monitor",
+        description:
+          "Execute against agreed priorities with transparent progress tracking, communication, reporting, and quality processes.",
         icon: "delivery",
       },
       {
-        title: "Review",
+        title: "Review & optimise",
         description:
-          "A regular reporting cadence keeps you in control.",
+          "Regularly review performance, delivery progress, resource requirements, and emerging risks to ensure continued alignment.",
         icon: "analytics",
       },
       {
-        title: "Scale",
-        description: "Capacity flexes up or down with the roadmap.",
+        title: "Scale as required",
+        description:
+          "Increase, reduce, or restructure the team as project requirements, business priorities, and delivery needs evolve.",
         icon: "growth",
       },
+    ],
+    whyUs: [
       {
-        title: "Document",
+        title: "Proven technology expertise",
         description:
-          "Knowledge stays with the engagement, not one individual.",
-        icon: "compliance",
+          "Access professionals across engineering, design, QA, cloud, AI, business analysis, and technical leadership.",
+      },
+      {
+        title: "Structured resource management",
+        description:
+          "Defined processes for resource selection, onboarding, performance management, knowledge sharing, and continuity.",
+      },
+      {
+        title: "Multidisciplinary support",
+        description:
+          "Dedicated resources are backed by architects, engineers, QA specialists, designers, analysts, and technology experts.",
+      },
+      {
+        title: "Transparent reporting",
+        description:
+          "Clear communication, progress visibility, performance tracking, and regular reporting throughout the engagement.",
+      },
+      {
+        title: "Flexible engagement models",
+        description:
+          "Choose the level of support that matches your requirements — from individual resources to fully managed delivery teams.",
+      },
+      {
+        title: "Business-first approach",
+        description:
+          "Business objectives and operational requirements shape the right technology and engagement model.",
+      },
+      {
+        title: "Engineering quality",
+        description:
+          "Structured development, QA, documentation, code review, and delivery practices support reliable, scalable outcomes.",
+      },
+      {
+        title: "Long-term partnership",
+        description:
+          "Support immediate capacity requirements as well as long-term technology growth.",
       },
     ],
     standoutPoints: [
-      "Proven at scale",
-      "Certified process",
+      "Proven technology expertise",
+      "Structured resource management",
+      "Multidisciplinary support",
       "Transparent reporting",
-      "Trusted partner",
-      "Flexible scaling",
+      "Flexible engagement models",
     ],
     closingLine:
-      "You get the output of an in-house team and the accountability of a delivery partner — without the overhead of either.",
+      "Build and scale the technology capabilities your business needs with greater predictability, flexibility, and delivery confidence.",
   },
   {
     name: "IoT & Connected Products",
@@ -4345,6 +4430,10 @@ const RAW: Service[] = [
     outcomes: ["Fewer defects", "Confident releases", "Better user trust"],
     technologies: ["Automated testing", "E2E (Playwright)", "Performance testing", "Security testing"],
     tools: ["Postman", "Python", "GitHub", "GitLab", "Jira"],
+    /* The Mahindra engagement shipped a consumer-facing app for a brand that
+       could not afford a bad release — quality engineering carried it, so the
+       story is proof of this service as well as of the build. */
+    stories: ["mahindra-rise-app-launch"],
     understanding: {
       title: "What quality engineering means for your business.",
       narrative: [

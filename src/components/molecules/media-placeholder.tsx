@@ -12,6 +12,8 @@ type MediaProps = {
   className?: string;
   /** Responsive sizes hint for next/image (defaults to a half-width slot). */
   sizes?: string;
+  /** Serve the source file directly, without Next.js re-encoding it. */
+  unoptimized?: boolean;
   /** Drop the light frame (ring + mist bg) — for image tiles that fully cover,
    *  e.g. collage tiles on dark backgrounds where the light ring looks harsh. */
   bare?: boolean;
@@ -82,6 +84,7 @@ export function Media({
   priority,
   className,
   sizes = "(max-width: 768px) 100vw, 50vw",
+  unoptimized = false,
   bare = false,
   fill = false,
   imageClassName,
@@ -106,6 +109,7 @@ export function Media({
         fill
         sizes={sizes}
         priority={priority}
+        unoptimized={unoptimized}
         className={cn("object-cover", imageClassName)}
       />
       {stock && !isProd ? (

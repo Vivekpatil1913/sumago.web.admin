@@ -64,7 +64,20 @@ export async function generateMetadata(): Promise<Metadata> {
       // set no share image of their own.
       ...(settings.defaultOgImage ? { images: [{ url: settings.defaultOgImage }] } : {}),
     },
-    ...(settings.favicon ? { icons: { icon: settings.favicon } } : {}),
+    /* The icon set ships as static files in /public (generated as a package, so
+       the .ico/.svg/.png variants stay in sync). A favicon set in General
+       Settings takes precedence for the browser tab; the rest of the set —
+       SVG, .ico fallback, apple-touch — always applies. */
+    manifest: "/site.webmanifest",
+    icons: {
+      icon: [
+        ...(settings.favicon ? [{ url: settings.favicon }] : []),
+        { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+        { url: "/favicon.svg", type: "image/svg+xml" },
+      ],
+      shortcut: "/favicon.ico",
+      apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    },
   };
 }
 

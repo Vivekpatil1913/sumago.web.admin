@@ -3,7 +3,6 @@ import { resolveServicePage, type Story } from "@/lib/service-page";
 import { StoryRail, type Chapter } from "../story-rail";
 import { ServiceHero } from "./hero";
 import {
-  Close,
   Industries,
   Outcomes,
   Process,
@@ -36,7 +35,6 @@ import {
  *   08 Why Sumago           mist    the trust close
  *   09 Technology Ecosystem ink     the only section where the stack leads
  *   10 Proof of Work        mist    real projects, or an honest gap
- *   11 Close                ink     the way to start
  *
  * "What we build" and "Capabilities" were merged: each app now carries its own
  * capability points, so a separate capabilities section would repeat them.
@@ -45,7 +43,7 @@ import {
  * problem — an enterprise buyer who feels sold to in the first screen stops
  * reading. The problem appears in 03, as the reason a value driver matters.
  *
- * The single exception to "no conditionals" is section 11, which hides in
+ * The single exception to "no conditionals" is section 10, which hides in
  * production when a service has no verified case study rather than borrowing
  * one (docs/17). The chapter rail is built from the same decision, so the
  * navigation can never advertise a section that isn't there.
@@ -75,7 +73,6 @@ export function ServicePage({
     { id: "why-us", label: "Why Sumago" },
     { id: "technology", label: "Technology" },
     ...(showProof ? [{ id: "proof", label: "Proof of work" }] : []),
-    { id: "next", label: "Get started" },
   ];
 
   const props = { service, content };
@@ -93,7 +90,6 @@ export function ServicePage({
       <WhyUs {...props} />
       <Technology {...props} />
       <Proof {...props} isProd={isProd} />
-      <Close {...props} />
     </>
   );
 }

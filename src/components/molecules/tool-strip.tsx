@@ -1,4 +1,4 @@
-import { getToolIcons, type ToolIcon } from "@/lib/tool-icons";
+import { getToolIcons, markColor, type ToolIcon } from "@/lib/tool-icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,6 +27,12 @@ export function ToolTile({
   /** `lg` matches the home page's SDLC bands, which scale with the viewport. */
   size?: "md" | "lg";
 }) {
+  /* Brand hexes assume the brand's own background: on the ink tile GitHub
+     (#181717) and Vercel (#000000) painted black-on-black, so those tiles read
+     as empty boxes. `markColor` keeps the brand colour wherever it is already
+     legible and only adjusts the ones that aren't (see lib/tool-icons). */
+  const color = markColor(icon.hex, tone);
+
   return (
     /*
       The picture role sits on the mark inside, not on the `<li>`. Putting it
@@ -54,7 +60,7 @@ export function ToolTile({
         <svg
           viewBox="0 0 24 24"
           className="h-1/2 w-1/2"
-          fill={`#${icon.hex}`}
+          fill={color}
           role="img"
           aria-label={icon.title}
         >
@@ -63,7 +69,7 @@ export function ToolTile({
       ) : (
         <span
           className="text-[0.62rem] font-bold leading-none tracking-tight"
-          style={{ color: `#${icon.hex}` }}
+          style={{ color }}
           role="img"
           aria-label={icon.title}
         >
