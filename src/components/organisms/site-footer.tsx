@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Mail, MapPin, Phone } from "lucide-react";
+import { ArrowRight, Mail, MapPin, Phone, type LucideIcon } from "lucide-react";
 import { Logo } from "@/components/atoms/logo";
 import { primaryCta } from "@/lib/site";
 import {
@@ -113,6 +113,33 @@ function NavGroup({ group }: { group: FooterColumn }) {
   );
 }
 
+/**
+ * One labelled contact column — phones, emails, or the office address.
+ *
+ * The icon sits once beside the heading rather than on every row: with the
+ * column already saying "Call us", a phone glyph against each number is chrome
+ * that costs scanning speed instead of adding to it.
+ */
+function ContactGroup({
+  icon: Icon,
+  heading,
+  children,
+}: {
+  icon: LucideIcon;
+  heading: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
+        <Icon size={14} className="shrink-0" aria-hidden />
+        {heading}
+      </h3>
+      <div className="mt-3 space-y-1.5 text-sm">{children}</div>
+    </div>
+  );
+}
+
 export async function SiteFooter() {
   const year = 2026; // static to avoid hydration drift; update per build
 
@@ -219,51 +246,6 @@ export async function SiteFooter() {
               partner since {settings.foundedYear} — 700+ projects across enterprises,
               startups, and government, from Nashik with an office in Pune.
             </p>
-
-            {/* Reach us — every number and address flagged "show in footer" in
-                the admin panel. Previously the footer offered no way to make
-                contact at all, which on the page every visitor scrolls to was
-                the most expensive omission on the site. */}
-            {(phones.length > 0 || emails.length > 0) && (
-              <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2.5 text-sm">
-                {phones.map((phone) => (
-                  <li key={phone.id || phone.phoneNumber}>
-                    <a
-                      href={telHref(phone.phoneNumber)}
-                      className="inline-flex items-center gap-2 py-1 text-white/70 transition-colors hover:text-white"
-                    >
-                      <Phone size={14} className="shrink-0 text-white/70" aria-hidden />
-                      <span>
-                        {phone.phoneNumber}
-                        <span className="ml-1.5 text-xs text-white/40">{phone.label}</span>
-                      </span>
-                    </a>
-                  </li>
-                ))}
-                {emails.map((email) => (
-                  <li key={email.id || email.emailAddress}>
-                    <a
-                      href={`mailto:${email.emailAddress}`}
-                      className="inline-flex items-center gap-2 py-1 text-white/70 transition-colors hover:text-white"
-                    >
-                      <Mail size={14} className="shrink-0 text-white/70" aria-hidden />
-                      {email.emailAddress}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {/* Head office, so the footer carries a physical address — what a
-                procurement reviewer checks for before anything else. */}
-            {headOffice && (
-              <address className="mt-5 not-italic text-sm leading-relaxed text-white/50">
-                <span className="inline-flex items-start gap-2">
-                  <MapPin size={14} className="mt-0.5 shrink-0 text-white/70" aria-hidden />
-                  {headOffice.address}
-                </span>
-              </address>
-            )}
           </div>
 
           {/* Right column — certification logos, with social icons beneath.
@@ -317,6 +299,61 @@ export async function SiteFooter() {
             )}
           </div>
         </div>
+
+        {/* Reach us — every number, address, and inbox flagged "show in footer"
+            in the admin panel. Its own full-width row rather than a wrapped list
+            tucked under the description: as one flex-wrap run inside `max-w-xl`
+            the records reflowed into ragged rows that changed shape every time
+            an editor published one, and the address was stranded below them.
+            Three labelled columns give each kind of contact a fixed home, so
+            the block reads the same however many records are published. */}
+        {(phones.length > 0 || emails.length > 0 || headOffice) && (
+          <div
+            data-aos="fade-up"
+            className="mt-12 grid gap-x-10 gap-y-9 border-t border-white/10 pt-10 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {phones.length > 0 && (
+              <ContactGroup icon={Phone} heading="Call us">
+                {phones.map((phone) => (
+                  <a
+                    key={phone.id || phone.phoneNumber}
+                    href={telHref(phone.phoneNumber)}
+                    className="block w-fit py-1 text-white/70 transition-colors hover:text-white"
+                  >
+                    {phone.phoneNumber}
+                    {phone.label ? (
+                      <span className="ml-2 text-xs text-white/40">{phone.label}</span>
+                    ) : null}
+                  </a>
+                ))}
+              </ContactGroup>
+            )}
+
+            {emails.length > 0 && (
+              <ContactGroup icon={Mail} heading="Email us">
+                {emails.map((email) => (
+                  <a
+                    key={email.id || email.emailAddress}
+                    href={`mailto:${email.emailAddress}`}
+                    className="block w-fit break-all py-1 text-white/70 transition-colors hover:text-white"
+                  >
+                    {email.emailAddress}
+                  </a>
+                ))}
+              </ContactGroup>
+            )}
+
+            {/* The physical address — what a procurement reviewer checks for
+                before anything else. */}
+            {headOffice && (
+              <ContactGroup icon={MapPin} heading="Visit us">
+                <address className="not-italic leading-relaxed text-white/70">
+                  {headOffice.address}
+                </address>
+              </ContactGroup>
+            )}
+          </div>
+        )}
 
         {/* Group strip — the only place on this site, besides the gateway itself,
             that acknowledges the sister businesses (see COMPANY-PROFILE.md).

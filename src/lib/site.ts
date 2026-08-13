@@ -152,6 +152,9 @@ export const nav = [
         href: "/impact",
         description: "Real transformation, measured in business outcomes.",
       },
+      /* Currently hidden from the rendered menu by `HIDDEN_NAV_ITEMS` in
+         app/(site)/layout.tsx — kept here so the fallback structure stays a
+         complete description of the site. */
       {
         label: "Innovations",
         href: "/innovation",

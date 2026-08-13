@@ -4,10 +4,10 @@ import { Button } from "@/components/atoms/button";
 import { Media, isStockAsset } from "@/components/molecules/media-placeholder";
 import { ToolStrip } from "@/components/molecules/tool-strip";
 import { INDUSTRY_ICONS, FALLBACK_INDUSTRY_ICON } from "@/lib/industry-meta";
-import { getToolIcons } from "@/lib/tool-icons";
+import { getToolIcons, toolIcons } from "@/lib/tool-icons";
 import type { ServiceWithSlug } from "@/lib/services";
 import type { ServicePageContent } from "@/lib/service-page";
-import { slugify } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 import { BuildSlider } from "./build-slider";
 import { CapabilitiesScroller } from "./capabilities-scroller";
 import { UnderstandingVisual } from "./understanding-visual";
@@ -743,16 +743,22 @@ export function WhyUs({ content }: SectionProps) {
  * is the whole point of holding technology back.
  */
 export function Technology({ service, content }: SectionProps) {
-  const marks = getToolIcons(content.tech.tools);
+  /* The home page's full thirty-mark set, so the bands here read exactly like
+     the "AI across the SDLC" moment rather than as a thin, service-only strip.
+     Anything a service works in that ISN'T in that set (AWS, Flutter, …) is
+     appended, so the service's own stack is still represented. */
+  const serviceMarks = getToolIcons(content.tech.tools);
+  const marks = [
+    ...toolIcons,
+    ...serviceMarks.filter((m) => !toolIcons.some((t) => t.title === m.title)),
+  ];
   if (!marks.length && !content.tech.technologies.length) return null;
 
-  /* Two bands over the same marks, the second rotated by half the set so the
-     rows never line up vertically, and run at different speeds in opposite
-     directions. Splitting a dozen marks into two rows of six — which is what
-     the home page does with thirty — would leave both bands looking thin. */
-  const mid = Math.floor(marks.length / 2);
-  const rowA = marks.map((m) => m.title);
-  const rowB = [...marks.slice(mid), ...marks.slice(0, mid)].map((m) => m.title);
+  /* Split in half into two bands running opposite ways at different speeds —
+     the same device, and the same halving, as the home page. */
+  const mid = Math.ceil(marks.length / 2);
+  const rowA = marks.slice(0, mid).map((m) => m.title);
+  const rowB = marks.slice(mid).map((m) => m.title);
 
   return (
     <SectionShell id="technology" surface="ink">
@@ -793,22 +799,24 @@ export function Technology({ service, content }: SectionProps) {
 
       {marks.length ? (
         <div data-aos="fade-up" className="mt-12 space-y-2">
+          {/* `tone="light"` — the white brand tiles of the home page bands, which
+              are what these marks were colour-picked for. */}
           <ToolStrip
             tools={rowA}
             label={`Technologies used for ${service.name}`}
-            tone="dark"
+            tone="light"
             size="lg"
             variant="marquee"
             speed={42}
           />
-          {/* The second band is the same marks rotated — announced once by the
+          {/* The second band is the rest of the set — announced once by the
               first band is enough, so this one is hidden from assistive tech
               rather than repeating the whole list. */}
           <div aria-hidden>
             <ToolStrip
               tools={rowB}
               label={`More technologies used for ${service.name}`}
-              tone="dark"
+              tone="light"
               size="lg"
               variant="marquee"
               speed={48}
@@ -843,7 +851,14 @@ export function Proof({
   if (!stories.length && isProd) return null;
 
   return (
-    <SectionShell id="proof" surface="mist">
+    /* Tighter than the page's `py-24 md:py-32` rhythm, and only here: every
+       other section frames several blocks, while this one now frames a single
+       compact card — at full height the frame was taller than its contents. */
+    <SectionShell
+      id="proof"
+      surface="mist"
+      className="pb-16 pt-10 md:pb-20 md:pt-12"
+    >
       <SectionIntro
         eyebrow="Proof of work"
         title={
@@ -856,45 +871,44 @@ export function Proof({
       />
 
       {stories.length ? (
-        <div className="mt-14 border-t border-line md:mt-18">
+        <div className="mt-8 border-t border-line md:mt-10">
           {stories.map((s) => (
             <Link
               key={s.slug}
               href={`/impact/${s.slug}`}
               data-aos="fade-up"
-              className="group grid grid-cols-12 gap-y-8 border-b border-line py-12 md:gap-8"
+              /* Centred rather than top-aligned: the image is a fixed 4:3 and
+                 the copy beside it is clamped to a fixed number of lines, so
+                 the two columns are close in height and any remainder reads as
+                 a misalignment at whichever edge it lands on. */
+              className="group grid grid-cols-12 items-center gap-y-8 border-b border-line py-10 md:gap-8"
             >
-              <div className="col-span-12 lg:col-span-5">
+              {/* Four columns, not five. At 40vw the cover was the tallest
+                  thing in the section and pushed the copy into a narrow
+                  measure; a third of the row is enough to carry the work. */}
+              <div className="col-span-12 lg:col-span-4">
                 <div className="overflow-hidden rounded-2xl">
                   <Media
                     src={s.cover}
                     alt={s.title}
                     ratio="4/3"
                     bare
-                    sizes="(max-width: 1024px) 100vw, 40vw"
+                    sizes="(max-width: 1024px) 100vw, 32vw"
                     imageClassName="transition-transform duration-700 group-hover:scale-[1.04]"
                     stock={isStockAsset(s.cover)}
                   />
                 </div>
               </div>
 
-              <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-                {/* Wraps: a story's sector and region are editorial strings —
-                    "Manufacturing / Automotive" beside "USA & international"
-                    runs past a 320px viewport on one line. */}
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                  <span className="text-xs font-bold uppercase tracking-[0.16em] text-brand-ink">
-                    {s.industry}
-                  </span>
-                  <span aria-hidden className="text-ink/20">
-                    /
-                  </span>
-                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/40">
-                    {s.region}
-                  </span>
-                </div>
+              <div className="col-span-12 lg:col-span-7 lg:col-start-6">
+                {/* Sector only. The story's `region` used to sit beside it, but
+                    the panel leaves it blank for work not tied to one place,
+                    which rendered as a sector followed by a dangling slash. */}
+                <span className="text-xs font-bold uppercase tracking-[0.16em] text-brand-ink">
+                  {s.industry}
+                </span>
 
-                <h3 className="mt-4 flex items-start gap-2 text-2xl font-bold leading-snug tracking-[-0.02em] text-ink md:text-3xl">
+                <h3 className="mt-3 flex items-start gap-2 text-xl font-bold leading-snug tracking-[-0.02em] text-ink md:text-2xl">
                   {s.title}
                   <ArrowUpRight
                     size={20}
@@ -902,26 +916,44 @@ export function Proof({
                     className="mt-1.5 shrink-0 text-brand transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
                   />
                 </h3>
-                <Rule className="mt-5" />
+                <Rule className="mt-4" />
 
-                <dl className="mt-7 grid gap-6 sm:grid-cols-2">
+                {/* Clamped, not truncated in the data: a story's challenge and
+                    solution are written for its own page and run to a full
+                    paragraph each, which turned this card into the longest
+                    block on a page that already has eleven sections. Three
+                    lines is enough to know whether the engagement is worth
+                    opening, and the whole text still ships in the markup — so
+                    the clamp costs nothing at read time and nothing in SEO.
+                    Impact gets two, since it sits full-width and so carries
+                    roughly twice the words per line. */}
+                <dl className="mt-6 grid gap-5 sm:grid-cols-2">
                   {[
-                    { label: "Client challenge", value: s.challenge },
-                    { label: "Our solution", value: s.solution },
-                    { label: "Business impact", value: s.impact },
+                    { label: "Client challenge", value: s.challenge, clamp: "line-clamp-3" },
+                    { label: "Our solution", value: s.solution, clamp: "line-clamp-3" },
+                    { label: "Business impact", value: s.impact, clamp: "line-clamp-2" },
                   ].map((row) => (
                     <div key={row.label} className="last:sm:col-span-2">
                       <dt className="text-xs font-semibold uppercase tracking-[0.14em] text-ink/40">
                         {row.label}
                       </dt>
-                      <dd className="mt-2 text-[0.95rem] leading-[1.7] text-ink/70">
+                      <dd
+                        className={cn(
+                          "mt-2 text-[0.95rem] leading-[1.7] text-ink/70",
+                          row.clamp,
+                        )}
+                      >
                         {row.value}
                       </dd>
                     </div>
                   ))}
                 </dl>
 
-                <p className="mt-7 text-[0.8125rem] uppercase tracking-[0.12em] text-ink/40">
+                {/* One line. A story can carry a dozen technologies and the
+                    full list wrapped to three lines of tracked uppercase,
+                    which out-weighed the copy above it on a card whose job is
+                    to get the reader to the story itself. */}
+                <p className="mt-6 line-clamp-1 text-[0.8125rem] uppercase tracking-[0.12em] text-ink/40">
                   {s.tech.join("  ·  ")}
                 </p>
               </div>

@@ -93,7 +93,6 @@ export type Story = {
   slug: string;
   title: string;
   industry: string;
-  region: string;
   cover: string;
   challenge: string;
   solution: string;

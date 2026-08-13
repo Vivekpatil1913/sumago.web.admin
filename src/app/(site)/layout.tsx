@@ -24,6 +24,31 @@ import { nav as committedNav, navCta } from "@/lib/site";
  * no answer rather than as an instruction to empty the menu — an editor who
  * clears the field should not be able to delete the site's navigation.
  */
+/**
+ * Menu entries hidden in code, keyed by group label → item hrefs.
+ *
+ * The live menu is the Navigation record in the admin panel, so deleting an
+ * entry there is the real fix; this exists to hide one without waiting on that,
+ * and applies to the committed fallback too so the item cannot reappear when
+ * the API is unreachable. Scoped by group on purpose: /innovation is also
+ * listed under Our Services as "AI & Automation", and that link stays.
+ *
+ * Delete the "Our Work" line to restore Innovations to the menu.
+ */
+const HIDDEN_NAV_ITEMS: Record<string, readonly string[]> = {
+  "Our Work": ["/innovation"],
+};
+
+function withoutHiddenItems(groups: NavGroup[]): NavGroup[] {
+  return groups
+    .map((group) => {
+      const hidden = HIDDEN_NAV_ITEMS[group.label];
+      if (!hidden) return group;
+      return { ...group, items: group.items.filter((item) => !hidden.includes(item.href)) };
+    })
+    .filter((group) => group.items.length > 0);
+}
+
 async function getNavigation(): Promise<{
   groups: NavGroup[];
   ctaLabel: string;
@@ -34,17 +59,19 @@ async function getNavigation(): Promise<{
   const groups = navigation?.groups.filter((group) => group.items.length > 0) ?? [];
   if (groups.length === 0) {
     return {
-      groups: committedNav.map((group) => ({
-        label: group.label,
-        items: group.items.map((item) => ({ ...item })),
-      })),
+      groups: withoutHiddenItems(
+        committedNav.map((group) => ({
+          label: group.label,
+          items: group.items.map((item) => ({ ...item })),
+        })),
+      ),
       ctaLabel: navCta.label,
       ctaHref: navCta.href,
     };
   }
 
   return {
-    groups,
+    groups: withoutHiddenItems(groups),
     ctaLabel: navigation?.ctaLabel || navCta.label,
     ctaHref: navigation?.ctaHref || navCta.href,
   };

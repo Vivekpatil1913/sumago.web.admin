@@ -466,8 +466,9 @@ export default async function TeamPage() {
         />
 
         {/* One leader at a time — open on the section background, no cards.
-            The lg stage carries its own breathing room, so the gap stays tight. */}
-        <div className="mt-12 flex flex-col gap-10 md:gap-12 lg:gap-2">
+            The lg stage carries its own breathing room, but the portrait now
+            fills more of it, so the gap can no longer be as tight as gap-2. */}
+        <div className="mt-12 flex flex-col gap-10 md:gap-12 lg:gap-6">
           {departmentLeads.map((leader) => (
             <LeaderSpotlight key={leader.name} leader={leader} />
           ))}
@@ -532,8 +533,11 @@ export default async function TeamPage() {
  * labels. Change a label's position and you must move its arrow endpoint
  * to match — the pairs are index-aligned.
  *
- * The portrait sits centred, spanning roughly x 457→743, y 105→485, so
- * every arrow starts just off one of its vertical edges.
+ * The portrait sits centred, spanning roughly x 432→768, y 71→519, so
+ * every arrow starts just off one of its vertical edges. Resize the portrait
+ * (`lg:w-*` on the Media wrapper) and every arrow's start point moves with it —
+ * the control points below were scaled to keep each curve's shape and its
+ * end-tangent (and so the arrowhead's `a` angle) unchanged.
  * ------------------------------------------------------------------ */
 
 /** Label anchors as % of the stage. `right` for left-hand labels (they grow
@@ -576,49 +580,49 @@ const RIGHT_DELAY = [550, 1050, 1550];
  */
 const ARROWS = [
   {
-    d: "M455 175 C 418 168, 392 122, 350 127",
+    d: "M430 175 C 402 168, 382 122, 350 127",
     hx: 350,
     hy: 127,
     a: 173,
     delay: 0,
   },
   {
-    d: "M452 265 C 412 262, 372 232, 315 242",
+    d: "M427 265 C 394 262, 362 232, 315 242",
     hx: 315,
     hy: 242,
     a: 170,
     delay: 500,
   },
   {
-    d: "M455 355 C 425 358, 400 352, 360 357",
+    d: "M430 355 C 408 358, 389 352, 360 357",
     hx: 360,
     hy: 357,
     a: 173,
     delay: 1000,
   },
   {
-    d: "M458 440 C 420 448, 372 468, 325 467",
+    d: "M433 440 C 402 448, 363 468, 325 467",
     hx: 325,
     hy: 467,
     a: 181,
     delay: 1500,
   },
   {
-    d: "M745 185 C 782 178, 812 140, 850 147",
+    d: "M770 185 C 798 178, 821 140, 850 147",
     hx: 850,
     hy: 147,
     a: 10,
     delay: 250,
   },
   {
-    d: "M748 270 C 790 268, 838 254, 880 267",
+    d: "M773 270 C 807 268, 846 254, 880 267",
     hx: 880,
     hy: 267,
     a: 17,
     delay: 750,
   },
   {
-    d: "M745 360 C 780 364, 810 376, 840 382",
+    d: "M770 360 C 796 364, 818 376, 840 382",
     hx: 840,
     hy: 382,
     a: 11,
@@ -778,14 +782,14 @@ function LeaderSpotlight({ leader }: { leader: DepartmentLead }) {
           {leader.department}
         </span>
 
-        <div className="w-[15rem] sm:w-[16rem] lg:w-[18rem]">
+        <div className="w-[17rem] sm:w-[18rem] lg:w-[21rem]">
           <Media
             src={leader.photo}
             alt={`${leader.name} — ${leader.role}`}
             ratio="3/4"
             bare
             stock={leader.photoIsStock}
-            sizes="(max-width: 640px) 15rem, 18rem"
+            sizes="(max-width: 640px) 17rem, 21rem"
             unoptimized
             imageClassName={
               isCloseCroppedPortrait ? "origin-top scale-[1.6]" : undefined

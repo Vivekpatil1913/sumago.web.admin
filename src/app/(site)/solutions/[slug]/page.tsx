@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ServicePage } from "@/components/organisms/solutions/service-page";
 import type { Story } from "@/lib/service-page";
-import { canonicalFor, getService, getServices, getSuccessStories } from "@/lib/cms";
+import { canonicalFor, getService, getSuccessStories } from "@/lib/cms";
 import { services as authoredServices, type ServiceWithSlug } from "@/lib/services";
 
 /**
@@ -28,11 +28,32 @@ import { services as authoredServices, type ServiceWithSlug } from "@/lib/servic
  * `resolveServicePage` derives an honest fallback for every optional field, so
  * a service published in the panel with no authored counterpart renders the
  * identical eleven sections — thinner, never broken.
+ *
+ * ## Why this route is not statically generated
+ *
+ * The proof section shows one success story picked at random *per page load*,
+ * which is a request-time decision by definition — a prerendered page would
+ * bake one story in until the next build. So the route renders on demand and
+ * `generateStaticParams` is gone: it would have had nothing to prerender.
+ *
+ * The cost is bounded. Every CMS read still goes through the tagged fetch cache
+ * (`CONTENT_REVALIDATE_SECONDS`, purged on publish), so a request re-renders
+ * the page from cached data rather than re-querying the API.
  */
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  const services = await getServices();
-  return services.map((service) => ({ slug: service.slug }));
+/**
+ * One item at random, or `undefined` from an empty list.
+ *
+ * Deliberately a module-level helper rather than an inline `Math.random()` in
+ * the component: the render must stay pure, and this is the one place the page
+ * is allowed to be non-deterministic. It runs once per request, on the server,
+ * and its result is baked into that request's HTML — so there is no client
+ * re-render for it to disagree with, and no hydration mismatch.
+ */
+function pickOne<T>(items: readonly T[]): T | undefined {
+  if (!items.length) return undefined;
+  return items[Math.floor(Math.random() * items.length)];
 }
 
 export async function generateMetadata({
@@ -85,6 +106,36 @@ export default async function SolutionDetailPage({
   const list = <T,>(value: T[], fallback: readonly T[] | undefined): T[] =>
     value.length ? value : [...(fallback ?? [])];
 
+  /* One success story, drawn at random from whatever is currently active.
+
+     The service's own `stories` link list no longer selects it. That list is
+     still merged below (other surfaces read it), but the proof section is now
+     independent of it: services that were never linked to a story show one, and
+     a story deactivated in the admin panel drops out of the pool the moment it
+     is deactivated rather than leaving a hole on the pages that linked it.
+
+     `getSuccessStories` returns published records only — the public API filters
+     on status and `isActive` — so "the pool" is exactly the active stories, and
+     no deactivation check is needed here.
+
+     Chosen per request, which is why the route is `force-dynamic` above. */
+  const chosen = pickOne(published);
+
+  const stories: Story[] = chosen
+    ? [
+        {
+          slug: chosen.slug,
+          title: chosen.title,
+          industry: chosen.industry,
+          cover: chosen.coverImage,
+          challenge: chosen.challenge,
+          solution: chosen.solution,
+          impact: chosen.impact,
+          tech: chosen.technologies,
+        },
+      ]
+    : [];
+
   const service: ServiceWithSlug = {
     ...authored,
     name: text(record.name, authored?.name),
@@ -103,34 +154,10 @@ export default async function SolutionDetailPage({
        its fallback chain instead of rendering section 03 with nothing in it. */
     whoFor: record.whoFor.length ? record.whoFor : authored?.whoFor,
     stories: list(record.stories, authored?.stories),
-    // Derived from the merged list, so it cannot disagree with what renders.
-    hasProof: list(record.stories, authored?.stories).length > 0,
+    // Derived from the story that actually renders, so it cannot claim proof
+    // the page is not showing.
+    hasProof: stories.length > 0,
   };
-
-  /* Real stories that genuinely involved this service — only 5 of 15 have any.
-     Where none exist, a flagged gap renders outside production (docs/17).
-
-     The link is a slug list on the service record; the story itself is its own
-     record, so a story that is unpublished or deleted simply drops out here.
-
-     Reads the merged `service.stories`, not `record.stories`: a panel record
-     whose column has never been filled in returns `[]`, and taking that
-     literally would hide a link authored in `services.ts` — the same "empty is
-     not an instruction to blank it" rule the merge above follows. */
-  const stories: Story[] = (service.stories ?? [])
-    .map((wanted) => published.find((story) => story.slug === wanted))
-    .filter((story) => story !== undefined)
-    .map((story) => ({
-      slug: story.slug,
-      title: story.title,
-      industry: story.industry,
-      region: story.region,
-      cover: story.coverImage,
-      challenge: story.challenge,
-      solution: story.solution,
-      impact: story.impact,
-      tech: story.technologies,
-    }));
 
   return (
     <ServicePage

@@ -7,7 +7,7 @@ import { MediaPlaceholder } from "@/components/molecules/media-placeholder";
 import { FilterChips, type FilterOption } from "@/components/molecules/filter-chips";
 import { formatDate } from "@/lib/cms/format";
 import type { BlogPostRecord } from "@/lib/cms/types";
-import { cn } from "@/lib/utils";
+// import { cn } from "@/lib/utils"; // only used by the commented-out tag chips
 
 const ALL = "All";
 
@@ -48,13 +48,13 @@ export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
    * "Engineering" then a tag that only exists on a Strategy post would leave
    * the reader staring at nothing with no clue which control to undo.
    */
-  const tags = useMemo(() => {
-    const inScope = active === ALL ? posts : posts.filter((p) => p.category === active);
-    const found = [...new Set(inScope.flatMap((p) => p.tags))].sort();
-    // Keep the active tag listed even if it has just fallen out of scope, so
-    // the chip the reader clicked does not vanish from under them.
-    return tag && !found.includes(tag) ? [tag, ...found] : found;
-  }, [posts, active, tag]);
+  // const tags = useMemo(() => {
+  //   const inScope = active === ALL ? posts : posts.filter((p) => p.category === active);
+  //   const found = [...new Set(inScope.flatMap((p) => p.tags))].sort();
+  //   // Keep the active tag listed even if it has just fallen out of scope, so
+  //   // the chip the reader clicked does not vanish from under them.
+  //   return tag && !found.includes(tag) ? [tag, ...found] : found;
+  // }, [posts, active, tag]);
 
   // Cards mounted by a filter change are revealed by AOS's own MutationObserver
   // (it watches [data-aos]) — no manual refreshHard needed. Under reduced motion
@@ -74,7 +74,9 @@ export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
         ariaLabel="Filter articles by topic"
       />
 
-      {tags.length > 0 ? (
+      {/* Tag chip row — hidden for now; category chips above are the only filter.
+          The `tag` state stays null, so filtering falls through to category only. */}
+      {/* {tags.length > 0 ? (
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium uppercase tracking-wider text-ink/65">Tags</span>
           {tags.map((entry) => {
@@ -106,7 +108,7 @@ export function BlogFeed({ posts }: { posts: BlogPostRecord[] }) {
             </button>
           ) : null}
         </div>
-      ) : null}
+      ) : null} */}
 
       <p className="sr-only" aria-live="polite">
         Showing {filtered.length} {filtered.length === 1 ? "article" : "articles"}

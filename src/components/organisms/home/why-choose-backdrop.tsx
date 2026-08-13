@@ -10,15 +10,16 @@ import { cn } from "@/lib/utils";
  * continents — the parallax rates differ between them on purpose, but the base
  * geometry cannot.
  *
- * `meet`, not `slice`. The viewBox is 2:1 and this band renders roughly square
- * on a desktop viewport, so `slice` would scale the map ~4× to cover and show a
- * narrow vertical strip of a hugely magnified Atlantic. `meet` fits the whole
- * world inside the frame; the frame is then given an explicit height band
- * rather than `inset-0` so the map sits behind the headline and KPI row — the
- * part of the section where it reads — instead of being centred over the cards.
+ * Both fill `WhyChooseMap`'s own box rather than the section, because the map
+ * is no longer a wash behind the type: it is its own band, between the headline
+ * and the promise panel, with nothing set over it.
+ *
+ * `meet`, not `slice` — the viewBox is wider than it is tall, and `slice` on a
+ * shorter box would crop to a magnified strip of the Atlantic instead of
+ * showing the world.
  */
 const MAP_FRAME =
-  "pointer-events-none absolute inset-x-0 top-[4%] h-[68%] [mask-image:radial-gradient(ellipse_72%_78%_at_50%_46%,black_35%,transparent_82%)]";
+  "pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_78%_86%_at_50%_50%,black_46%,transparent_88%)]";
 
 /**
  * World coastlines, equirectangular, in a 1000×500 viewBox.
@@ -109,7 +110,9 @@ type BackdropProps = {
 };
 
 /**
- * The enterprise band's background stack — nine layers, back to front.
+ * The enterprise band's background stack — seven ambient layers, back to front.
+ * The world map and the delivery graph are *not* here: they are `WhyChooseMap`,
+ * an in-flow band of their own, so no type ever sits on top of them.
  *
  * **Every layer is compositor-only:** transforms and opacity, nothing that
  * triggers layout or paint while the page scrolls. The parallax springs are
@@ -125,21 +128,16 @@ type BackdropProps = {
  * from 6px (grid, inverted — it is the layer the eye takes for "the surface")
  * to 30px (particles, frontmost).
  *
- * **Order matters.** Lighting sits behind the map so the continents are lit
- * rather than washed out. The heading glow sits above the map so type lands on
- * a clean field instead of competing with a dot passing behind a counter. Noise
+ * **Order matters.** Lighting sits behind everything so the map band is lit
+ * rather than washed out. The heading glow keeps type on a clean field. Noise
  * and vignette come last, unifying everything beneath them.
  */
 export function WhyChooseBackdrop({ px, py }: BackdropProps) {
   /* One spring, many rates. All unconditional — see `BackdropProps`. */
   const lightX = useTransform(px, (v) => v * -10);
   const lightY = useTransform(py, (v) => v * -8);
-  const mapX = useTransform(px, (v) => v * 18);
-  const mapY = useTransform(py, (v) => v * 12);
   const gridX = useTransform(px, (v) => v * -6);
   const gridY = useTransform(py, (v) => v * -4);
-  const netX = useTransform(px, (v) => v * 26);
-  const netY = useTransform(py, (v) => v * 18);
   const dustX = useTransform(px, (v) => v * 30);
   const dustY = useTransform(py, (v) => v * 22);
 
@@ -158,17 +156,110 @@ export function WhyChooseBackdrop({ px, py }: BackdropProps) {
         <div className="absolute bottom-[6%] left-[16%] h-[26rem] w-[30rem] rounded-full bg-[radial-gradient(closest-side,rgba(120,60,200,0.12),transparent)] blur-3xl" />
       </motion.div>
 
-      {/* 2 — world map as a dot matrix. The dots are a `<pattern>` clipped to
-             the coastlines by a `<mask>`, which is what produces the pixel-map
-             look rather than a flat silhouette. Masked again at the edges so
-             the map dissolves instead of ending on a hard rectangle. */}
+      {/* 2 — blueprint grid, moving against the pointer at the smallest rate. */}
       <motion.div
         aria-hidden
+        style={{ x: gridX, y: gridY }}
+        className="pointer-events-none absolute -inset-16 [background-image:linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_80%_74%_at_50%_50%,black_30%,transparent_82%)]"
+      />
+
+      {/* 3 — travelling beams. They cross the full width, which the arc-bound
+             network graph cannot. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <span className="absolute left-0 top-[24%] h-px w-[38%] bg-[linear-gradient(90deg,transparent,rgba(215,52,56,0.85),transparent)] opacity-0 motion-safe:animate-[wc-beam_15s_ease-in-out_infinite]" />
+        <span className="absolute left-0 top-[73%] h-px w-[30%] bg-[linear-gradient(90deg,transparent,rgba(120,180,255,0.7),transparent)] opacity-0 motion-safe:animate-[wc-beam_19s_ease-in-out_infinite_5s]" />
+      </div>
+
+      {/* 4 — particles: frontmost layer, so the fastest-moving. */}
+      <motion.div
+        aria-hidden
+        style={{ x: dustX, y: dustY }}
+        className="pointer-events-none absolute inset-0"
+      >
+        {PARTICLES.map((p) => (
+          <span
+            key={`${p.left}-${p.top}`}
+            style={{
+              left: p.left,
+              top: p.top,
+              width: p.size,
+              height: p.size,
+              animationDelay: p.delay,
+            }}
+            className="absolute rounded-full bg-white/70 opacity-30 shadow-[0_0_8px_rgba(255,255,255,0.6)] motion-safe:animate-[hero-particle_9s_ease-in-out_infinite]"
+          />
+        ))}
+      </motion.div>
+
+      {/* 5 — the pool of light the headline sits in. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/2 top-0 h-[34rem] w-[64rem] max-w-[130vw] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(146,178,235,0.16),rgba(146,178,235,0.05)_45%,transparent_72%)] blur-2xl"
+      />
+
+      {/* 6 — film grain at 3%. Breaks up the banding a wide navy gradient shows
+             on 8-bit panels; below ~2% it stops working, above ~4% it reads as
+             dirt on the screen. */}
+      <div
+        aria-hidden
+        className="wc-noise pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-overlay"
+      />
+
+      {/* 7 — vignette, sealing the edges. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(125%_82%_at_50%_48%,transparent_42%,rgba(3,7,15,0.78)_100%)]"
+      />
+    </>
+  );
+}
+
+/* ══ The map band ══════════════════════════════════════════════════════════ */
+
+/**
+ * The world map and its delivery graph, as a band of their own between the
+ * headline and the promise panel.
+ *
+ * **Why it is in flow rather than behind the type.** As a backdrop the map was
+ * doing two jobs badly: the continents were being read *through* a headline, so
+ * neither the reach it claims nor the sentence it sat under landed cleanly.
+ * Given its own strip with nothing over it, the map is simply the picture the
+ * headline just made — reach shown once, immediately after it is stated.
+ *
+ * **Two layers, not one.** The dot matrix and the route graph move at different
+ * parallax rates so the routes read as sitting *above* the continents; the base
+ * geometry is identical (`MAP_FRAME`, same viewBox) so the nodes stay on their
+ * regions while they separate in depth.
+ *
+ * `aria-hidden` throughout: this is atmosphere, and every claim it gestures at
+ * is stated in text elsewhere on the page.
+ */
+export function WhyChooseMap({ px, py }: BackdropProps) {
+  const mapX = useTransform(px, (v) => v * 18);
+  const mapY = useTransform(py, (v) => v * 12);
+  const netX = useTransform(px, (v) => v * 26);
+  const netY = useTransform(py, (v) => v * 18);
+
+  return (
+    <div
+      aria-hidden
+      /* 5:2 matches the *cropped* viewBox (`0 15 1000 400`), which trims the
+         empty ocean above Greenland and below South America — the full 1000×500
+         equirectangular frame is a fifth dead space at the bottom, and that
+         showed up as a gap between the map and the panel below. Matching the
+         box to the geometry removes it without touching either margin. */
+      className="relative mx-auto aspect-[5/2] max-h-[20rem] w-full max-w-5xl"
+    >
+      {/* Dot matrix. The dots are a `<pattern>` clipped to the coastlines by a
+          `<mask>`, which is what produces the pixel-map look rather than a flat
+          silhouette. Masked again at the edges so the map dissolves instead of
+          ending on a hard rectangle. */}
+      <motion.div
         style={{ x: mapX, y: mapY }}
-        className={cn(MAP_FRAME, "opacity-55")}
+        className={cn(MAP_FRAME, "opacity-70")}
       >
         <svg
-          viewBox="0 0 1000 500"
+          viewBox="0 15 1000 400"
           preserveAspectRatio="xMidYMid meet"
           className="h-full w-full"
         >
@@ -198,23 +289,12 @@ export function WhyChooseBackdrop({ px, py }: BackdropProps) {
         </svg>
       </motion.div>
 
-      {/* 3 — blueprint grid, moving against the pointer at the smallest rate. */}
-      <motion.div
-        aria-hidden
-        style={{ x: gridX, y: gridY }}
-        className="pointer-events-none absolute -inset-16 [background-image:linear-gradient(to_right,rgba(255,255,255,0.045)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.045)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_80%_74%_at_50%_50%,black_30%,transparent_82%)]"
-      />
-
-      {/* 4 — network routes. A long dash offset over a long duration reads as
-             current flowing along the route; a short one reads as marching
-             ants, which is the difference between calm and busy. */}
-      <motion.div
-        aria-hidden
-        style={{ x: netX, y: netY }}
-        className={MAP_FRAME}
-      >
+      {/* Network routes. A long dash offset over a long duration reads as
+          current flowing along the route; a short one reads as marching ants,
+          which is the difference between calm and busy. */}
+      <motion.div style={{ x: netX, y: netY }} className={MAP_FRAME}>
         <svg
-          viewBox="0 0 1000 500"
+          viewBox="0 15 1000 400"
           preserveAspectRatio="xMidYMid meet"
           className="h-full w-full"
         >
@@ -271,54 +351,6 @@ export function WhyChooseBackdrop({ px, py }: BackdropProps) {
           </g>
         </svg>
       </motion.div>
-
-      {/* 5 — travelling beams. They cross the full width, which the arc-bound
-             network graph cannot. */}
-      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <span className="absolute left-0 top-[24%] h-px w-[38%] bg-[linear-gradient(90deg,transparent,rgba(215,52,56,0.85),transparent)] opacity-0 motion-safe:animate-[wc-beam_15s_ease-in-out_infinite]" />
-        <span className="absolute left-0 top-[73%] h-px w-[30%] bg-[linear-gradient(90deg,transparent,rgba(120,180,255,0.7),transparent)] opacity-0 motion-safe:animate-[wc-beam_19s_ease-in-out_infinite_5s]" />
-      </div>
-
-      {/* 6 — particles: frontmost layer, so the fastest-moving. */}
-      <motion.div
-        aria-hidden
-        style={{ x: dustX, y: dustY }}
-        className="pointer-events-none absolute inset-0"
-      >
-        {PARTICLES.map((p) => (
-          <span
-            key={`${p.left}-${p.top}`}
-            style={{
-              left: p.left,
-              top: p.top,
-              width: p.size,
-              height: p.size,
-              animationDelay: p.delay,
-            }}
-            className="absolute rounded-full bg-white/70 opacity-30 shadow-[0_0_8px_rgba(255,255,255,0.6)] motion-safe:animate-[hero-particle_9s_ease-in-out_infinite]"
-          />
-        ))}
-      </motion.div>
-
-      {/* 7 — the pool of light the headline sits in. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-[34rem] w-[64rem] max-w-[130vw] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(146,178,235,0.16),rgba(146,178,235,0.05)_45%,transparent_72%)] blur-2xl"
-      />
-
-      {/* 8 — film grain at 3%. Breaks up the banding a wide navy gradient shows
-             on 8-bit panels; below ~2% it stops working, above ~4% it reads as
-             dirt on the screen. */}
-      <div
-        aria-hidden
-        className="wc-noise pointer-events-none absolute inset-0 opacity-[0.03] mix-blend-overlay"
-      />
-
-      {/* 9 — vignette, sealing the edges. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(125%_82%_at_50%_48%,transparent_42%,rgba(3,7,15,0.78)_100%)]"
-      />
-    </>
+    </div>
   );
 }

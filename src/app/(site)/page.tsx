@@ -11,7 +11,7 @@ import { AiSdlc } from "@/components/organisms/home/ai-sdlc";
 import {
   BlogAndCareers,
   CultureGallery,
-  FaqSection,
+  // FaqSection,  ← re-add with the commented-out <FaqSection /> below
   Testimonials,
 } from "@/components/organisms/home/more-sections";
 import { WhatWeDo } from "@/components/organisms/home/what-we-do";
@@ -114,8 +114,11 @@ export default async function HomePage() {
           rendered. It sits after the testimonials because that is where the
           remaining objections surface: social proof answers "can they?", this
           answers "how would this actually work for me?". It disappears when
-          nothing is published. */}
-      <FaqSection />
+          nothing is published.
+
+          Commented out on request — the component and its CMS wiring stay
+          intact; uncomment the line below to bring the band back. */}
+      {/* <FaqSection /> */}
       <BlogAndCareers />
     </>
   );

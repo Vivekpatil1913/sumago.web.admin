@@ -58,7 +58,7 @@ export const PHASES: { key: Phase; label: string; blurb: string }[] = [
   },
   {
     key: "Support",
-    label: "Support & Resourcing",
+    label: "Resource Management & Outsourcing",
     blurb: "Stay on after launch — and add the people who keep it moving.",
   },
 ];
