@@ -26,7 +26,11 @@ import {
   getTestimonials,
   withSeoOverrides,
 } from "@/lib/cms";
-import { cultureGallery, founderSpeaking } from "@/lib/real-assets";
+import {
+  cultureGallery,
+  founderSpeaking,
+  teamAwardsEvening,
+} from "@/lib/real-assets";
 
 /**
  * Metadata for /about, with the panel's SEO record layered on top.
@@ -176,9 +180,9 @@ export default async function AboutPage() {
           }
         />
 
-        {/* Centered hero — brand glow + a two-frame dissolve + the founding
-            year. Both frames are the founders on a stage; the office-floor
-            group shot was cut so the story opens on the people who tell it. */}
+        {/* Centered hero — brand glow + a three-frame dissolve + the founding
+            year. The two founders on a stage, then the team they built: the
+            story runs from the people who tell it to the people who are it. */}
         <div className="relative mx-auto mt-12 max-w-3xl" data-aos="fade-up">
           <div
             aria-hidden
@@ -196,6 +200,11 @@ export default async function AboutPage() {
                 src: founderSpeaking.sonaliGorade.src,
                 alt: founderSpeaking.sonaliGorade.alt,
                 label: "Sonali Gorade speaking",
+              },
+              {
+                src: teamAwardsEvening.src,
+                alt: teamAwardsEvening.alt,
+                label: "the team at an awards evening",
               },
             ]}
           />

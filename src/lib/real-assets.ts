@@ -116,6 +116,24 @@ export const momentPhotos = {
 } as const satisfies Record<string, Photo>;
 
 /**
+ * The whole team at an awards evening — the frame that closes the /about story
+ * slideshow, after the two founders.
+ *
+ * Sits at `/images/aboutnew.webp` rather than under `moments/` because it did
+ * not come through `image-manifest.mjs`; renaming it would only break the path
+ * an editor already knows.
+ *
+ * It is a 2.9:1 panorama in a 16/9 frame, so the slideshow crops roughly a
+ * sixth off each end. The centre of the frame is where the leadership sits, so
+ * the crop keeps the subject — but it is the reason this photograph should not
+ * be reused in a taller slot without a purpose-made crop.
+ */
+export const teamAwardsEvening: Photo = {
+  src: "/images/aboutnew.webp",
+  alt: "The Sumago team together at a company awards evening",
+};
+
+/**
  * Leadership headshots, unnamed on purpose (see the file header). Editors pick
  * one of these in the panel and attach the name there; nothing on the site
  * asserts an identity from this list.
