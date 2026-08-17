@@ -54,7 +54,7 @@ export const cultureValues: IconItem[] = [
   },
 ];
 
-/** Growth opportunities — six pathways and rewards combined. */
+/** Growth opportunities — five pathways and rewards combined. */
 export const growthOpportunities: IconItem[] = [
   {
     icon: "Globe",
@@ -80,10 +80,5 @@ export const growthOpportunities: IconItem[] = [
     icon: "Wallet",
     title: "Competitive Compensation",
     description: "Rewards that reflect market benchmarks and your real impact.",
-  },
-  {
-    icon: "Award",
-    title: "Sponsored Certifications",
-    description: "Fully sponsored certifications in AI, cloud, data, and more.",
   },
 ];

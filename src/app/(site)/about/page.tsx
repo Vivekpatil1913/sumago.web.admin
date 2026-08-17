@@ -26,7 +26,7 @@ import {
   getTestimonials,
   withSeoOverrides,
 } from "@/lib/cms";
-import { cultureGallery, founderSpeaking, momentPhotos } from "@/lib/real-assets";
+import { cultureGallery, founderSpeaking } from "@/lib/real-assets";
 
 /**
  * Metadata for /about, with the panel's SEO record layered on top.
@@ -176,10 +176,9 @@ export default async function AboutPage() {
           }
         />
 
-        {/* Centered hero — brand glow + a three-frame dissolve + the founding
-            year. The still that used to sit here is the slideshow's first
-            frame, so the section opens on exactly the image it always did and
-            then earns the other two. */}
+        {/* Centered hero — brand glow + a two-frame dissolve + the founding
+            year. Both frames are the founders on a stage; the office-floor
+            group shot was cut so the story opens on the people who tell it. */}
         <div className="relative mx-auto mt-12 max-w-3xl" data-aos="fade-up">
           <div
             aria-hidden
@@ -188,11 +187,6 @@ export default async function AboutPage() {
           <StorySlideshow
             className="card-hover"
             slides={[
-              {
-                src: momentPhotos.officeGathering.src,
-                alt: momentPhotos.officeGathering.alt,
-                label: "the team on the office floor",
-              },
               {
                 src: founderSpeaking.sudhirGorade.src,
                 alt: founderSpeaking.sudhirGorade.alt,

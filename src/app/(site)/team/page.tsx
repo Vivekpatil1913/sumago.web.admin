@@ -129,25 +129,6 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
   },
   {
     name: "Prasad Pawar",
-    role: "AVP — Marketing",
-    dept: "Marketing",
-    message:
-      "Shapes how the market understands Sumago — turning capability into demand through brand, story, and pipeline that can be measured, not guessed.",
-    traits: [
-      "Brand & story",
-      "Market positioning",
-      "Demand generation",
-      "Measurable pipeline",
-      "Content & campaigns",
-      "Events & presence",
-      "Analytics & ROI",
-    ],
-    // Original 1024px photograph: avoids enlarging the compressed 900px WebP
-    // when this portrait is cropped closer in the spotlight.
-    portrait: "/leader board photo/prasad pawar.jpeg",
-  },
-  {
-    name: "Dipti Pawar",
     role: "AVP — Business",
     dept: "Business",
     message:
@@ -160,6 +141,25 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
       "Account expansion",
       "Pricing & proposals",
       "Market opportunities",
+    ],
+    // Original 1024px photograph: avoids enlarging the compressed 900px WebP
+    // when this portrait is cropped closer in the spotlight.
+    portrait: "/leader board photo/prasad pawar.jpeg",
+  },
+  {
+    name: "Dipti Pawar",
+    role: "AVP — Marketing",
+    dept: "Marketing",
+    message:
+      "Shapes how the market understands Sumago — turning capability into demand through brand, story, and pipeline that can be measured, not guessed.",
+    traits: [
+      "Brand & story",
+      "Market positioning",
+      "Demand generation",
+      "Measurable pipeline",
+      "Content & campaigns",
+      "Events & presence",
+      "Analytics & ROI",
     ],
     portrait: namedLeadershipPortraits.diptiPawar.src,
   },

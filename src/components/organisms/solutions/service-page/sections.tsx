@@ -700,8 +700,16 @@ export function WhyUs({ content }: SectionProps) {
       <WhyStandout points={content.standoutPoints} />
 
       {/* `md:gap-x-8` for the same reason as the shifts ledger above: eleven
-          2rem gaps alone exceed a 320px viewport. */}
-      <div className="mt-20 grid grid-cols-12 gap-y-14 md:mt-24 md:gap-x-8">
+          2rem gaps alone exceed a 320px viewport.
+
+          The row gap has to clear the ghost numeral, not just the text. Each
+          numeral is lifted above its own card (`-top-8`), so it eats into the
+          gap above it — at `gap-y-14` that left ~16px between one card's last
+          line and the next card's numeral, which read as a single unbroken
+          column on a phone where every card stacks. `gap-y-24` restores a
+          clear break; from `md` the cards sit two and four to a row, so there
+          are fewer seams and less gap is needed. */}
+      <div className="mt-20 grid grid-cols-12 gap-y-24 md:mt-24 md:gap-x-8 md:gap-y-16">
         {whyUs.map((d, i) => (
           <div
             key={d.title}
@@ -709,9 +717,11 @@ export function WhyUs({ content }: SectionProps) {
             data-aos-delay={stagger(i)}
             className="group relative col-span-12 sm:col-span-6 lg:col-span-3"
           >
+            {/* Smaller and less lifted on a phone: at 5rem the numeral reached
+                back into the card above it. */}
             <GhostNumeral
               n={i + 1}
-              className="absolute -left-1 -top-10 text-[5rem]"
+              className="absolute -left-1 -top-8 text-[4rem] md:-top-10 md:text-[5rem]"
             />
             <div className="relative">
               <Rule />
