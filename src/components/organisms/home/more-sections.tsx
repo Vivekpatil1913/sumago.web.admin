@@ -206,7 +206,7 @@ export function BlogAndCareers() {
         ))}
       </div>
     </Section>
-  );
+  ); 
 }
 
 /** Life-at-Sumago culture collage — auto-scrolling mosaic of team & workspace stills. */
