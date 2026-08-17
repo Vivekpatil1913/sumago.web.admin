@@ -18,6 +18,19 @@ export type Slide = {
   /** Short label for the dot's accessible name — "the office floor", not a
    *  second copy of the alt text. */
   label: string;
+  /**
+   * How the photograph meets the frame. `cover` (the default) fills it and
+   * crops whatever does not fit — right for anything near the frame's own
+   * proportions.
+   *
+   * `contain` fits the whole photograph inside instead, and is for frames far
+   * wider or taller than the slot: a 2.9:1 panorama cropped to 16/9 loses a
+   * sixth off each end, which on a photograph of the team means losing people.
+   * The gap that leaves is filled with a blurred, over-scaled copy of the same
+   * image, so the frame still reads as one photograph rather than a picture
+   * sitting between two empty bars.
+   */
+  fit?: "cover" | "contain";
 };
 
 /**
@@ -123,13 +136,31 @@ export function StorySlideshow({
           )}
           style={{ transitionDuration: `${FADE_MS}ms` }}
         >
+          {/* Blurred fill behind a contained photograph. Deliberately requested
+              at a tiny width — it is scaled up and blurred past recognition, so
+              a full-size second copy would be bytes spent on something nobody
+              can resolve. */}
+          {slide.fit === "contain" ? (
+            <Image
+              src={slide.src}
+              alt=""
+              aria-hidden
+              fill
+              sizes="64px"
+              className="scale-125 object-cover opacity-70 blur-2xl"
+            />
+          ) : null}
+
           <Image
             src={slide.src}
             alt={slide.alt}
             fill
             sizes="(max-width: 768px) 100vw, 768px"
             priority={i === 0}
-            className="object-cover"
+            className={cn(
+              "relative",
+              slide.fit === "contain" ? "object-contain" : "object-cover",
+            )}
           />
         </div>
       ))}

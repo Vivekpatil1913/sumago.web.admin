@@ -205,6 +205,9 @@ export default async function AboutPage() {
                 src: teamAwardsEvening.src,
                 alt: teamAwardsEvening.alt,
                 label: "the team at an awards evening",
+                /* A 2.9:1 panorama: cropped to the frame it lost the people at
+                   both ends, which is most of what the photograph is for. */
+                fit: "contain",
               },
             ]}
           />
