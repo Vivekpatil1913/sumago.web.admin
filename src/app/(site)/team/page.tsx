@@ -93,8 +93,8 @@ const SUDHIR_FEATURE_PORTRAIT = "/leader board photo/sudhir sirHalf.jpeg";
  * traits describe the role, so a person moving function means moving the whole
  * block, not just the `name`/`portrait` lines.
  *
- * [VERIFY] Satish A's full surname — the portrait arrived filed under the
- * initial alone, and a leader on the page deserves their whole name.
+ * Satish Aurange's portrait file is still named for the initial alone
+ * (`satish A.jpeg`); the displayed name is the confirmed full name.
  */
 type SeedLeader = {
   name: string;
@@ -109,7 +109,7 @@ type SeedLeader = {
 
 const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
   {
-    name: "Satish A",
+    name: "Satish Aurange",
     role: "AVP — Technology",
     dept: "Technology",
     message:
@@ -200,7 +200,7 @@ const SEED_DEPARTMENT_LEADERS: SeedLeader[] = [
     portrait: namedLeadershipPortraits.vrushaliVarpe.src,
   },
   {
-    name: "Yash Ghodake",
+    name: "Yash Ghodke",
     role: "Business Development Manager",
     dept: "Business Development",
     message:
@@ -700,10 +700,10 @@ function LeaderSpotlight({ leader }: { leader: DepartmentLead }) {
   // Id must be unique per instance — 7 spotlights share this document.
   const stageId = `leader-${slugify(leader.name)}`;
   const isCloseCroppedPortrait = [
-    "Satish A",
+    "Satish Aurange",
     "Prasad Pawar",
     "Pankaj Pathak",
-    "Yash Ghodake",
+    "Yash Ghodke",
     "Prachi Gavali",
   ].includes(leader.name);
   const left = leader.traits.slice(0, 4);

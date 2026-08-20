@@ -7,6 +7,9 @@ import { useApp } from "@/lib/admin/app-context";
 import { DataTable, type RowAction } from "@/components/admin/data-table";
 import { ErrorState, InfoTip, Spinner } from "@/components/admin/ui";
 
+/** Hoisted so the prop keeps one identity across renders. */
+const HIDDEN_FILTERS = ["budget"];
+
 export default function EnquiriesPage() {
   const router = useRouter();
   const { moduleByKey, loading } = useApp();
@@ -40,19 +43,16 @@ export default function EnquiriesPage() {
         <p className="mt-0.5 text-sm text-muted">Every submission from the website contact form.</p>
       </header>
 
+      {/* No `bulkActions` — that is what puts the select column on the table.
+          A lead's status is set on the enquiry itself, where whoever is
+          changing it can see the conversation they are changing it for. */}
       <DataTable
         module={module}
         rowHref={(row) => `/admin/enquiries/${row["id"]}`}
         rowActions={rowActions}
-        bulkActions={
-          module.canWrite
-            ? [
-                { label: "Mark contacted", action: "status", status: "contacted" },
-                { label: "Mark qualified", action: "status", status: "qualified" },
-                { label: "Mark lost", action: "status", status: "lost" },
-              ]
-            : undefined
-        }
+        // The contact form never asks for a budget, so filtering by one only
+        // ever narrows the list to nothing.
+        hideFilters={HIDDEN_FILTERS}
       />
     </div>
   );

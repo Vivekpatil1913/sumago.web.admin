@@ -61,6 +61,18 @@ interface DataTableProps {
   cellOverrides?: Record<string, (row: RecordValue) => React.ReactNode>;
   rowActions?: RowAction[];
   bulkActions?: { label: string; action: string; status?: string; tone?: "default" | "danger" }[];
+  /**
+   * Registry filters to leave out of the toolbar. The filter still exists
+   * server-side — this only stops a module offering a dropdown nobody here
+   * needs, or one its records never populate.
+   */
+  hideFilters?: string[];
+  /**
+   * Registry columns to leave out of the table. The data is still fetched and
+   * the record still carries it — this hides a column, it does not remove a
+   * field.
+   */
+  hideColumns?: string[];
   toolbarExtra?: React.ReactNode;
   onCreate?: () => void;
   /** Bumping this refetches — used after an action changes a row. */
@@ -91,6 +103,8 @@ export function DataTable({
   cellOverrides,
   rowActions = [],
   bulkActions,
+  hideFilters,
+  hideColumns,
   toolbarExtra,
   onCreate,
   refreshKey = 0,
@@ -195,6 +209,29 @@ export function DataTable({
     void load();
   }, [load, refreshKey]);
 
+  /*
+   * What the registry offers but this page has asked not to show. Both lists
+   * match on the field name *or* the visible label, case-insensitively: a
+   * column or filter is usually asked for by the heading someone can see
+   * rather than the field name behind it.
+   */
+  const isHidden = (hide: string[] | undefined, name: string, label: string) => {
+    if (!hide?.length) return false;
+    const wanted = name.toLowerCase();
+    const shown = label.toLowerCase();
+    return hide.some((entry) => {
+      const target = entry.toLowerCase();
+      return target === wanted || target === shown;
+    });
+  };
+
+  const toolbarFilters = module.filters.filter(
+    (filter) => !isHidden(hideFilters, filter.name, filter.label),
+  );
+  const columns = module.columns.filter(
+    (column) => !isHidden(hideColumns, column.name, column.label),
+  );
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasFiltersApplied =
     Boolean(debouncedSearch || dateFrom || dateTo) || Object.values(filters).some(Boolean);
@@ -271,7 +308,7 @@ export function DataTable({
           />
         </div>
 
-        {module.filters.map((filter) => (
+        {toolbarFilters.map((filter) => (
           <Select
             key={filter.name}
             value={filters[filter.name] ?? ""}
@@ -433,7 +470,17 @@ export function DataTable({
                     </th>
                   ) : null}
 
-                  {module.columns.map((column) => (
+                  {/* Position in the list, not an identifier — it counts on
+                      from the previous page rather than restarting at 1, so
+                      "the fourth one down on page 2" is still row 29. */}
+                  <th
+                    scope="col"
+                    className="w-12 border-b border-line-soft px-4 py-3 text-[11px] font-bold uppercase tracking-[0.07em] text-muted"
+                  >
+                    S. No.
+                  </th>
+
+                  {columns.map((column) => (
                     <th
                       key={column.name}
                       scope="col"
@@ -475,8 +522,9 @@ export function DataTable({
               </thead>
 
               <tbody className="divide-y divide-line-soft">
-                {rows.map((row) => {
+                {rows.map((row, rowIndex) => {
                   const id = String(row["id"]);
+                  const serial = (page - 1) * PAGE_SIZE + rowIndex + 1;
                   return (
                     <tr key={id} className="transition-colors hover:bg-canvas-subtle">
                       {bulkActions ? (
@@ -498,7 +546,11 @@ export function DataTable({
                         </td>
                       ) : null}
 
-                      {module.columns.map((column, index) => {
+                      <td className="px-4 py-3.5 align-middle tabular-nums text-muted">
+                        {serial}
+                      </td>
+
+                      {columns.map((column, index) => {
                         const override = cellOverrides?.[column.name];
                         return (
                           <td key={column.name} className="px-4 py-3.5 align-middle">

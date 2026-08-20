@@ -198,9 +198,9 @@ export const namedLeadershipPortraits = {
   pankajPathak: namedPortrait("pankaj-pathak", "Pankaj Pathak"),
   prachiGavali: namedPortrait("prachi-gavali", "Prachi Gavali"),
   prasadPawar: namedPortrait("prasad-pawar", "Prasad Pawar"),
-  satishA: namedPortrait("satish-a", "Satish A"),
+  satishA: namedPortrait("satish-a", "Satish Aurange"),
   vrushaliVarpe: namedPortrait("vrushali-varpe", "Vrushali Varpe"),
-  yashGhodake: namedPortrait("yash-ghodake", "Yash Ghodake"),
+  yashGhodake: namedPortrait("yash-ghodake", "Yash Ghodke"),
 } as const satisfies Record<string, Photo>;
 
 /**

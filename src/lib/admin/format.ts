@@ -68,6 +68,35 @@ export function humanise(value: unknown): string {
     .replace(/^./, (character) => character.toUpperCase());
 }
 
+/**
+ * Where a record came from, in words.
+ *
+ * The API records the page a form was submitted from, which arrives as a full
+ * URL — `http://localhost:3100/careers/frontend-engineer`. That is a developer's
+ * answer to the question: what someone reading an application wants to know is
+ * that it came through the website, not which port it was served on. The path
+ * is kept alongside, because *which* page is genuinely useful; the origin,
+ * never.
+ *
+ * Anything that is not a URL is a source the code set deliberately
+ * (`contact:intake-form`), so it is left readable as-is.
+ */
+export function sourceLabel(value: unknown): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const text = String(value).trim();
+
+  if (!/^https?:\/\//i.test(text)) return humanise(text);
+
+  try {
+    const { pathname } = new URL(text);
+    const path = pathname.replace(/\/+$/, "");
+    return path && path !== "/" ? `Website — ${path}` : "Website";
+  } catch {
+    // Malformed enough that URL() gave up; say the one thing still true.
+    return "Website";
+  }
+}
+
 export function truncate(value: unknown, length = 80): string {
   const text = value === null || value === undefined ? "" : String(value);
   if (text === "") return "—";

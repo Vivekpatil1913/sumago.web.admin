@@ -16,6 +16,22 @@ import { DataTable, type RowAction } from "@/components/admin/data-table";
 import { ErrorState, Spinner } from "@/components/admin/ui";
 import type { RecordValue } from "@/lib/admin/types";
 
+/**
+ * The Résumé column is hidden: it only ever held a filename, and the file
+ * itself is reached through the Download résumé action on the row — a signed,
+ * expiring link that gets logged, which a filename in a cell cannot be.
+ *
+ * Delete this constant (and the `hideColumns` prop below) to bring it back.
+ * Hoisted so the prop keeps one identity across renders.
+ */
+const HIDDEN_COLUMNS = ["resume"];
+
+/**
+ * Department is not how anyone looks for an application. The role already
+ * narrows it further than a department can, and Job is the filter next to it.
+ */
+const HIDDEN_FILTERS = ["department"];
+
 export function ApplicationsTable({
   baseParams,
   toolbarExtra,
@@ -72,15 +88,22 @@ export function ApplicationsTable({
       rowHref={(row) => `/admin/applications/${row["id"]}`}
       rowActions={rowActions}
       toolbarExtra={toolbarExtra}
-      bulkActions={
-        active.canWrite
-          ? [
-              { label: "Mark reviewed", action: "status", status: "reviewed" },
-              { label: "Shortlist", action: "status", status: "shortlisted" },
-              { label: "Reject", action: "status", status: "rejected" },
-            ]
-          : undefined
-      }
+      hideColumns={HIDDEN_COLUMNS}
+      hideFilters={HIDDEN_FILTERS}
+      // No `bulkActions` — that is what puts the select column on the table.
+      // An application's status is set on the application itself, next to the
+      // CV and the notes that justify the decision.
+      //
+      // To bring the checkboxes back, restore:
+      //   bulkActions={
+      //     active.canWrite
+      //       ? [
+      //           { label: "Mark reviewed", action: "status", status: "reviewed" },
+      //           { label: "Shortlist", action: "status", status: "shortlisted" },
+      //           { label: "Reject", action: "status", status: "rejected" },
+      //         ]
+      //       : undefined
+      //   }
     />
   );
 }

@@ -12,12 +12,13 @@ import Link from "next/link";
 import { ChevronLeft, Mail, Phone } from "lucide-react";
 import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
-import { formatDateTime, humanise, statusTone } from "@/lib/admin/format";
+import { formatDateTime, humanise, sourceLabel, statusTone } from "@/lib/admin/format";
 import {
   Badge,
   Button,
   ErrorState,
   InfoTip,
+  Modal,
   Select,
   Spinner,
   Textarea,
@@ -25,8 +26,49 @@ import {
 import { HistoryTimeline, type HistoryEntry } from "@/components/admin/history-timeline";
 import type { RecordValue } from "@/lib/admin/types";
 
-/** The pipeline stages, and only those. */
+/**
+ * The pipeline stages, in order — and only those.
+ *
+ * The order is the rule: a lead moves forward through them and never back,
+ * so this array is both the list and the sequence. It mirrors
+ * `ENQUIRY_STATUSES` on the API.
+ */
 const STATUSES = ["new", "contacted", "qualified", "proposal", "won", "lost"];
+
+/** The two ways a lead ends. Neither has a stage after it. */
+const CLOSED = ["won", "lost"];
+
+/**
+ * The contact form has no industry or multi-service column to write to, so it
+ * appends both as labelled lines at the end of the message (see
+ * `intake-form.tsx`). Lift them back out here: they are facts about the lead,
+ * not part of what the visitor wrote, so they belong in the field list next to
+ * Source rather than buried under the prose.
+ *
+ * Anything that does not match — an enquiry sent before the form appended
+ * these, or one written by hand — is left in the message untouched.
+ */
+function splitAppendedFields(message: string) {
+  const lines = message.split(/\r?\n/);
+  let industry = "";
+  let services = "";
+
+  // Only trailing lines are considered, so a message whose own text happens to
+  // mention "Industry:" partway through is not silently gutted.
+  while (lines.length > 0) {
+    const line = lines[lines.length - 1].trim();
+    const industryMatch = /^Industry:\s*(.+)$/i.exec(line);
+    const servicesMatch = /^Services of interest:\s*(.+)$/i.exec(line);
+
+    if (servicesMatch && !services) services = servicesMatch[1].trim();
+    else if (industryMatch && !industry) industry = industryMatch[1].trim();
+    else if (line !== "") break;
+
+    lines.pop();
+  }
+
+  return { message: lines.join("\n").trim(), industry, services };
+}
 
 export default function EnquiryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -37,6 +79,9 @@ export default function EnquiryDetailPage({ params }: { params: Promise<{ id: st
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
+  // The stage picked in the dropdown but not yet confirmed. A status change is
+  // one-way, so it is never applied straight off the select.
+  const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const module = moduleByKey("enquiries");
@@ -83,6 +128,23 @@ export default function EnquiryDetailPage({ params }: { params: Promise<{ id: st
   // list, so the dropdown reads what it actually is rather than showing blank.
   const status = String(record["status"]);
   const statusOptions = STATUSES.includes(status) ? STATUSES : [...STATUSES, status];
+  const stage = STATUSES.indexOf(status);
+  const closed = CLOSED.includes(status);
+  /*
+   * A stage already passed is never offered again, and Won or Lost closes the
+   * lead outright — nothing follows either of them, so the whole control goes
+   * quiet. A record carrying some retired status the list no longer holds is
+   * the one case left open: it has no place in the order, so every stage stays
+   * selectable and it can be put back on the pipeline.
+   */
+  const isForward = (option: string) =>
+    !closed && (stage < 0 || STATUSES.indexOf(option) > stage);
+  const canAdvance = statusOptions.some(isForward);
+
+  const enquiry = splitAppendedFields(String(record["message"] ?? ""));
+  // The form only stores the first service in the column, so the parsed list is
+  // the fuller answer whenever it is there.
+  const interest = enquiry.services || String(record["serviceInterest"] ?? "—");
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -123,26 +185,38 @@ export default function EnquiryDetailPage({ params }: { params: Promise<{ id: st
                 >
                   Status
                 </label>
+                {/* Picking a stage opens the confirmation; the select itself
+                    keeps showing what the lead actually is until the change
+                    has been agreed to and saved. */}
                 <Select
                   id="status"
                   className="w-auto min-w-36"
                   value={status}
-                  disabled={!module.canWrite || busy}
-                  onChange={(event) =>
-                    void act(
-                      () => api.post(`${module.endpoint}/${id}/status`, { status: event.target.value }),
-                      "Status updated.",
-                    )
-                  }
+                  disabled={!module.canWrite || busy || !canAdvance}
+                  onChange={(event) => setPending(event.target.value)}
                 >
                   {statusOptions.map((option) => (
-                    <option key={option} value={option} disabled={!STATUSES.includes(option)}>
+                    <option
+                      key={option}
+                      value={option}
+                      disabled={option !== status && !isForward(option)}
+                    >
                       {humanise(option)}
                     </option>
                   ))}
                 </Select>
               </div>
             </div>
+
+            {/* Said once, next to the control, rather than only inside the
+                dialog that is already too late to be a warning. */}
+            {module.canWrite ? (
+              <p className="-mt-2 mb-4 text-xs text-muted">
+                {closed
+                  ? `This lead is closed as ${humanise(status)}. Its status cannot be changed again.`
+                  : "A lead only moves forward — a stage it has passed cannot be set again."}
+              </p>
+            ) : null}
 
             <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
               <Detail label="Company" value={String(record["company"] ?? "—")} />
@@ -169,9 +243,11 @@ export default function EnquiryDetailPage({ params }: { params: Promise<{ id: st
                   )
                 }
               />
-              <Detail label="Interested in" value={String(record["serviceInterest"] ?? "—")} />
-              <Detail label="Budget" value={humanise(record["budget"] ?? "—")} />
-              <Detail label="Source" value={String(record["source"] ?? "—")} />
+              <Detail label="Interested in" value={interest} />
+              {/* Budget is not shown. The contact form never asks for one, so
+                  the field only ever drew an em dash. */}
+              <Detail label="Source" value={sourceLabel(record["source"])} />
+              {enquiry.industry ? <Detail label="Industry" value={enquiry.industry} /> : null}
               {/* Consent is not shown in the panel any more. The contact form
                   still requires it and still records it against the row — the
                   legal record is intact, it is simply not displayed here. */}
@@ -179,7 +255,9 @@ export default function EnquiryDetailPage({ params }: { params: Promise<{ id: st
 
             <div className="mt-4 border-t border-line-soft pt-4">
               <p className="mb-1 text-xs uppercase tracking-wide text-muted">Message</p>
-              <p className="whitespace-pre-wrap text-sm text-content-soft">{String(record["message"])}</p>
+              <p className="whitespace-pre-wrap text-sm text-content-soft">
+                {enquiry.message || "—"}
+              </p>
             </div>
 
             {/* Replying is the only action on this screen. */}
@@ -235,6 +313,48 @@ export default function EnquiryDetailPage({ params }: { params: Promise<{ id: st
           <HistoryTimeline entries={history} />
         </section>
       </div>
+
+      {/* A status change cannot be undone from this screen, so it is asked
+          about before it happens rather than reported after. The dialog names
+          both ends of the move — a mis-click on a select is easy, and the
+          stage being left is what makes the cost of one legible. */}
+      <Modal
+        open={pending !== null}
+        onClose={() => setPending(null)}
+        title="Change this status?"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setPending(null)} disabled={busy}>
+              Cancel
+            </Button>
+            <Button
+              loading={busy}
+              onClick={() => {
+                const next = pending;
+                if (!next) return;
+                setPending(null);
+                void act(
+                  () => api.post(`${module.endpoint}/${id}/status`, { status: next }),
+                  "Status updated.",
+                );
+              }}
+            >
+              {pending ? `Set to ${humanise(pending)}` : "Confirm"}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-content-soft">
+          Moving <strong className="font-semibold text-content">{String(record["name"])}</strong>{" "}
+          from <strong className="font-semibold text-content">{humanise(status)}</strong> to{" "}
+          <strong className="font-semibold text-content">{humanise(pending ?? "")}</strong>.
+        </p>
+        <p className="mt-2 text-sm text-content-soft">
+          {pending && CLOSED.includes(pending)
+            ? "This closes the lead. Its status cannot be changed after this, and the change is recorded in the status history below."
+            : "A lead only moves forward, so the stages before this one cannot be set again. The change is recorded in the status history below."}
+        </p>
+      </Modal>
     </div>
   );
 }

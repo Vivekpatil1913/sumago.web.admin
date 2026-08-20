@@ -182,17 +182,29 @@ export async function submitApplication(input: ApplicationInput): Promise<Submit
   return post("/api/public/apply", form);
 }
 
-/** Résumé rules, mirroring what the server enforces (PRD §4.4). */
+/**
+ * Résumé rules (PRD §4.4).
+ *
+ * The size cap is deliberately tighter than the server's 5 MB: a CV that needs
+ * more than two megabytes is a scan, not a document, and asking for a smaller
+ * file up front beats a slow upload that the reader then struggles to open.
+ * Being stricter than the server is safe; the server still has the last word.
+ */
 export const RESUME_ACCEPT = ".pdf,.doc,.docx";
-export const RESUME_MAX_BYTES = 5 * 1024 * 1024;
+export const RESUME_MAX_BYTES = 2 * 1024 * 1024;
+/** The cap as people read it — keeps the label and the rule in step. */
+export const RESUME_MAX_LABEL = "2 MB";
 
 /**
  * Check a résumé before uploading it. The server re-checks everything — this
- * only saves the candidate a five-megabyte round trip to be told no.
+ * only saves the candidate a wasted round trip to be told no.
  */
 export function validateResume(file: File | null | undefined): string | null {
   if (!file) return "Attach your CV as a PDF, DOC or DOCX.";
-  if (file.size > RESUME_MAX_BYTES) return "That file is over 5 MB. Please attach a smaller one.";
   if (!/\.(pdf|docx?)$/i.test(file.name)) return "Use a PDF, DOC or DOCX file.";
+  if (file.size > RESUME_MAX_BYTES) {
+    const mb = (file.size / (1024 * 1024)).toFixed(1);
+    return `That file is ${mb} MB — the limit is ${RESUME_MAX_LABEL}. Please attach a smaller one.`;
+  }
   return null;
 }

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, Download, Mail, Phone } from "lucide-react";
 import { api } from "@/lib/admin/api";
 import { errorMessage, useApp, useToast } from "@/lib/admin/app-context";
-import { formatDateTime, humanise, statusTone } from "@/lib/admin/format";
+import { formatDateTime, humanise, sourceLabel, statusTone } from "@/lib/admin/format";
 import {
   Badge,
   Button,
@@ -189,7 +189,7 @@ export default function ApplicationDetailPage({ params }: { params: Promise<{ id
                 }
               />
               <Detail label="Résumé file" value={String(record["resumeFilename"] ?? "—")} />
-              <Detail label="Source" value={String(record["source"] ?? "—")} />
+              <Detail label="Source" value={sourceLabel(record["source"])} />
               {/* Consent is not shown in the panel any more. The apply form
                   still requires it and still records it against the row — the
                   legal record is intact, it is simply not displayed here. */}
